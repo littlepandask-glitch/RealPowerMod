@@ -2,49 +2,14 @@
  "parent": "minecraft:block/block",
  "textures": {
   "particle": "realpower:block/data_node",
-  "body": "realpower:block/data_cable",
+  "v": "realpower:block/data_stripe_v",
+  "h": "realpower:block/data_stripe_h",
   "cap": "realpower:block/data_cable_cap",
-  "node": "realpower:block/data_node",
-  "collar": "realpower:block/data_collar",
-  "plate": "realpower:block/data_port"
+  "node": "realpower:block/data_node"
  },
  "elements": [
   {
    "from": [
-    6.5,
-    6.5,
-    0
-   ],
-   "to": [
-    9.5,
-    9.5,
-    5.5
-   ],
-   "faces": {
-    "north": {
-     "texture": "#cap"
-    },
-    "south": {
-     "texture": "#cap"
-    },
-    "east": {
-     "texture": "#body",
-     "rotation": 90
-    },
-    "west": {
-     "texture": "#body",
-     "rotation": 90
-    },
-    "up": {
-     "texture": "#body"
-    },
-    "down": {
-     "texture": "#body"
-    }
-   }
-  },
-  {
-   "from": [
     6,
     6,
     0
@@ -52,58 +17,62 @@
    "to": [
     10,
     10,
-    1
+    8
    ],
    "faces": {
-    "north": {
-     "texture": "#collar"
-    },
-    "south": {
-     "texture": "#collar"
-    },
-    "east": {
-     "texture": "#collar"
-    },
-    "west": {
-     "texture": "#collar"
-    },
     "up": {
-     "texture": "#collar"
+     "texture": "#v",
+     "uv": [
+      4,
+      0,
+      12,
+      16
+     ]
     },
     "down": {
-     "texture": "#collar"
-    }
-   }
-  },
-  {
-   "from": [
-    6,
-    6,
-    4.5
-   ],
-   "to": [
-    10,
-    10,
-    5.5
-   ],
-   "faces": {
-    "north": {
-     "texture": "#collar"
-    },
-    "south": {
-     "texture": "#collar"
+     "texture": "#v",
+     "uv": [
+      4,
+      0,
+      12,
+      16
+     ]
     },
     "east": {
-     "texture": "#collar"
+     "texture": "#h",
+     "uv": [
+      0,
+      4,
+      16,
+      12
+     ]
     },
     "west": {
-     "texture": "#collar"
+     "texture": "#h",
+     "uv": [
+      0,
+      4,
+      16,
+      12
+     ]
     },
-    "up": {
-     "texture": "#collar"
+    "north": {
+     "texture": "#cap",
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ]
     },
-    "down": {
-     "texture": "#collar"
+    "south": {
+     "texture": "#cap",
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ]
     }
    }
   }
