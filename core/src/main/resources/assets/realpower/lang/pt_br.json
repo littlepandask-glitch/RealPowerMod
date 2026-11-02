@@ -25,5 +25,9 @@
   "menu.realpower.missing": "Blocos faltando: %1$s",
   "menu.realpower.wind": "Vento: %1$s m/s",
   "menu.realpower.power": "Saída: %1$s kW",
-  "menu.realpower.buffer": "Buffer: %1$s%%"
+  "menu.realpower.buffer": "Buffer: %1$s%%",
+  "menu.realpower.autobuild": "Autobuild (usa inventário)",
+  "menu.realpower.autobuild_confirm": "Clique de novo para confirmar",
+  "message.realpower.autobuild.done": "Autobuild: %1$s blocos colocados",
+  "message.realpower.autobuild.failed": "Autobuild: blocos insuficientes"
 }

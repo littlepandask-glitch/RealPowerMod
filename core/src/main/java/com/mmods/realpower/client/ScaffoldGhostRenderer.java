@@ -118,7 +118,8 @@ public final class ScaffoldGhostRenderer {
     /** Lista as posicoes do projeto que ainda nao tem o bloco certo; refeita a cada {@link #REFRESH_TICKS}. */
     private static void refreshCache(ClientLevel level, WindTurbineControllerBlockEntity turbine) {
         long now = level.getGameTime();
-        if (now - turbine.ghostCacheTime() < REFRESH_TICKS && now >= turbine.ghostCacheTime()) {
+        if (turbine.ghostCacheTime() != Long.MIN_VALUE && now >= turbine.ghostCacheTime()
+                && now - turbine.ghostCacheTime() < REFRESH_TICKS) {
             return;
         }
         Direction facing = turbine.getBlockState().getValue(WindTurbineControllerBlock.FACING);

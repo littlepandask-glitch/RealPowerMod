@@ -10,11 +10,14 @@ import net.minecraft.world.entity.player.Inventory;
 /** Tela provisoria do controlador: estado da turbina e botao que liga/desliga o overlay de construcao. */
 public class TurbineScreen extends AbstractContainerScreen<TurbineMenu> {
     private Button overlayButton;
+    private Button autobuildButton;
+    /** Primeiro clique arma, o segundo confirma. */
+    private boolean autobuildArmed;
 
     public TurbineScreen(TurbineMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
         this.imageWidth = 200;
-        this.imageHeight = 130;
+        this.imageHeight = 160;
         this.inventoryLabelY = Integer.MIN_VALUE / 2; // sem inventario do jogador
     }
 
@@ -25,12 +28,29 @@ public class TurbineScreen extends AbstractContainerScreen<TurbineMenu> {
                         minecraft.gameMode.handleInventoryButtonClick(menu.containerId, TurbineMenu.BUTTON_TOGGLE_OVERLAY))
                 .bounds(leftPos + 10, topPos + imageHeight - 30, imageWidth - 20, 20)
                 .build());
+        autobuildButton = addRenderableWidget(Button.builder(Component.empty(), button -> {
+                    if (autobuildArmed) {
+                        autobuildArmed = false;
+                        minecraft.gameMode.handleInventoryButtonClick(menu.containerId, TurbineMenu.BUTTON_AUTOBUILD);
+                    } else {
+                        autobuildArmed = true;
+                    }
+                })
+                .bounds(leftPos + 10, topPos + imageHeight - 56, imageWidth - 20, 20)
+                .build());
     }
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         overlayButton.setMessage(Component.translatable(menu.overlayEnabled()
                 ? "menu.realpower.overlay_on" : "menu.realpower.overlay_off"));
+        boolean can = menu.canAutobuild();
+        if (!can) {
+            autobuildArmed = false;
+        }
+        autobuildButton.active = can;
+        autobuildButton.setMessage(Component.translatable(autobuildArmed
+                ? "menu.realpower.autobuild_confirm" : "menu.realpower.autobuild"));
         super.render(graphics, mouseX, mouseY, partialTick);
         renderTooltip(graphics, mouseX, mouseY);
     }

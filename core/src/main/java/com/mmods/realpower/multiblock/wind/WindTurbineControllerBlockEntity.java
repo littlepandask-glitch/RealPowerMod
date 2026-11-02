@@ -81,6 +81,15 @@ public class WindTurbineControllerBlockEntity extends AbstractGeneratorBlockEnti
         }
     }
 
+    /** Tambem ao chegar por pacote de chunk no cliente, onde onLoad pode nao ocorrer. */
+    @Override
+    public void clearRemoved() {
+        super.clearRemoved();
+        if (level != null && level.isClientSide) {
+            CLIENT_INSTANCES.add(this);
+        }
+    }
+
     @Override
     public void setRemoved() {
         CLIENT_INSTANCES.remove(this);

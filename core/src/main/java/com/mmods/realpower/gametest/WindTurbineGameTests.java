@@ -3,6 +3,7 @@ package com.mmods.realpower.gametest;
 import com.mmods.realpower.RealPower;
 import com.mmods.realpower.api.tier.Tier;
 import com.mmods.realpower.energy.GeneratorBuffer;
+import com.mmods.realpower.multiblock.wind.TurbineAutobuild;
 import com.mmods.realpower.multiblock.wind.TurbineBlueprint;
 import com.mmods.realpower.multiblock.wind.WindStructureBlock;
 import com.mmods.realpower.multiblock.wind.WindTurbineControllerBlock;
@@ -94,6 +95,33 @@ public class WindTurbineGameTests {
         });
         helper.runAfterDelay(SCAN_TICKS * 3 + 100, () -> {
             helper.assertTrue(!formed(helper, fairingPos), "carenagem deveria ser liberada");
+            helper.succeed();
+        });
+    }
+
+    /** Autobuild no criativo constroi o projeto inteiro a partir de so o controlador. */
+    @GameTest(template = "empty", timeoutTicks = 400, batch = "autobuild")
+    public static void autobuildCreativeFormsTurbine(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos controller = helper.absolutePos(new BlockPos(10, 3, 10));
+        level.setBlock(controller, ModBlocks.WIND_TURBINE_CONTROLLER_BASIC.get().defaultBlockState()
+                .setValue(WindTurbineControllerBlock.FACING, Direction.NORTH), 3);
+        for (TurbineBlueprint.Part part : TurbineBlueprint.parts(controller, Direction.NORTH)) {
+            level.getChunk(part.pos()); // o teste precisa dos chunks carregados, como no jogo normal
+        }
+        for (TurbineBlueprint.Part part : TurbineBlueprint.parts(controller, Direction.NORTH)) {
+            if (!level.getBlockState(part.pos()).isAir()) {
+                level.setBlock(part.pos(), Blocks.AIR.defaultBlockState(), 2); // bordas do teste e restos de outros testes grandes
+            }
+        }
+        net.minecraft.world.entity.player.Player player = helper.makeMockPlayer(net.minecraft.world.level.GameType.CREATIVE);
+        player.getAbilities().instabuild = true;
+        helper.assertTrue(TurbineAutobuild.canBuild(player, level, controller, Direction.NORTH), "criativo deveria poder construir");
+        int placed = TurbineAutobuild.build(player, level, controller, Direction.NORTH);
+        helper.assertTrue(placed == TurbineBlueprint.totalBlocks(), "colocados = " + placed);
+        turbine(helper, controller).requestRevalidation();
+        helper.runAfterDelay(SCAN_TICKS, () -> {
+            helper.assertTrue(turbine(helper, controller).isFormed(), "deveria formar apos autobuild");
             helper.succeed();
         });
     }
