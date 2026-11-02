@@ -1,0 +1,144 @@
+package com.mmods.realpower.cable;
+
+import com.mmods.realpower.api.tier.Tier;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.energy.IEnergyStorage;
+
+/**
+ * Um conjunto de cabos conectados. A rede e um pool: fontes (geradores, bancos de capacitores)
+ * empurram energia para dentro pelos cabos e a rede a entrega aos consumidores encostados nela.
+ *
+ * <p>Limites reais simplificados: a vazao por tick e a do cabo mais fraco (o condutor mais fino
+ * limita a corrente) e a perda cresce com o comprimento da linha, aproximado pelo maior vao da rede
+ * (soma das tres dimensoes da caixa que a contem).
+ */
+public final class CableNetwork {
+    /** Perda maxima por transmissao. */
+    private static final double MAX_LOSS = 0.5;
+    /** O buffer da rede cobre alguns ticks de vazao, o bastante para absorver a ordem dos ticks. */
+    private static final long BUFFER_TICKS = 2L;
+
+    private final Set<BlockPos> cables;
+    private final Tier weakestTier;
+    private final long rate;
+    private final long capacity;
+    private final double loss;
+    private final List<BlockCapabilityCache<IEnergyStorage, Direction>> endpoints = new ArrayList<>();
+
+    private long stored;
+    private long acceptedThisTick;
+    private int rotation;
+    private boolean discarded;
+
+    CableNetwork(ServerLevel level, Set<BlockPos> cables, Tier weakestTier, List<BlockPos> endpointPositions,
+                 List<Direction> endpointFaces, long inheritedEnergy) {
+        this.cables = cables;
+        this.weakestTier = weakestTier;
+        this.rate = weakestTier.maxTransferPerTick();
+        this.capacity = rate * BUFFER_TICKS;
+        this.loss = Math.min(MAX_LOSS, weakestTier.lineLossPerBlock() * span(cables));
+        this.stored = Math.min(inheritedEnergy, capacity);
+        for (int i = 0; i < endpointPositions.size(); i++) {
+            endpoints.add(BlockCapabilityCache.create(Capabilities.EnergyStorage.BLOCK, level,
+                    endpointPositions.get(i), endpointFaces.get(i), () -> !discarded, () -> { }));
+        }
+    }
+
+    private static int span(Set<BlockPos> cables) {
+        int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
+        for (BlockPos pos : cables) {
+            minX = Math.min(minX, pos.getX());
+            minY = Math.min(minY, pos.getY());
+            minZ = Math.min(minZ, pos.getZ());
+            maxX = Math.max(maxX, pos.getX());
+            maxY = Math.max(maxY, pos.getY());
+            maxZ = Math.max(maxZ, pos.getZ());
+        }
+        return (maxX - minX) + (maxY - minY) + (maxZ - minZ) + 1;
+    }
+
+    void discard() {
+        discarded = true;
+    }
+
+    long stored() {
+        return stored;
+    }
+
+    public int cableCount() {
+        return cables.size();
+    }
+
+    public Tier weakestTier() {
+        return weakestTier;
+    }
+
+    /** Vazao maxima da rede em FE/tick. */
+    public long rate() {
+        return rate;
+    }
+
+    public long capacity() {
+        return capacity;
+    }
+
+    public long storedEnergy() {
+        return stored;
+    }
+
+    /** Fracao da energia perdida na transmissao (0 a 0,5). */
+    public double loss() {
+        return loss;
+    }
+
+    /** Recebe energia de uma fonte, respeitando a vazao do tick e o espaco no buffer. */
+    int accept(int amount, boolean simulate) {
+        long room = Math.min(rate - acceptedThisTick, capacity - stored);
+        int accepted = (int) Math.max(0L, Math.min(amount, room));
+        if (!simulate) {
+            stored += accepted;
+            acceptedThisTick += accepted;
+        }
+        return accepted;
+    }
+
+    /** Entrega a energia guardada aos consumidores; chamado uma vez por tick, depois de todos os geradores. */
+    void tick() {
+        acceptedThisTick = 0;
+        long budget = Math.min(rate, stored);
+        if (budget <= 0L || endpoints.isEmpty()) {
+            return;
+        }
+        List<IEnergyStorage> sinks = new ArrayList<>();
+        for (BlockCapabilityCache<IEnergyStorage, Direction> endpoint : endpoints) {
+            IEnergyStorage storage = endpoint.getCapability();
+            if (storage != null && storage.canReceive()) {
+                sinks.add(storage);
+            }
+        }
+        double keep = 1.0 - loss;
+        int count = sinks.size();
+        for (int i = 0; i < count && budget > 0L; i++) {
+            // o ponto de partida gira a cada tick para repartir por igual quando a energia e escassa
+            IEnergyStorage sink = sinks.get((i + rotation) % count);
+            long share = budget / (count - i);
+            if (share <= 0L) {
+                share = budget;
+            }
+            int offered = (int) Math.min(Integer.MAX_VALUE, Math.floor(share * keep));
+            int accepted = sink.receiveEnergy(offered, false);
+            long used = Math.min(budget, (long) Math.ceil(accepted / keep));
+            stored -= used;
+            budget -= used;
+        }
+        rotation++;
+    }
+}

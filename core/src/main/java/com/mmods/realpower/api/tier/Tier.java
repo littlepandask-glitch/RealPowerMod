@@ -6,11 +6,11 @@ import net.minecraft.util.StringRepresentable;
 
 /** Tiers de evolucao do mod. Cada tier define eficiencia e taxa maxima de transferencia. */
 public enum Tier implements StringRepresentable {
-    BASIC("basic", 1, 0.50, 512L),
-    INDUSTRIAL("industrial", 2, 0.68, 4_096L),
-    HIGH_VOLTAGE("high_voltage", 3, 0.80, 65_536L),
-    ADVANCED("advanced", 4, 0.90, 1_048_576L),
-    FUTURE("future", 5, 0.97, 16_777_216L);
+    BASIC("basic", 1, 0.50, 512L, 0.0040),
+    INDUSTRIAL("industrial", 2, 0.68, 4_096L, 0.0015),
+    HIGH_VOLTAGE("high_voltage", 3, 0.80, 65_536L, 0.0005),
+    ADVANCED("advanced", 4, 0.90, 1_048_576L, 0.0002),
+    FUTURE("future", 5, 0.97, 16_777_216L, 0.00005);
 
     public static final Codec<Tier> CODEC = StringRepresentable.fromEnum(Tier::values);
 
@@ -18,12 +18,14 @@ public enum Tier implements StringRepresentable {
     private final int level;
     private final double efficiency;
     private final long maxTransferPerTick;
+    private final double lineLossPerBlock;
 
-    Tier(String id, int level, double efficiency, long maxTransferPerTick) {
+    Tier(String id, int level, double efficiency, long maxTransferPerTick, double lineLossPerBlock) {
         this.id = id;
         this.level = level;
         this.efficiency = efficiency;
         this.maxTransferPerTick = maxTransferPerTick;
+        this.lineLossPerBlock = lineLossPerBlock;
     }
 
     @Override
@@ -44,6 +46,11 @@ public enum Tier implements StringRepresentable {
     /** Taxa maxima de transferencia (FE/tick) de cabos e conexoes deste tier. */
     public long maxTransferPerTick() {
         return maxTransferPerTick;
+    }
+
+    /** Fracao da energia perdida por bloco de linha de transmissao deste tier. */
+    public double lineLossPerBlock() {
+        return lineLossPerBlock;
     }
 
     public boolean atLeast(Tier other) {

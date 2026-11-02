@@ -1,6 +1,7 @@
 package com.mmods.realpower.registry;
 
 import com.mmods.realpower.RealPower;
+import com.mmods.realpower.cable.CableBlockEntity;
 import com.mmods.realpower.multiblock.wind.WindTurbineControllerBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -17,6 +18,10 @@ public final class ModBlockEntities {
                     () -> BlockEntityType.Builder.of(WindTurbineControllerBlockEntity::new,
                             ModBlocks.WIND_TURBINE_CONTROLLER_BASIC.get(),
                             ModBlocks.WIND_TURBINE_CONTROLLER_INDUSTRIAL.get()).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CableBlockEntity>> CABLE =
+            BLOCK_ENTITIES.register("cable", () -> BlockEntityType.Builder.of(CableBlockEntity::new,
+                    ModBlocks.CABLE_BASIC.get(), ModBlocks.CABLE_INDUSTRIAL.get()).build(null));
 
     private ModBlockEntities() {
     }

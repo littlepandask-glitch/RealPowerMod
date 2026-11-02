@@ -100,6 +100,13 @@ As receitas usam tags convencionais `c:` (`c:ingots/iron`, `c:ingots/copper`, `c
 que e o padrao do NeoForge. Assim uma biblioteca de unificacao de minerios pode ser adicionada
 depois sem reescrever receitas. O aco do mod e registrado em `c:ingots/steel`.
 
+## Cabos (`cable/`)
+
+- `CableBlock` (tiers BASIC/INDUSTRIAL) conecta nas faces cujo vizinho expoe `Capabilities.EnergyStorage.BLOCK`; o estado das conexoes e recalculado em `neighborChanged` e em um tick agendado apos `onPlace` (trocar o estado dentro de `onPlace` impede o aviso aos vizinhos).
+- `CableNetworks` (por mundo) registra os `CableBlockEntity` carregados e refaz as redes por busca em largura quando algo muda. `CableNetwork` e um pool: geradores empurram energia pela capability do cabo (so recebe), e a cada tick a rede entrega aos consumidores encostados nela.
+- Vazao = a do cabo mais fraco da rede (`Tier.maxTransferPerTick`); buffer = 2 ticks de vazao. Perda = `Tier.lineLossPerBlock` x vao da rede (soma das 3 dimensoes da caixa que a contem), limitada a 50%.
+- Clique direito num cabo mostra tier, cabos, vazao, perda e buffer. Testes: `CableGameTests` (consumidor de teste `TestEnergySink` so existe com gametest ativo).
+
 ## Proximos passos sugeridos
 
 1. API de multibloco (`api/multiblock`): controlador, regras, resultado de validacao.

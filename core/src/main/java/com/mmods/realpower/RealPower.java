@@ -1,5 +1,6 @@
 package com.mmods.realpower;
 
+import com.mmods.realpower.gametest.TestEnergySink;
 import com.mmods.realpower.registry.ModBlockEntities;
 import com.mmods.realpower.registry.ModBlocks;
 import com.mmods.realpower.registry.ModCreativeTabs;
@@ -10,6 +11,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.gametest.GameTestHooks;
 import org.slf4j.Logger;
 
 @Mod(RealPower.MOD_ID)
@@ -31,5 +33,10 @@ public class RealPower {
         event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK,
                 ModBlockEntities.WIND_TURBINE_CONTROLLER.get(),
                 (be, side) -> be.getEnergyOutput());
+        event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ModBlockEntities.CABLE.get(),
+                (be, side) -> be.energyPort());
+        if (GameTestHooks.isGametestEnabled()) {
+            TestEnergySink.register(event);
+        }
     }
 }

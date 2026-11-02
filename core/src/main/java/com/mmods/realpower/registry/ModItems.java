@@ -12,6 +12,8 @@ public final class ModItems {
 
     public static final DeferredItem<BlockItem> TURBINE_BASE = ITEMS.registerSimpleBlockItem(ModBlocks.TURBINE_BASE);
     public static final DeferredItem<BlockItem> TURBINE_CASING = ITEMS.registerSimpleBlockItem(ModBlocks.TURBINE_CASING);
+    public static final DeferredItem<BlockItem> CABLE_BASIC = ITEMS.registerSimpleBlockItem(ModBlocks.CABLE_BASIC);
+    public static final DeferredItem<BlockItem> CABLE_INDUSTRIAL = ITEMS.registerSimpleBlockItem(ModBlocks.CABLE_INDUSTRIAL);
     public static final DeferredItem<BlockItem> INDUSTRIAL_LIGHT = ITEMS.registerSimpleBlockItem(ModBlocks.INDUSTRIAL_LIGHT);
     public static final DeferredItem<BlockItem> ROTOR_FAIRING = ITEMS.registerSimpleBlockItem(ModBlocks.ROTOR_FAIRING);
     public static final DeferredItem<BlockItem> TURBINE_BLADE = ITEMS.registerSimpleBlockItem(ModBlocks.TURBINE_BLADE);

@@ -31,5 +31,8 @@
   "message.realpower.autobuild.done": "Autobuild: %1$s blocos colocados",
   "message.realpower.autobuild.failed": "Autobuild: blocos insuficientes",
   "block.realpower.industrial_light": "Luz Industrial",
-  "kind.realpower.light": "luminárias industriais"
+  "kind.realpower.light": "luminárias industriais",
+  "block.realpower.cable_basic": "Cabo Básico",
+  "block.realpower.cable_industrial": "Cabo Industrial",
+  "message.realpower.cable.info": "Rede: nível %s | %s cabos | máx. %s FE/t | %s%% de perda | %s/%s FE em buffer"
 }

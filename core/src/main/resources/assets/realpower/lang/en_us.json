@@ -31,5 +31,8 @@
   "message.realpower.autobuild.done": "Auto-build: %1$s blocks placed",
   "message.realpower.autobuild.failed": "Auto-build: not enough blocks",
   "block.realpower.industrial_light": "Industrial Light",
-  "kind.realpower.light": "industrial lights"
+  "kind.realpower.light": "industrial lights",
+  "block.realpower.cable_basic": "Basic Cable",
+  "block.realpower.cable_industrial": "Industrial Cable",
+  "message.realpower.cable.info": "Network: %s tier | %s cables | %s FE/t max | %s%% loss | %s/%s FE buffered"
 }

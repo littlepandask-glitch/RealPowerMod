@@ -2,6 +2,7 @@ package com.mmods.realpower.registry;
 
 import com.mmods.realpower.RealPower;
 import com.mmods.realpower.api.tier.Tier;
+import com.mmods.realpower.cable.CableBlock;
 import com.mmods.realpower.multiblock.wind.TurbineCasingBlock;
 import com.mmods.realpower.multiblock.wind.WindStructureBlock;
 import com.mmods.realpower.multiblock.wind.WindTurbineControllerBlock;
@@ -43,6 +44,15 @@ public final class ModBlocks {
         return BLOCKS.registerBlock("wind_turbine_controller_" + tier.getSerializedName(),
                 properties -> new WindTurbineControllerBlock(properties, tier),
                 BlockBehaviour.Properties.of().strength(4.0F, 8.0F).sound(SoundType.METAL));
+    }
+
+    public static final DeferredBlock<CableBlock> CABLE_BASIC = cable(Tier.BASIC);
+    public static final DeferredBlock<CableBlock> CABLE_INDUSTRIAL = cable(Tier.INDUSTRIAL);
+
+    private static DeferredBlock<CableBlock> cable(Tier tier) {
+        return BLOCKS.registerBlock("cable_" + tier.getSerializedName(),
+                properties -> new CableBlock(properties, tier),
+                BlockBehaviour.Properties.of().strength(1.0F, 2.0F).sound(SoundType.METAL).noOcclusion());
     }
 
     private ModBlocks() {
