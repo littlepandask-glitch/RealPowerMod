@@ -1,0 +1,24 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "redstone",
+ "pattern": [
+  "MCM",
+  "MIM",
+  "MCM"
+ ],
+ "key": {
+  "M": {
+   "tag": "c:ingots/netherite"
+  },
+  "C": {
+   "item": "realpower:cable_future"
+  },
+  "I": {
+   "item": "minecraft:iron_block"
+  }
+ },
+ "result": {
+  "id": "realpower:transformer_future",
+  "count": 1
+ }
+}

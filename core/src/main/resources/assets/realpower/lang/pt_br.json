@@ -54,5 +54,9 @@
   "kind.realpower.post": "fustes do poste da turbina",
   "kind.realpower.port": "portas de energia da turbina",
   "block.realpower.pole_structure": "Estrutura de Poste",
-  "block.realpower.tower_structure": "Estrutura de Torre"
+  "block.realpower.tower_structure": "Estrutura de Torre",
+  "block.realpower.transformer_industrial": "Transformador Elevador Industrial",
+  "block.realpower.transformer_high_voltage": "Transformador Elevador de Alta Tensão",
+  "block.realpower.transformer_advanced": "Transformador Elevador Avançado",
+  "block.realpower.transformer_future": "Transformador Elevador Futuro"
 }

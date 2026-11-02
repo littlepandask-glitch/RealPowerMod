@@ -85,6 +85,7 @@ public final class ModBlocks {
             case CABLE, RELAY -> true;
             case POLE -> tier.level() <= Tier.HIGH_VOLTAGE.level();
             case TOWER -> tier.level() >= Tier.HIGH_VOLTAGE.level();
+            case TRANSFORMER -> tier.level() >= Tier.INDUSTRIAL.level();
         };
     }
 

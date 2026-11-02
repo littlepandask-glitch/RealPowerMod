@@ -54,5 +54,9 @@
   "kind.realpower.post": "turbine post blocks",
   "kind.realpower.port": "turbine power ports",
   "block.realpower.pole_structure": "Pole Structure",
-  "block.realpower.tower_structure": "Tower Structure"
+  "block.realpower.tower_structure": "Tower Structure",
+  "block.realpower.transformer_industrial": "Industrial Step-up Transformer",
+  "block.realpower.transformer_high_voltage": "High-Voltage Step-up Transformer",
+  "block.realpower.transformer_advanced": "Advanced Step-up Transformer",
+  "block.realpower.transformer_future": "Future Step-up Transformer"
 }

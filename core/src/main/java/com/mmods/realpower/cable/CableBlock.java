@@ -56,6 +56,7 @@ public class CableBlock extends BaseEntityBlock implements Tiered {
             case RELAY -> Block.box(4, 4, 4, 12, 12, 12);
             case POLE -> Block.box(5.5, 0, 5.5, 10.5, 16, 10.5);
             case TOWER -> Block.box(2, 0, 2, 14, 3, 14);
+            case TRANSFORMER -> Block.box(0, 0, 3, 16, 14, 13);
         };
     }
 

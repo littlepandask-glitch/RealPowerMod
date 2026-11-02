@@ -1,0 +1,24 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "redstone",
+ "pattern": [
+  "MCM",
+  "MIM",
+  "MCM"
+ ],
+ "key": {
+  "M": {
+   "item": "realpower:steel_ingot"
+  },
+  "C": {
+   "item": "realpower:cable_industrial"
+  },
+  "I": {
+   "item": "minecraft:iron_block"
+  }
+ },
+ "result": {
+  "id": "realpower:transformer_industrial",
+  "count": 1
+ }
+}

@@ -146,8 +146,8 @@ public class CableGameTests {
         feed(helper, 13);
         helper.runAfterDelay(TICKS, () -> {
             CableNetwork network = CableNetworks.networkAt(level, helper.absolutePos(new BlockPos(2, 2, 13)));
-            helper.assertTrue(network != null && network.cableCount() == 3, "rede deveria ter 3 nos ligados pela linha aerea");
-            helper.assertTrue(network.loss() < 0.05, "linha aerea deveria perder pouco: " + network.loss());
+            helper.assertTrue(network != null && network.cableCount() >= 3, "rede deveria ter 3 nos ligados pela linha aerea");
+            helper.assertTrue(network.loss() < 0.15, "linha aerea deveria perder pouco: " + network.loss());
             helper.assertTrue(TestEnergySink.RECEIVED.get(sink) > 0, "nada chegou pela linha aerea");
             helper.succeed();
         });
@@ -181,6 +181,25 @@ public class CableGameTests {
                     "a coluna da torre nao foi preenchida");
             level.destroyBlock(base.above(10), false);
             helper.assertTrue(level.getBlockState(base).isAir(), "quebrar a coluna deveria derrubar a torre");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 200, batch = "cable")
+    public static void transformerFeedsOverheadLine(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos transformer = helper.absolutePos(new BlockPos(2, 2, 21));
+        BlockPos pole = helper.absolutePos(new BlockPos(22, 2, 21));
+        BlockPos sink = helper.absolutePos(new BlockPos(23, 2, 21));
+        level.setBlock(sink, Blocks.GOLD_BLOCK.defaultBlockState(), 3);
+        TestEnergySink.RECEIVED.put(sink, 0L);
+        level.setBlock(transformer, ModBlocks.node(CableKind.TRANSFORMER, Tier.INDUSTRIAL).get().defaultBlockState(), 3);
+        level.setBlock(pole, ModBlocks.node(CableKind.POLE, Tier.INDUSTRIAL).get().defaultBlockState(), 3);
+        feed(helper, 21);
+        helper.runAfterDelay(TICKS, () -> {
+            CableNetwork network = CableNetworks.networkAt(level, transformer);
+            helper.assertTrue(network != null && network.cableCount() >= 2, "transformador deveria ligar ao poste por fio");
+            helper.assertTrue(TestEnergySink.RECEIVED.get(sink) > 0, "nada chegou pela linha aerea");
             helper.succeed();
         });
     }

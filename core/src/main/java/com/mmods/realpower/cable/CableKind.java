@@ -12,7 +12,9 @@ public enum CableKind implements StringRepresentable {
     CABLE("cable", 0, 0, 1.0, 1),
     RELAY("relay", 0, 0, 1.0, 1),
     POLE("power_pole", 3, 48, 0.25, 12),
-    TOWER("transmission_tower", 14, 160, 0.08, 36);
+    TOWER("transmission_tower", 14, 160, 0.08, 36),
+    /** Transformador elevador: ponte entre geradores/cabos e a linha aerea; liga-se por fio a postes e torres. */
+    TRANSFORMER("transformer", 3, 48, 0.1, 1);
 
     public static final Codec<CableKind> CODEC = StringRepresentable.fromEnum(CableKind::values);
 

@@ -44,6 +44,9 @@ public class PowerLineRenderer implements BlockEntityRenderer<CableBlockEntity> 
     }
 
     private static double[][] anchors(CableKind kind) {
+        if (kind == CableKind.TRANSFORMER) {
+            return new double[][]{{-0.25, 1.45, 0}, {0, 1.45, 0}, {0.25, 1.45, 0}};
+        }
         return kind == CableKind.TOWER ? PowerStructureModel.towerAnchors(kind.height()) : PowerStructureModel.poleAnchors(kind.height());
     }
 
@@ -68,11 +71,13 @@ public class PowerLineRenderer implements BlockEntityRenderer<CableBlockEntity> 
         BlockPos from = cable.getBlockPos();
         int lightTop = LevelRenderer.getLightColor(cable.getLevel(), from.above(cable.kind().height()));
 
-        pose.pushPose();
-        pose.translate(0.5, 0.0, 0.5);
-        pose.mulPose(Axis.YP.rotationDegrees(yaw(cable)));
-        draw(meshFor(cable), pose, buffers.getBuffer(RenderType.entityCutoutNoCull(TEXTURE)), lightTop);
-        pose.popPose();
+        if (cable.kind() != CableKind.TRANSFORMER) { // o transformador e um modelo de bloco; so os fios sao desenhados
+            pose.pushPose();
+            pose.translate(0.5, 0.0, 0.5);
+            pose.mulPose(Axis.YP.rotationDegrees(yaw(cable)));
+            draw(meshFor(cable), pose, buffers.getBuffer(RenderType.entityCutoutNoCull(TEXTURE)), lightTop);
+            pose.popPose();
+        }
 
         if (cable.links().isEmpty()) {
             return;

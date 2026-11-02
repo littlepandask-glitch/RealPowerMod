@@ -24,6 +24,10 @@
   "realpower:cable_future",
   "realpower:relay_future",
   "realpower:transmission_tower_future",
-  "realpower:turbine_power_port"
+  "realpower:turbine_power_port",
+  "realpower:transformer_industrial",
+  "realpower:transformer_high_voltage",
+  "realpower:transformer_advanced",
+  "realpower:transformer_future"
  ]
 }
