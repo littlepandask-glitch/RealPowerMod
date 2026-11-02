@@ -43,6 +43,8 @@ public final class TurbineBlueprint {
     public static final int NACELLE_BACK = -6;
     public static final int NACELLE_FRONT = 8;
     public static final int NACELLE_HALF_WIDTH = 4;
+    /** Escotilha do piso da nacele: blocos com u^2 + v^2 ate este valor ficam vazados. */
+    public static final int HATCH_RADIUS_SQ = 7;
     public static final int NACELLE_FLOOR = TOWER_HEIGHT + 1;
     public static final int NACELLE_ROOF = NACELLE_FLOOR + 6;
     /** Altura do centro do cubo do rotor acima do controlador. */
@@ -133,7 +135,7 @@ public final class TurbineBlueprint {
                 for (int y = NACELLE_FLOOR; y <= NACELLE_ROOF; y++) {
                     boolean shell = u == NACELLE_BACK || u == NACELLE_FRONT || Math.abs(v) == NACELLE_HALF_WIDTH
                             || y == NACELLE_FLOOR || y == NACELLE_ROOF;
-                    boolean hatch = y == NACELLE_FLOOR && u * u + v * v <= 7;
+                    boolean hatch = y == NACELLE_FLOOR && u * u + v * v <= HATCH_RADIUS_SQ;
                     if (shell && !hatch) {
                         put(cells, order, new Local(u, v, y, Kind.CASING));
                     }

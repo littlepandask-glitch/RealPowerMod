@@ -14,6 +14,8 @@ import java.util.function.Consumer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.MenuProvider;
@@ -121,25 +123,41 @@ public class WindTurbineControllerBlockEntity extends AbstractGeneratorBlockEnti
         if (marked && markedFacing != facing) {
             releaseStructure();
         }
+        boolean fresh = !marked;
         marked = true;
         markedFacing = facing;
-        forEachRotorBlock(pos -> setPartFormed(pos, true));
+        forEachFormedBlock(pos -> setPartFormed(pos, true));
+        if (fresh) {
+            celebrate(facing);
+        }
     }
 
     /** Devolve carenagem e helices ao aspecto normal (estrutura desfeita ou controlador removido). */
     public void releaseStructure() {
         if (marked) {
-            forEachRotorBlock(pos -> setPartFormed(pos, false));
+            forEachFormedBlock(pos -> setPartFormed(pos, false));
             marked = false;
         }
     }
 
-    private void forEachRotorBlock(Consumer<BlockPos> action) {
+    /** Tudo que vira modelo 3D: corpo, nacele, carenagem e helices (a base continua sendo bloco). */
+    private void forEachFormedBlock(Consumer<BlockPos> action) {
         for (TurbineBlueprint.Part part : TurbineBlueprint.parts(getBlockPos(), markedFacing)) {
-            if (part.kind() == TurbineBlueprint.Kind.FAIRING || part.kind() == TurbineBlueprint.Kind.BLADE) {
+            if (part.kind() != TurbineBlueprint.Kind.BASE) {
                 action.accept(part.pos());
             }
         }
+    }
+
+    /** Efeito leve ao completar a estrutura: faiscas no controlador e no cubo do rotor. */
+    private void celebrate(Direction facing) {
+        if (!(level instanceof ServerLevel server)) {
+            return;
+        }
+        BlockPos pos = getBlockPos();
+        server.sendParticles(ParticleTypes.END_ROD, pos.getX() + 0.5, pos.getY() + 1.2, pos.getZ() + 0.5, 14, 0.5, 0.6, 0.5, 0.03);
+        BlockPos hub = pos.relative(facing, TurbineBlueprint.HUB_U + 3).above(TurbineBlueprint.HUB_Y);
+        server.sendParticles(ParticleTypes.END_ROD, hub.getX() + 0.5, hub.getY() + 0.5, hub.getZ() + 0.5, 14, 1.5, 1.5, 1.5, 0.03);
     }
 
     private void setPartFormed(BlockPos pos, boolean value) {

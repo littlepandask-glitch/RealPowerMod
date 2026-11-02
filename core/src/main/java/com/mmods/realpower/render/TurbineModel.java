@@ -33,6 +33,121 @@ public final class TurbineModel {
                             double rootRadius, double tipRadius) {
     }
 
+    /**
+     * Dimensoes do corpo e da nacele em metros, relativas ao centro do bloco do controlador
+     * (x = lateral, y = altura, z = para tras; o rotor aponta para -z).
+     */
+    public record StructureSpec(double towerOuterBottom, double towerOuterTop, int towerHeight, double wall,
+                                double doorHalfWidth, double doorHeight, int nacelleBack, int nacelleFront,
+                                int nacelleHalfWidth, int nacelleFloor, int nacelleRoof, int hatchRadiusSq) {
+    }
+
+    private static final float[] TOWER_PAINT = {0.90f, 0.91f, 0.92f};
+    private static final float[] INNER_PAINT = {0.66f, 0.68f, 0.70f};
+    private static final int TOWER_SEGMENTS = 48;
+
+    /** Corpo oco (parede dupla, porta atras) e nacele em casca com escotilha no piso. */
+    public static Mesh buildStructure(StructureSpec s) {
+        Mesh.Builder b = new Mesh.Builder();
+        double top = s.towerHeight() + 0.5;
+        double doorTop = s.doorHeight() + 0.5;
+        double[] bands = {0.5, doorTop, top};
+        for (int band = 0; band + 1 < bands.length; band++) {
+            double y0 = bands[band];
+            double y1 = bands[band + 1];
+            double r0 = outerRadius(s, y0);
+            double r1 = outerRadius(s, y1);
+            for (int i = 0; i < TOWER_SEGMENTS; i++) {
+                double a0 = 2.0 * Math.PI * i / TOWER_SEGMENTS;
+                double a1 = 2.0 * Math.PI * (i + 1) / TOWER_SEGMENTS;
+                double mx = Math.sin((a0 + a1) / 2.0);
+                double mz = Math.cos((a0 + a1) / 2.0);
+                if (band == 0 && mz > 0 && Math.abs(mx * r0) < s.doorHalfWidth()) {
+                    continue; // vao da porta
+                }
+                double ym = (y0 + y1) / 2.0;
+                b.quad(ring(a0, r0, y0), ring(a1, r0, y0), ring(a1, r1, y1), ring(a0, r1, y1), new Vec(0, ym, 0), TOWER_PAINT);
+                double i0 = r0 - s.wall();
+                double i1 = r1 - s.wall();
+                b.quad(ring(a0, i0, y0), ring(a1, i0, y0), ring(a1, i1, y1), ring(a0, i1, y1),
+                        new Vec(mx * 50, ym, mz * 50), INNER_PAINT);
+            }
+        }
+
+        // nacele: casca de 1 bloco de espessura (x lateral, z para tras, u = -z)
+        double xo = s.nacelleHalfWidth() + 0.45;
+        double xi = s.nacelleHalfWidth() - 0.55;
+        double zBack = s.nacelleBack() + 0.45;
+        double zFront = -(s.nacelleFront() + 0.45);
+        double zBackIn = s.nacelleBack() - 0.55;
+        double zFrontIn = -(s.nacelleFront() - 0.55);
+        double yFloor = s.nacelleFloor() - 0.5;
+        double yFloorTop = s.nacelleFloor() + 0.5;
+        double yRoof = s.nacelleRoof() + 0.5;
+        double yRoofIn = s.nacelleRoof() - 0.5;
+        double yMid = (yFloor + yRoof) / 2.0;
+        Vec center = new Vec(0, yMid, (zBack + zFront) / 2.0);
+
+        // paredes externas e teto
+        b.quad(new Vec(-xo, yFloor, zFront), new Vec(xo, yFloor, zFront), new Vec(xo, yRoof, zFront), new Vec(-xo, yRoof, zFront), center, TOWER_PAINT);
+        b.quad(new Vec(-xo, yFloor, zBack), new Vec(xo, yFloor, zBack), new Vec(xo, yRoof, zBack), new Vec(-xo, yRoof, zBack), center, TOWER_PAINT);
+        b.quad(new Vec(-xo, yFloor, zFront), new Vec(-xo, yFloor, zBack), new Vec(-xo, yRoof, zBack), new Vec(-xo, yRoof, zFront), center, TOWER_PAINT);
+        b.quad(new Vec(xo, yFloor, zFront), new Vec(xo, yFloor, zBack), new Vec(xo, yRoof, zBack), new Vec(xo, yRoof, zFront), center, TOWER_PAINT);
+        b.quad(new Vec(-xo, yRoof, zFront), new Vec(xo, yRoof, zFront), new Vec(xo, yRoof, zBack), new Vec(-xo, yRoof, zBack), center, TOWER_PAINT);
+        // paredes internas e forro (normais para dentro)
+        double zIn = (zBackIn + zFrontIn) / 2.0;
+        double yIn = (yFloorTop + yRoofIn) / 2.0;
+        b.quad(new Vec(-xi, yFloorTop, zFrontIn), new Vec(xi, yFloorTop, zFrontIn), new Vec(xi, yRoofIn, zFrontIn), new Vec(-xi, yRoofIn, zFrontIn), new Vec(0, yIn, zIn - 1000), INNER_PAINT);
+        b.quad(new Vec(-xi, yFloorTop, zBackIn), new Vec(xi, yFloorTop, zBackIn), new Vec(xi, yRoofIn, zBackIn), new Vec(-xi, yRoofIn, zBackIn), new Vec(0, yIn, zIn + 1000), INNER_PAINT);
+        b.quad(new Vec(-xi, yFloorTop, zFrontIn), new Vec(-xi, yFloorTop, zBackIn), new Vec(-xi, yRoofIn, zBackIn), new Vec(-xi, yRoofIn, zFrontIn), new Vec(-1000, yIn, zIn), INNER_PAINT);
+        b.quad(new Vec(xi, yFloorTop, zFrontIn), new Vec(xi, yFloorTop, zBackIn), new Vec(xi, yRoofIn, zBackIn), new Vec(xi, yRoofIn, zFrontIn), new Vec(1000, yIn, zIn), INNER_PAINT);
+        b.quad(new Vec(-xi, yRoofIn, zFrontIn), new Vec(xi, yRoofIn, zFrontIn), new Vec(xi, yRoofIn, zBackIn), new Vec(-xi, yRoofIn, zBackIn), new Vec(0, yIn - 1000, zIn), INNER_PAINT);
+
+        // piso em celulas de 1 bloco, com a escotilha vazada (u = -z, v = x)
+        int hs = s.hatchRadiusSq();
+        for (int u = -s.nacelleBack(); u <= s.nacelleFront(); u++) {
+            for (int v = -s.nacelleHalfWidth(); v <= s.nacelleHalfWidth(); v++) {
+                if (hatch(u, v, hs)) {
+                    continue;
+                }
+                double x0 = v - 0.5;
+                double x1 = v + 0.5;
+                double z0 = -u - 0.5;
+                double z1 = -u + 0.5;
+                Vec mid = new Vec(v, (yFloor + yFloorTop) / 2.0, -u);
+                b.quad(new Vec(x0, yFloor, z0), new Vec(x1, yFloor, z0), new Vec(x1, yFloor, z1), new Vec(x0, yFloor, z1), new Vec(v, yFloorTop + 5, -u), TOWER_PAINT);
+                b.quad(new Vec(x0, yFloorTop, z0), new Vec(x1, yFloorTop, z0), new Vec(x1, yFloorTop, z1), new Vec(x0, yFloorTop, z1), new Vec(v, yFloor - 5, -u), INNER_PAINT);
+                // borda da escotilha
+                if (hatch(u, v + 1, hs)) {
+                    b.quad(new Vec(x1, yFloor, z0), new Vec(x1, yFloor, z1), new Vec(x1, yFloorTop, z1), new Vec(x1, yFloorTop, z0), mid, INNER_PAINT);
+                }
+                if (hatch(u, v - 1, hs)) {
+                    b.quad(new Vec(x0, yFloor, z0), new Vec(x0, yFloor, z1), new Vec(x0, yFloorTop, z1), new Vec(x0, yFloorTop, z0), mid, INNER_PAINT);
+                }
+                if (hatch(u + 1, v, hs)) {
+                    b.quad(new Vec(x0, yFloor, z0), new Vec(x1, yFloor, z0), new Vec(x1, yFloorTop, z0), new Vec(x0, yFloorTop, z0), mid, INNER_PAINT);
+                }
+                if (hatch(u - 1, v, hs)) {
+                    b.quad(new Vec(x0, yFloor, z1), new Vec(x1, yFloor, z1), new Vec(x1, yFloorTop, z1), new Vec(x0, yFloorTop, z1), mid, INNER_PAINT);
+                }
+            }
+        }
+        return b.build();
+    }
+
+    private static boolean hatch(int u, int v, int radiusSq) {
+        return u * u + v * v <= radiusSq;
+    }
+
+    private static double outerRadius(StructureSpec s, double y) {
+        return s.towerOuterBottom() + (s.towerOuterTop() - s.towerOuterBottom()) * (y - 1.0) / (s.towerHeight() - 1.0) - 0.1;
+    }
+
+    /** Ponto do anel de angulo {@code a} (0 = +z, atras) e raio {@code r}. */
+    private static Vec ring(double a, double r, double y) {
+        return new Vec(Math.sin(a) * r, y, Math.cos(a) * r);
+    }
+
     private TurbineModel() {
     }
 

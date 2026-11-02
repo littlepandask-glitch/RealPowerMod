@@ -33,6 +33,12 @@ public class WindTurbineRenderer implements BlockEntityRenderer<WindTurbineContr
             TurbineBlueprint.BLADE_ROOT,
             TurbineBlueprint.BLADE_LENGTH + 0.5);
 
+    private static final TurbineModel.StructureSpec STRUCTURE = new TurbineModel.StructureSpec(
+            TurbineBlueprint.TOWER_BASE_RADIUS + 0.5, TurbineBlueprint.TOWER_TOP_RADIUS + 0.5,
+            TurbineBlueprint.TOWER_HEIGHT, 1.5, 1.5, 3.0,
+            -TurbineBlueprint.NACELLE_BACK, TurbineBlueprint.NACELLE_FRONT, TurbineBlueprint.NACELLE_HALF_WIDTH,
+            TurbineBlueprint.NACELLE_FLOOR, TurbineBlueprint.NACELLE_ROOF, TurbineBlueprint.HATCH_RADIUS_SQ);
+
     @Override
     public void render(WindTurbineControllerBlockEntity turbine, float partialTick, PoseStack poseStack,
                        MultiBufferSource buffer, int packedLight, int packedOverlay) {
@@ -57,6 +63,13 @@ public class WindTurbineRenderer implements BlockEntityRenderer<WindTurbineContr
         poseStack.translate(0.0, TurbineBlueprint.HUB_Y, -TurbineBlueprint.HUB_U);
         poseStack.mulPose(Axis.ZP.rotation((float) angle));
         draw(turbine.renderState().rotorMesh(ROTOR), poseStack, consumer, light);
+        poseStack.popPose();
+
+        // corpo e nacele: mesmo referencial do controlador (x = lateral, z = para tras)
+        poseStack.pushPose();
+        poseStack.translate(0.5, 0.5, 0.5);
+        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - facing.toYRot()));
+        draw(turbine.renderState().structureMesh(STRUCTURE), poseStack, consumer, light);
         poseStack.popPose();
     }
 

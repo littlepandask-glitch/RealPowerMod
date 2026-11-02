@@ -17,8 +17,9 @@ public final class ModBlocks {
     public static final DeferredBlock<Block> TURBINE_BASE = BLOCKS.registerBlock("turbine_base", Block::new,
             BlockBehaviour.Properties.of().strength(5.0F, 9.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
 
-    public static final DeferredBlock<Block> TURBINE_CASING = BLOCKS.registerBlock("turbine_casing", Block::new,
-            BlockBehaviour.Properties.of().strength(3.0F, 6.0F).sound(SoundType.METAL).requiresCorrectToolForDrops());
+    public static final DeferredBlock<WindStructureBlock> TURBINE_CASING = BLOCKS.registerBlock("turbine_casing",
+            properties -> new WindStructureBlock(properties, true),
+            BlockBehaviour.Properties.of().strength(3.0F, 6.0F).sound(SoundType.METAL).requiresCorrectToolForDrops().noOcclusion());
 
     public static final DeferredBlock<WindStructureBlock> ROTOR_FAIRING = BLOCKS.registerBlock("rotor_fairing",
             properties -> new WindStructureBlock(properties, false),

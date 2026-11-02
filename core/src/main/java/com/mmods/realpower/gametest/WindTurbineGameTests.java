@@ -74,6 +74,7 @@ public class WindTurbineGameTests {
             helper.assertTrue(be.powerWatts() > 0.0, "potencia = " + be.powerWatts());
             helper.assertTrue(be.storedEnergy() <= be.bufferCapacity(), "buffer acima da capacidade");
             helper.assertTrue(formed(helper, fairingPos), "carenagem deveria estar formada");
+            helper.assertTrue(formed(helper, casingPos), "corpo deveria estar formado");
 
             // tirar um bloco do corpo desfaz a estrutura
             level.setBlock(casingPos, Blocks.AIR.defaultBlockState(), 3);

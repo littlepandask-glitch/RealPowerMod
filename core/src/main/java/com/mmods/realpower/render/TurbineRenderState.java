@@ -22,6 +22,16 @@ public final class TurbineRenderState {
         return rotorMesh;
     }
 
+    private Mesh structureMesh;
+
+    /** Corpo e nacele: estaticos, gerados uma vez. */
+    public Mesh structureMesh(TurbineModel.StructureSpec wanted) {
+        if (structureMesh == null) {
+            structureMesh = TurbineModel.buildStructure(wanted);
+        }
+        return structureMesh;
+    }
+
     /**
      * Avanca o rotor ate {@code timeTicks} (tempo de jogo com parte fracionaria) e devolve o angulo em radianos.
      *

@@ -1,1 +1,1 @@
-{"variants":{"":{"model":"realpower:block/turbine_casing"}}}
+{"variants":{"formed=false":{"model":"realpower:block/turbine_casing"},"formed=true":{"model":"realpower:block/formed_empty"}}}
