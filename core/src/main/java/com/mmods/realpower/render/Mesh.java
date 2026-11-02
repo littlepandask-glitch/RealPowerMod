@@ -11,11 +11,14 @@ public final class Mesh {
     public final float[] positions;
     public final float[] normals;
     public final float[] colors;
+    /** Por quad: brilha (luz maxima, independente do ambiente), como LEDs e conectores. */
+    public final boolean[] emissive;
 
-    private Mesh(float[] positions, float[] normals, float[] colors) {
+    private Mesh(float[] positions, float[] normals, float[] colors, boolean[] emissive) {
         this.positions = positions;
         this.normals = normals;
         this.colors = colors;
+        this.emissive = emissive;
     }
 
     public int quadCount() {
@@ -25,6 +28,12 @@ public final class Mesh {
     /** Acumula quads; a normal de cada um e orientada para longe do ponto interno informado. */
     static final class Builder {
         private final List<float[]> quads = new ArrayList<>();
+        private boolean glow;
+
+        /** Os quads acrescentados a seguir passam a brilhar (ou deixam de). */
+        void glow(boolean on) {
+            glow = on;
+        }
 
         void quad(Vec a, Vec b, Vec c, Vec d, Vec inside, float[] rgb) {
             Vec normal = c.sub(a).cross(d.sub(b)).normalized();
@@ -38,7 +47,7 @@ public final class Mesh {
                     (float) c.x(), (float) c.y(), (float) c.z(),
                     (float) d.x(), (float) d.y(), (float) d.z(),
                     (float) normal.x(), (float) normal.y(), (float) normal.z(),
-                    rgb[0], rgb[1], rgb[2]
+                    rgb[0], rgb[1], rgb[2], glow ? 1.0F : 0.0F
             });
         }
 
@@ -94,13 +103,15 @@ public final class Mesh {
             float[] positions = new float[n * 12];
             float[] normals = new float[n * 3];
             float[] colors = new float[n * 3];
+            boolean[] emissive = new boolean[n];
             for (int i = 0; i < n; i++) {
                 float[] q = quads.get(i);
                 System.arraycopy(q, 0, positions, i * 12, 12);
                 System.arraycopy(q, 12, normals, i * 3, 3);
                 System.arraycopy(q, 15, colors, i * 3, 3);
+                emissive[i] = q[18] > 0.5F;
             }
-            return new Mesh(positions, normals, colors);
+            return new Mesh(positions, normals, colors, emissive);
         }
     }
 }

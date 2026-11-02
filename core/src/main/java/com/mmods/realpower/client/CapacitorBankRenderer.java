@@ -2,6 +2,7 @@ package com.mmods.realpower.client;
 
 import com.mmods.realpower.RealPower;
 import com.mmods.realpower.api.tier.Tier;
+import com.mmods.realpower.render.IndustrialStyle;
 import com.mmods.realpower.render.Mesh;
 import com.mmods.realpower.render.PowerStructureModel;
 import com.mmods.realpower.storage.CapacitorBankBlock;
@@ -22,11 +23,6 @@ public class CapacitorBankRenderer implements BlockEntityRenderer<CapacitorBankB
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(RealPower.MOD_ID, "textures/entity/wind_turbine.png");
     private static final int STEPS = 20;
-    private static final Map<Tier, float[]> ACCENT = Map.of(
-            Tier.BASIC, new float[]{0.27f, 0.78f, 1.0f}, Tier.INDUSTRIAL, new float[]{0.35f, 0.92f, 0.47f},
-            Tier.HIGH_VOLTAGE, new float[]{1.0f, 0.84f, 0.24f}, Tier.ADVANCED, new float[]{1.0f, 0.55f, 0.16f},
-            Tier.FUTURE, new float[]{0.92f, 0.35f, 1.0f});
-
     private static final Map<Long, Mesh> MESHES = new HashMap<>();
 
     @Override
@@ -39,7 +35,7 @@ public class CapacitorBankRenderer implements BlockEntityRenderer<CapacitorBankB
         Tier tier = block.tier();
         Mesh mesh = MESHES.computeIfAbsent((long) tier.ordinal() * (STEPS + 1) + step, key -> {
             int[] size = CapacitorBankBlock.size(tier);
-            return PowerStructureModel.capacitorBank(size[0], size[1], size[2], step, STEPS, ACCENT.get(tier));
+            return PowerStructureModel.capacitorBank(size[0], size[1], size[2], step, STEPS, IndustrialStyle.palette(tier.ordinal()));
         });
         int lit = LevelRenderer.getLightColor(bank.getLevel(), bank.getBlockPos().above());
         pose.pushPose();

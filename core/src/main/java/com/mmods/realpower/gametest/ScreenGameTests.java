@@ -2,7 +2,11 @@ package com.mmods.realpower.gametest;
 
 import com.mmods.realpower.RealPower;
 import com.mmods.realpower.computer.ComputerSnapshot;
+import com.mmods.realpower.api.tier.Tier;
 import com.mmods.realpower.registry.ModBlocks;
+import com.mmods.realpower.storage.CapacitorBankBlock;
+import com.mmods.realpower.storage.CapacitorBankBlockEntity;
+import net.minecraft.server.level.ServerLevel;
 import com.mmods.realpower.screen.ScreenBlock;
 import com.mmods.realpower.screen.ScreenBlockEntity;
 import com.mmods.realpower.screen.ScreenGroup;
@@ -15,7 +19,6 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -88,6 +91,25 @@ public final class ScreenGameTests {
         be.click(group, 5, 4);
         helper.assertTrue(be.page() == ScreenLayout.PAGE_OVERVIEW, "voltou a visao geral: " + be.page());
         helper.succeed();
+    }
+
+    /** Sem computador, a tela colada num multibloco funcional mostra os dados dele. */
+    @GameTest(template = "empty", timeoutTicks = 100, batch = "screen")
+    public static void screenNextToMachineShowsItsData(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos base = helper.absolutePos(new BlockPos(6, 2, 6));
+        level.setBlock(base, ModBlocks.CAPACITOR_BANKS.get(Tier.BASIC).get().defaultBlockState()
+                .setValue(CapacitorBankBlock.FACING, Direction.NORTH), 3);
+        ((CapacitorBankBlockEntity) level.getBlockEntity(base)).setStoredEnergy(500L);
+        BlockPos screen = base.west(2);
+        level.setBlock(screen, screen(Direction.WEST), 3);
+        ScreenBlockEntity be = (ScreenBlockEntity) level.getBlockEntity(screen);
+        helper.runAfterDelay(ScreenBlockEntity.UPDATE_INTERVAL + 5, () -> {
+            ComputerSnapshot snapshot = be.snapshot();
+            helper.assertTrue(snapshot != null && snapshot.devices().size() == 1, "tela devia listar a maquina: " + snapshot);
+            helper.assertTrue(snapshot.devices().get(0).stored() == 500L, "armazenado = " + snapshot.devices().get(0).stored());
+            helper.succeed();
+        });
     }
 
     /** O retrato sobrevive a ida e volta pelo codec de rede. */

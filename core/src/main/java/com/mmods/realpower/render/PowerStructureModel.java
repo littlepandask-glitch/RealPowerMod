@@ -79,54 +79,85 @@ public final class PowerStructureModel {
     // ---------- banco de capacitores ----------
 
     /**
-     * Galpao de baterias de w x d x h m (centro da base na origem, frente em -z): soleira de concreto, gabinete com
-     * nervuras, barras de LED na frente que acendem {@code lit} de {@code segments} segmentos e uma porta de energia
-     * visivel no chao no centro de cada face lateral.
+     * Banco de capacitores de w x d x h m (centro da base na origem, frente em -z): estrutura de chapas com cantos
+     * luminosos, cilindros de capacitores visiveis, painel de controle com raio e barras de LED na frente que acendem
+     * conforme {@code lit} de {@code segments}, e uma porta de energia visivel no chao no centro de cada face lateral.
      */
-    public static Mesh capacitorBank(int w, int d, int h, int lit, int segments, float[] accent) {
+    public static Mesh capacitorBank(int w, int d, int h, int lit, int segments, IndustrialStyle.Palette p) {
         Mesh.Builder b = new Mesh.Builder();
-        double bodyH = h - 0.3;
-        double halfW = w / 2.0;
-        double halfD = d / 2.0;
-        b.box(v(0, 0.15, 0), w, 0.3, d, CONCRETE);
-        b.box(v(0, 0.3 + bodyH / 2, 0), w - 0.2, bodyH, d - 0.2, DARK);
-        b.box(v(0, h + 0.04, 0), w - 0.1, 0.08, d - 0.1, STEEL);
-        // nervuras verticais nas quatro faces
-        for (double x = -halfW + 0.7; x < halfW - 0.5; x += 0.8) {
-            b.box(v(x, 0.3 + bodyH / 2, -halfD + 0.06), 0.12, bodyH, 0.08, STEEL);
-            b.box(v(x, 0.3 + bodyH / 2, halfD - 0.06), 0.12, bodyH, 0.08, STEEL);
-        }
-        for (double z = -halfD + 0.7; z < halfD - 0.5; z += 0.8) {
-            b.box(v(-halfW + 0.06, 0.3 + bodyH / 2, z), 0.08, bodyH, 0.12, STEEL);
-            b.box(v(halfW - 0.06, 0.3 + bodyH / 2, z), 0.08, bodyH, 0.12, STEEL);
-        }
-        // respiros no teto
-        for (double x = -halfW + 0.9; x < halfW - 0.8; x += 1.0) {
-            b.box(v(x, h + 0.14, 0), 0.5, 0.12, d - 1.2, DARK);
-        }
-        // barras de LED na frente (-z): fundo escuro e segmentos acesos de baixo para cima
-        double barBottom = 1.2;
-        double barTop = h - 0.3;
-        double segmentH = 0.2;
-        int total = Math.max(1, (int) Math.floor((barTop - barBottom) / segmentH));
-        float[] off = {0.14f, 0.16f, 0.2f};
-        for (double x = -halfW + 1.0; x < halfW - 0.8; x += 1.0) {
-            b.box(v(x, (barBottom + barTop) / 2, -halfD + 0.02), 0.34, barTop - barBottom + 0.1, 0.05, STEEL);
-            for (int i = 0; i < total; i++) {
-                boolean on = i * segments < lit * total;
-                b.box(v(x, barBottom + segmentH * (i + 0.5), -halfD - 0.01), 0.22, segmentH - 0.05, 0.03, on ? accent : off);
+        float[] plate = p.plate();
+        float[] shade = p.shade();
+        double hw = w / 2.0;
+        double hd = d / 2.0;
+        double railY = h - 0.1;
+        b.box(v(0, 0.15, 0), w, 0.3, d, plate);
+        b.box(v(0, 0.33, 0), w - 0.3, 0.06, d - 0.3, shade);
+        for (int sx = -1; sx <= 1; sx += 2) {
+            for (int sz = -1; sz <= 1; sz += 2) {
+                double x = sx * (hw - 0.15);
+                double z = sz * (hd - 0.15);
+                b.beam(v(x, 0.3, z), v(x, railY, z), 0.22, plate);
+                IndustrialStyle.node(b, v(x, railY + 0.12, z), 0.3, p);
+                IndustrialStyle.node(b, v(x, 0.5, z), 0.3, p);
             }
         }
-        // portas de energia nas quatro faces laterais, no nivel do chao
+        for (int sz = -1; sz <= 1; sz += 2) {
+            b.beam(v(-(hw - 0.15), railY, sz * (hd - 0.15)), v(hw - 0.15, railY, sz * (hd - 0.15)), 0.16, shade);
+        }
+        for (int sx = -1; sx <= 1; sx += 2) {
+            double x = sx * (hw - 0.15);
+            b.beam(v(x, railY, -(hd - 0.15)), v(x, railY, hd - 0.15), 0.16, shade);
+            b.beam(v(x, 0.5, -(hd - 0.15)), v(x, railY, hd - 0.15), 0.08, IndustrialStyle.STEEL);
+            b.beam(v(x, 0.5, hd - 0.15), v(x, railY, -(hd - 0.15)), 0.08, IndustrialStyle.STEEL);
+        }
+        // cilindros dos capacitores
+        int cols = Math.max(1, (int) Math.floor((w - 0.6) / 0.95));
+        int rows = Math.max(1, (int) Math.floor((d - 0.6) / 0.95));
+        double pitchX = (w - 0.8) / cols;
+        double pitchZ = (d - 0.8) / rows;
+        double radius = Math.min(0.4, Math.min(pitchX, pitchZ) * 0.42);
+        for (int i = 0; i < cols; i++) {
+            for (int j = 0; j < rows; j++) {
+                double x = -(w - 0.8) / 2 + pitchX * (i + 0.5);
+                double z = -(d - 0.8) / 2 + pitchZ * (j + 0.5);
+                IndustrialStyle.cylinder(b, x, z, 0.4, h - 0.3, radius, IndustrialStyle.TANK);
+                IndustrialStyle.cylinder(b, x, z, 0.62, 0.72, radius + 0.02, IndustrialStyle.DARK);
+                IndustrialStyle.cylinder(b, x, z, h - 0.55, h - 0.45, radius + 0.02, IndustrialStyle.DARK);
+                IndustrialStyle.cylinder(b, x, z, h - 0.3, h - 0.2, radius * 0.7, IndustrialStyle.DARK);
+            }
+        }
+        // painel de controle na frente, acima da porta
+        double zf = -hd + 0.05;
+        b.box(v(0, 1.38, zf), 1.0, 0.84, 0.16, plate);
+        b.box(v(0, 1.38, zf - 0.07), 0.88, 0.72, 0.06, IndustrialStyle.SCREEN);
+        IndustrialStyle.bolt(b, 0, 1.52, -hd - 0.06, -1, 0.4, p.accent());
+        int bars = 5;
+        int litBars = lit <= 0 ? 0 : Math.min(bars, (lit * bars + segments - 1) / segments);
+        IndustrialStyle.ledPad(b, 0, 1.14, -hd - 0.02, -1, 0.74, 0.24, bars, litBars, p);
+        // topo: postes curtos com nos luminosos ligados por uma barra
+        for (int i = -1; i <= 1; i++) {
+            double x = i * (hw - 0.7);
+            b.beam(v(x, railY, 0), v(x, h + 0.2, 0), 0.14, plate);
+            IndustrialStyle.node(b, v(x, h + 0.32, 0), 0.24, p);
+        }
+        b.beam(v(-(hw - 0.7), h + 0.32, 0), v(hw - 0.7, h + 0.32, 0), 0.07, shade);
+        // portas de energia (conector luminoso para fora)
         for (int side = -1; side <= 1; side += 2) {
-            b.box(v(side * (halfW - 0.4), 0.5, 0), 0.8, 0.8, 0.8, STEEL);
-            b.box(v(side * (halfW - 0.06), 0.5, 0), 0.12, 0.64, 0.64, CERAMIC);
-            b.box(v(side * halfW, 0.5, 0), 0.06, 0.34, 0.34, accent);
-            b.box(v(0, 0.5, side * (halfD - 0.4)), 0.8, 0.8, 0.8, STEEL);
-            b.box(v(0, 0.5, side * (halfD - 0.06)), 0.64, 0.64, 0.12, CERAMIC);
-            b.box(v(0, 0.5, side * halfD), 0.34, 0.34, 0.06, accent);
+            port(b, side * (hw - 0.4), 0.55, 0, true, side, p);
+            port(b, 0, 0.55, side * (hd - 0.4), false, side, p);
         }
         return b.build();
+    }
+
+    /** Caixa de conexao de uma porta de energia na extremidade {@code side} do eixo x ({@code alongX}) ou z. */
+    private static void port(Mesh.Builder b, double x, double y, double z, boolean alongX, int side, IndustrialStyle.Palette p) {
+        double dx = alongX ? side : 0;
+        double dz = alongX ? 0 : side;
+        b.box(v(x, y, z), 0.8, 0.5, 0.8, p.shade());
+        b.box(v(x + dx * 0.34, y, z + dz * 0.34), alongX ? 0.12 : 0.64, 0.4, alongX ? 0.64 : 0.12, IndustrialStyle.STEEL);
+        b.glow(true);
+        b.box(v(x + dx * 0.4, y, z + dz * 0.4), alongX ? 0.06 : 0.34, 0.34, alongX ? 0.34 : 0.06, p.accent());
+        b.glow(false);
     }
 
     // ---------- torre ----------
@@ -235,48 +266,68 @@ public final class PowerStructureModel {
         return w * 0.3;
     }
 
-    /** Transformador elevador w x d x h metros, centrado na origem; o eixo x e o da largura. */
-    public static Mesh transformer(int w, int d, int h, float[] accent) {
+    /** Transformador elevador w x d x h metros, centrado na origem; o eixo x e o da largura; paineis nas duas faces z. */
+    public static Mesh transformer(int w, int d, int h, IndustrialStyle.Palette p) {
         Mesh.Builder b = new Mesh.Builder();
-        b.box(v(0, 0.15, 0), w, 0.3, d, CONCRETE);
-        double tankW = w - 1.6;
-        double tankD = d - 0.6;
+        float[] plate = p.plate();
+        float[] shade = p.shade();
         double tankTop = h - 0.9;
-        b.box(v(0, 0.3 + (tankTop - 0.3) / 2, 0), tankW, tankTop - 0.3, tankD, DARK);
-        b.box(v(0, 0.3 + (tankTop - 0.3) * 0.5, 0), tankW + 0.06, 0.2, tankD + 0.06, accent);
-        b.box(v(0, tankTop + 0.05, 0), tankW + 0.2, 0.1, tankD + 0.2, STEEL);
-        // radiadores de aletas nas duas extremidades
-        double radiatorHeight = tankTop - 1.5;
-        for (int side = -1; side <= 1; side += 2) {
-            double x = side * (tankW / 2 + 0.45);
-            b.box(v(x, 1.4 + radiatorHeight / 2, 0), 0.9, radiatorHeight, tankD - 0.2, DARK);
-            for (double z = -(tankD / 2 - 0.3); z <= tankD / 2 - 0.3 + 1e-6; z += 0.3) {
-                b.box(v(x + side * 0.1, 1.4 + radiatorHeight / 2, z), 1.0, radiatorHeight - 0.1, 0.1, STEEL);
+        double bodyW = w - 0.8;
+        double bodyD = d - 0.8;
+        double coreBottom = 0.45;
+        double coreH = tankTop - coreBottom;
+        double coreY = coreBottom + coreH / 2;
+        b.box(v(0, 0.15, 0), w, 0.3, d, plate);
+        b.box(v(0, 0.33, 0), w - 0.3, 0.06, d - 0.3, shade);
+        for (int sx = -1; sx <= 1; sx += 2) {
+            for (int sz = -1; sz <= 1; sz += 2) {
+                IndustrialStyle.node(b, v(sx * (w / 2.0 - 0.28), 0.46, sz * (d / 2.0 - 0.28)), 0.36, p);
+                IndustrialStyle.node(b, v(sx * (bodyW / 2 + 0.15), tankTop + 0.28, sz * (bodyD / 2 + 0.05)), 0.3, p);
             }
-            // porta de energia visivel: caixa de conexao no nivel do chao, com o conector luminoso para fora
-            b.box(v(side * (w / 2.0 - 0.4), 0.7, 0), 0.8, 0.8, 0.8, STEEL);
-            b.box(v(side * (w / 2.0 - 0.06), 0.7, 0), 0.12, 0.64, 0.64, CERAMIC);
-            b.box(v(side * (w / 2.0 - 0.0), 0.7, 0), 0.06, 0.34, 0.34, accent);
         }
-        // portas nas faces transversais (frente e fundo)
+        b.box(v(0, coreY, 0), bodyW, coreH, bodyD, IndustrialStyle.DARK);
         for (int side = -1; side <= 1; side += 2) {
-            b.box(v(0, 0.7, side * (d / 2.0 - 0.4)), 0.8, 0.8, 0.8, STEEL);
-            b.box(v(0, 0.7, side * (d / 2.0 - 0.06)), 0.64, 0.64, 0.12, CERAMIC);
-            b.box(v(0, 0.7, side * d / 2.0), 0.34, 0.34, 0.06, accent);
+            b.box(v(side * (bodyW / 2 + 0.15), coreY, 0), 0.3, coreH, bodyD + 0.1, plate);
         }
-        // conservador de oleo sobre o tanque
-        b.beam(v(-tankW * 0.3, tankTop + 0.45, -tankD * 0.25), v(tankW * 0.3, tankTop + 0.45, -tankD * 0.25), 0.55, STEEL);
-        // buchas de porcelana, uma por condutor
+        b.box(v(0, tankTop + 0.07, 0), bodyW + 0.5, 0.14, bodyD + 0.3, plate);
+        // frente e fundo: aletas dos radiadores nas laterais e painel com raio no centro
+        double pillar = Math.max(0.5, Math.min(1.25, bodyW * 0.3));
+        double panelBottom = 1.45;
+        double panelTop = tankTop - 0.12;
+        double panelH = Math.max(0.4, panelTop - panelBottom);
+        double padWidth = Math.max(0.7, Math.min(1.2, 2 * pillar - 0.4));
+        for (int face = -1; face <= 1; face += 2) {
+            double zFin = face * (bodyD / 2 + 0.07);
+            for (double x = -bodyW / 2 + 0.2; x <= bodyW / 2 - 0.2 + 1e-6; x += 0.32) {
+                if (Math.abs(x) >= pillar + 0.15) {
+                    b.box(v(x, coreY, zFin), 0.17, coreH - 0.2, 0.14, IndustrialStyle.FIN);
+                }
+            }
+            for (int side = -1; side <= 1; side += 2) {
+                b.box(v(side * pillar, coreY, face * (bodyD / 2 + 0.09)), 0.3, coreH, 0.18, plate);
+            }
+            double zPanel = face * (bodyD / 2 + 0.05);
+            b.box(v(0, panelBottom + panelH / 2, zPanel), 2 * pillar - 0.3, panelH, 0.06, IndustrialStyle.SCREEN);
+            IndustrialStyle.bolt(b, 0, panelBottom + panelH / 2, face * (bodyD / 2 + 0.09), face, Math.min(1.2, panelH - 0.15), p.accent());
+            IndustrialStyle.ledPad(b, 0, 1.12, face * (bodyD / 2 + 0.1), face, padWidth, 0.38, 3, 3, p);
+        }
+        // buchas ribadas, uma por condutor, com no luminoso no topo, ligadas por uma barra
         double s = bushingSpacing(w);
+        double top = h + 1.2;
         for (int i = -1; i <= 1; i++) {
             double x = i * s;
-            b.box(v(x, tankTop + 0.2, 0), 0.5, 0.2, 0.5, STEEL);
-            double top = h + 1.2;
-            b.beam(v(x, tankTop + 0.3, 0), v(x, top, 0), 0.28, CERAMIC);
-            for (double y = tankTop + 0.45; y < top; y += 0.2) {
-                b.box(v(x, y, 0), 0.5, 0.05, 0.5, CERAMIC);
+            b.box(v(x, tankTop + 0.3, 0), 0.55, 0.3, 0.55, plate);
+            b.beam(v(x, tankTop + 0.4, 0), v(x, top - 0.1, 0), 0.26, IndustrialStyle.DARK);
+            for (double y = tankTop + 0.55; y < top - 0.15; y += 0.2) {
+                b.box(v(x, y, 0), 0.52, 0.1, 0.52, IndustrialStyle.FIN);
             }
-            b.box(v(x, top + 0.07, 0), 0.2, 0.14, 0.2, accent);
+            IndustrialStyle.node(b, v(x, top + 0.07, 0), 0.32, p);
+        }
+        b.beam(v(-s, top + 0.07, 0), v(s, top + 0.07, 0), 0.07, IndustrialStyle.DARK);
+        // portas de energia nas quatro faces, no chao
+        for (int side = -1; side <= 1; side += 2) {
+            port(b, side * (w / 2.0 - 0.4), 0.6, 0, true, side, p);
+            port(b, 0, 0.6, side * (d / 2.0 - 0.4), false, side, p);
         }
         return b.build();
     }

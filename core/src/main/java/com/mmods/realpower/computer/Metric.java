@@ -35,6 +35,13 @@ public final class Metric {
         return coarse.values();
     }
 
+    public void clear() {
+        fine.fromInts(new int[0]);
+        coarse.fromInts(new int[0]);
+        accumulated = 0.0;
+        accumulatedCount = 0;
+    }
+
     public float latest() {
         return fine.latest();
     }

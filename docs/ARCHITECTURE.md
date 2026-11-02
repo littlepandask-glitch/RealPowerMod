@@ -134,3 +134,8 @@ depois sem reescrever receitas. O aco do mod e registrado em `c:ingots/steel`.
 2. Primeiro gerador: turbina eolica (mais simples) para validar o sistema.
 3. Sistema de controle: bloco de painel + `Menu`/`Screen` com sincronizacao por payload.
 4. Represa, depois fissao, depois fusao.
+
+## Estilo industrial e tela local (`render/IndustrialStyle`, `screen/`)
+
+- `IndustrialStyle` e o estilo dos blocos funcionais novos (transformador, banco de capacitores; usar nos proximos): chapas cinza por tier (`Palette`: chapa + brilho), cantos luminosos (`node`), painel com raio (`bolt`), barras de LED (`ledPad`), cilindros. Quads "brilhantes" (`Mesh.Builder.glow`) ignoram a luz ambiente.
+- Tela local: sem computador na rede de dados, o mestre do painel usa o equipamento (ou multibloco) encostado em qualquer bloco do painel (`ScreenBlockEntity.refreshLocal`), com historico em memoria; liga/desliga e limite funcionam na aba de equipamentos.

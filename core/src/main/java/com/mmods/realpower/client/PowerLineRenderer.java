@@ -5,6 +5,7 @@ import com.mmods.realpower.api.tier.Tier;
 import com.mmods.realpower.cable.CableBlock;
 import com.mmods.realpower.cable.CableBlockEntity;
 import com.mmods.realpower.cable.CableKind;
+import com.mmods.realpower.render.IndustrialStyle;
 import com.mmods.realpower.render.Mesh;
 import com.mmods.realpower.render.PowerStructureModel;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -13,6 +14,7 @@ import com.mojang.math.Axis;
 import java.util.HashMap;
 import java.util.Map;
 import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -41,7 +43,7 @@ public class PowerLineRenderer implements BlockEntityRenderer<CableBlockEntity> 
         int[] size = kind.size(tier);
         return MESHES.computeIfAbsent(kind.ordinal() * 8 + tier.ordinal(), k -> switch (kind) {
             case TOWER -> PowerStructureModel.tower(kind.height(), ACCENT[tier.ordinal()]);
-            case TRANSFORMER -> PowerStructureModel.transformer(size[0], size[1], size[2], ACCENT[tier.ordinal()]);
+            case TRANSFORMER -> PowerStructureModel.transformer(size[0], size[1], size[2], IndustrialStyle.palette(tier.ordinal()));
             default -> PowerStructureModel.pole(kind.height(), tier == Tier.BASIC, ACCENT[tier.ordinal()]);
         });
     }
@@ -142,7 +144,7 @@ public class PowerLineRenderer implements BlockEntityRenderer<CableBlockEntity> 
                         .setColor(mesh.colors[q * 3], mesh.colors[q * 3 + 1], mesh.colors[q * 3 + 2], 1.0F)
                         .setUv(0.5F, 0.5F)
                         .setOverlay(OverlayTexture.NO_OVERLAY)
-                        .setLight(light)
+                        .setLight(mesh.emissive[q] ? LightTexture.FULL_BRIGHT : light)
                         .setNormal(last, nx, ny, nz);
             }
         }

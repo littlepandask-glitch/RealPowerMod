@@ -4,7 +4,12 @@ import com.mmods.realpower.cable.PowerStructureBlock;
 import com.mmods.realpower.computer.ComputerBlockEntity;
 import com.mmods.realpower.computer.ComputerPortBlock;
 import com.mmods.realpower.computer.ComputerSnapshot;
+import com.mmods.realpower.computer.Metric;
+import com.mmods.realpower.data.DataDevice;
 import com.mmods.realpower.data.DataNetwork;
+import com.mmods.realpower.energy.PowerScale;
+import java.util.List;
+import net.minecraft.core.Direction;
 import com.mmods.realpower.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -38,6 +43,14 @@ public class ScreenBlockEntity extends BlockEntity {
     private BlockPos computerPos;
     private long age;
 
+    /** Modo local: sem computador, a tela mostra o equipamento encostado nela (historico so na memoria). */
+    private DataDevice localDevice;
+    private BlockPos localPos;
+    private final Metric localGeneration = new Metric();
+    private final Metric localDelivered = new Metric();
+    private final Metric localStored = new Metric();
+    private long previousStored = -1;
+
     public ScreenBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.SCREEN.get(), pos, state);
     }
@@ -50,6 +63,11 @@ public class ScreenBlockEntity extends BlockEntity {
             groupTime = now;
         }
         return group;
+    }
+
+    /** Ultimo retrato calculado (do computador ligado ou do equipamento encostado), ou null. */
+    public ComputerSnapshot snapshot() {
+        return lastSnapshot;
     }
 
     public int page() {
@@ -81,15 +99,62 @@ public class ScreenBlockEntity extends BlockEntity {
     private void refresh(ServerLevel level, ScreenGroup group) {
         computerPos = null;
         lastSnapshot = null;
+        localDevice = null;
         DataNetwork network = DataNetwork.scan(level, group.positions());
         for (BlockPos port : network.nodesOf(level, ComputerPortBlock.class)) {
             BlockPos base = PowerStructureBlock.findBase(level, port);
             if (base != null && level.getBlockEntity(base) instanceof ComputerBlockEntity computer) {
                 computerPos = base;
                 lastSnapshot = computer.snapshot();
+                localDevice = null;
                 return;
             }
         }
+        refreshLocal(level, group);
+    }
+
+    /** Equipamento (ou multibloco) encostado em qualquer bloco do painel, fora dele. */
+    private void refreshLocal(ServerLevel level, ScreenGroup group) {
+        List<BlockPos> members = group.positions();
+        DataDevice found = null;
+        BlockPos foundPos = null;
+        for (BlockPos member : members) {
+            for (Direction side : Direction.values()) {
+                BlockPos next = member.relative(side);
+                DataDevice device = members.contains(next) ? null : DataDevice.at(level, next);
+                if (device != null) {
+                    found = device;
+                    foundPos = next;
+                    break;
+                }
+            }
+            if (found != null) {
+                break;
+            }
+        }
+        if (found == null) {
+            localDevice = null;
+            return;
+        }
+        if (localDevice == null || localDevice.identity() != found.identity()) {
+            localGeneration.clear();
+            localDelivered.clear();
+            localStored.clear();
+            previousStored = -1;
+        }
+        localDevice = found;
+        localPos = foundPos;
+        DataDevice.Telemetry t = found.telemetry();
+        double generated = PowerScale.toFePerTick(t.powerWatts());
+        double grown = previousStored < 0 ? 0.0 : (t.stored() - previousStored) / (double) UPDATE_INTERVAL;
+        previousStored = t.stored();
+        localGeneration.add((float) generated);
+        localDelivered.add((float) Math.max(0.0, generated - grown));
+        localStored.add((float) t.stored());
+        lastSnapshot = new ComputerSnapshot(1, 1, List.of(new ComputerSnapshot.Device(foundPos, found.deviceLabel(), t.online(),
+                t.powerWatts(), t.stored(), t.capacity(), found.controllable(), found.enabled(), found.limit())),
+                localGeneration.fine(), localGeneration.coarse(), localDelivered.fine(), localDelivered.coarse(),
+                localStored.fine(), localStored.coarse());
     }
 
     private ComputerBlockEntity computer() {
@@ -127,6 +192,14 @@ public class ScreenBlockEntity extends BlockEntity {
             }
             case TOGGLE, LIMIT_DOWN, LIMIT_UP -> {
                 ComputerBlockEntity computer = computer();
+                if (computer == null && localDevice != null && button.port().equals(localPos)) {
+                    switch (button.kind()) {
+                        case TOGGLE -> localDevice.setEnabled(!localDevice.enabled());
+                        case LIMIT_DOWN -> localDevice.setLimit(localDevice.limit() - LIMIT_STEP);
+                        default -> localDevice.setLimit(localDevice.limit() + LIMIT_STEP);
+                    }
+                    break;
+                }
                 ComputerSnapshot.Device device = lastSnapshot == null || button.arg() >= lastSnapshot.devices().size()
                         ? null : lastSnapshot.devices().get(button.arg());
                 if (computer == null || device == null || !device.port().equals(button.port())) {
