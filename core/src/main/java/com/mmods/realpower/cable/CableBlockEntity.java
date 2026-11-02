@@ -113,6 +113,9 @@ public class CableBlockEntity extends BlockEntity implements Tiered {
     @Override
     public void onLoad() {
         super.onLoad();
+        if (level != null && !level.isClientSide && kind().overhead()) {
+            level.scheduleTick(worldPosition, getBlockState().getBlock(), 1); // repara o conjunto multibloco ao carregar
+        }
         CableNetworks.register(this);
     }
 

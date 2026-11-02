@@ -44,6 +44,9 @@ public class PowerStructureBlock extends Block {
         }
     }
 
+    /** Ligado enquanto o bloco base reajusta suas celulas (trocar uma celula nao deve derrubar o conjunto). */
+    static boolean healing;
+
     private final Variant variant;
 
     public PowerStructureBlock(Properties properties, Variant variant) {
@@ -83,7 +86,7 @@ public class PowerStructureBlock extends Block {
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         super.onRemove(state, level, pos, newState, movedByPiston);
-        if (state.is(newState.getBlock()) || level.isClientSide) {
+        if (state.is(newState.getBlock()) || level.isClientSide || healing) {
             return;
         }
         BlockPos base = findBase(level, pos);

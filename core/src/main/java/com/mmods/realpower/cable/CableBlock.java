@@ -212,19 +212,36 @@ public class CableBlock extends BaseEntityBlock implements Tiered {
         };
     }
 
+    /** Garante as celulas do conjunto (preenchimento e portas) no lugar certo; repara conjuntos de versoes antigas. */
+    private void ensureStructure(Level level, BlockPos pos, BlockState state) {
+        if (PowerStructureBlock.healing) {
+            return;
+        }
+        java.util.List<BlockPos> ports = portCells(pos, state);
+        PowerStructureBlock.healing = true;
+        try {
+            for (BlockPos cell : structureCells(pos, state)) {
+                if (!level.isLoaded(cell)) {
+                    continue;
+                }
+                Block wanted = ports.contains(cell) ? ModBlocks.TRANSFORMER_PORT.get() : fillerBlock();
+                BlockState current = level.getBlockState(cell);
+                if (current.getBlock() != wanted && (current.canBeReplaced() || current.getBlock() instanceof PowerStructureBlock)) {
+                    level.setBlock(cell, wanted.defaultBlockState(), Block.UPDATE_ALL);
+                }
+            }
+        } finally {
+            PowerStructureBlock.healing = false;
+        }
+    }
+
     @Override
     protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
         super.onPlace(state, level, pos, oldState, movedByPiston);
         // trocar o estado aqui dentro faria o setBlock externo nao avisar os vizinhos; adia para o proximo tick
         if (!level.isClientSide) {
             if (kind.overhead()) {
-                java.util.List<BlockPos> ports = portCells(pos, state);
-                for (BlockPos cell : structureCells(pos, state)) {
-                    if (level.getBlockState(cell).canBeReplaced()) {
-                        Block block = ports.contains(cell) ? ModBlocks.TRANSFORMER_PORT.get() : fillerBlock();
-                        level.setBlock(cell, block.defaultBlockState(), Block.UPDATE_ALL);
-                    }
-                }
+                ensureStructure(level, pos, state);
             }
             level.scheduleTick(pos, this, 1);
         }
@@ -257,6 +274,9 @@ public class CableBlock extends BaseEntityBlock implements Tiered {
     private void refresh(BlockState state, Level level, BlockPos pos) {
         if (level.isClientSide) {
             return;
+        }
+        if (kind.overhead()) {
+            ensureStructure(level, pos, state);
         }
         BlockState updated = withConnections(level, pos, state);
         if (updated != state) {
