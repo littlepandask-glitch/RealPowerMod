@@ -105,12 +105,22 @@ public final class TurbineBlueprint {
         return parts;
     }
 
-    /** Posicao da porta de energia para um controlador em {@code controller} virado para {@code facing}. */
-    public static BlockPos portPos(BlockPos controller, Direction facing) {
+    /** Cantos da laje (u, v) onde o poste da porta pode ficar; o canto 0 e o do projeto padrao. */
+    private static final int[][] PORT_CORNERS = {{PORT_U, PORT_V}, {PORT_U, -PORT_V}, {-PORT_U, PORT_V}, {-PORT_U, -PORT_V}};
+    public static final int PORT_CORNER_COUNT = PORT_CORNERS.length;
+
+    /** Topo (a travessa) do poste da porta no canto {@code corner} para um controlador virado para {@code facing}. */
+    public static BlockPos portPos(BlockPos controller, Direction facing, int corner) {
         Direction right = facing.getClockWise();
+        int u = PORT_CORNERS[corner][0];
+        int v = PORT_CORNERS[corner][1];
         return controller
-                .offset(facing.getStepX() * PORT_U, 0, facing.getStepZ() * PORT_U)
-                .offset(right.getStepX() * PORT_V, 3, right.getStepZ() * PORT_V);
+                .offset(facing.getStepX() * u, 0, facing.getStepZ() * u)
+                .offset(right.getStepX() * v, 3, right.getStepZ() * v);
+    }
+
+    public static boolean isPortPart(Kind kind) {
+        return kind == Kind.POST || kind == Kind.PORT;
     }
 
     public static int count(Kind kind) {

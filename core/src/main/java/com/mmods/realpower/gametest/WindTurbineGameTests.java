@@ -148,4 +148,29 @@ public class WindTurbineGameTests {
         helper.assertTrue(industrial > basic, "industrial " + industrial + " deveria superar basico " + basic);
         helper.succeed();
     }
+
+    @GameTest(template = "empty", timeoutTicks = 400, batch = "turbinecorner")
+    public static void powerPortWorksInAnyCorner(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos controller = build(helper, ModBlocks.WIND_TURBINE_CONTROLLER_BASIC.get());
+        int other = TurbineBlueprint.PORT_CORNER_COUNT - 1;
+        BlockPos oldTop = TurbineBlueprint.portPos(controller, Direction.NORTH, 0);
+        BlockPos newTop = TurbineBlueprint.portPos(controller, Direction.NORTH, other);
+        for (int y = 0; y <= 2; y++) {
+            level.setBlock(oldTop.below(y), Blocks.AIR.defaultBlockState(), 2);
+        }
+        level.setBlock(newTop, ModBlocks.TURBINE_POWER_PORT.get().defaultBlockState(), 2);
+        level.setBlock(newTop.below(1), ModBlocks.TURBINE_POST.get().defaultBlockState(), 2);
+        level.setBlock(newTop.below(2), ModBlocks.TURBINE_POST.get().defaultBlockState(), 2);
+        helper.runAfterDelay(SCAN_TICKS, () -> {
+            WindTurbineControllerBlockEntity be = turbine(helper, controller);
+            helper.assertTrue(be.isFormed(), "turbina com porta em outro canto deveria formar: " + be.lastResult().problems());
+            level.setBlock(newTop, Blocks.AIR.defaultBlockState(), 2);
+            be.requestRevalidation();
+            helper.runAfterDelay(SCAN_TICKS, () -> {
+                helper.assertTrue(!turbine(helper, controller).isFormed(), "sem nenhuma porta a turbina nao deveria formar");
+                helper.succeed();
+            });
+        });
+    }
 }

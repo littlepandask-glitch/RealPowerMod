@@ -7,6 +7,14 @@
   },
   {
    "when": {
+    "up": "false"
+   },
+   "apply": {
+    "model": "realpower:block/transmission_tower_high_voltage_top"
+   }
+  },
+  {
+   "when": {
     "north": "true"
    },
    "apply": {

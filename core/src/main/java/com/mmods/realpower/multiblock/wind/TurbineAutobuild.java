@@ -32,8 +32,9 @@ public final class TurbineAutobuild {
     /** Posicoes livres do projeto que ainda nao tem o bloco certo. */
     public static List<TurbineBlueprint.Part> placeable(Level level, BlockPos controller, Direction facing) {
         List<TurbineBlueprint.Part> list = new ArrayList<>();
+        boolean portDone = WindTurbineScan.portMissing(level, controller, facing) == 0;
         for (TurbineBlueprint.Part part : TurbineBlueprint.parts(controller, facing)) {
-            if (!level.isLoaded(part.pos())) {
+            if (!level.isLoaded(part.pos()) || portDone && TurbineBlueprint.isPortPart(part.kind())) {
                 continue;
             }
             var state = level.getBlockState(part.pos());

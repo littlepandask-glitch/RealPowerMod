@@ -99,10 +99,50 @@ public class WindTurbineControllerBlockEntity extends AbstractGeneratorBlockEnti
         super.setRemoved();
     }
 
+    /** Entrega a energia as portas completas dos cantos (em qualquer uma que exista). */
+    private final IEnergyStorage ports = new IEnergyStorage() {
+        @Override
+        public int receiveEnergy(int toReceive, boolean simulate) {
+            Direction facing = getBlockState().getValue(WindTurbineControllerBlock.FACING);
+            int remaining = toReceive;
+            for (int corner = 0; corner < TurbineBlueprint.PORT_CORNER_COUNT && remaining > 0; corner++) {
+                BlockPos pos = TurbineBlueprint.portPos(getBlockPos(), facing, corner);
+                if (level != null && level.isLoaded(pos) && level.getBlockEntity(pos) instanceof TurbinePowerPortBlockEntity port) {
+                    remaining -= port.feed().receiveEnergy(remaining, simulate);
+                }
+            }
+            return toReceive - remaining;
+        }
+
+        @Override
+        public int extractEnergy(int toExtract, boolean simulate) {
+            return 0;
+        }
+
+        @Override
+        public int getEnergyStored() {
+            return 0;
+        }
+
+        @Override
+        public int getMaxEnergyStored() {
+            return 0;
+        }
+
+        @Override
+        public boolean canExtract() {
+            return false;
+        }
+
+        @Override
+        public boolean canReceive() {
+            return true;
+        }
+    };
+
     @Override
     protected IEnergyStorage extraOutput(Level level) {
-        BlockPos port = TurbineBlueprint.portPos(getBlockPos(), getBlockState().getValue(WindTurbineControllerBlock.FACING));
-        return level.isLoaded(port) && level.getBlockEntity(port) instanceof TurbinePowerPortBlockEntity be ? be.feed() : null;
+        return ports;
     }
 
     @Override

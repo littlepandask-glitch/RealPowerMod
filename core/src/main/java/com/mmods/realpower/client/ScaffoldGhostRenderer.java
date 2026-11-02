@@ -126,7 +126,11 @@ public final class ScaffoldGhostRenderer {
         }
         Direction facing = turbine.getBlockState().getValue(WindTurbineControllerBlock.FACING);
         List<TurbineBlueprint.Part> missing = new ArrayList<>();
+        boolean portDone = WindTurbineScan.portMissing(level, turbine.getBlockPos(), facing) == 0;
         for (TurbineBlueprint.Part part : TurbineBlueprint.parts(turbine.getBlockPos(), facing)) {
+            if (portDone && TurbineBlueprint.isPortPart(part.kind())) {
+                continue;
+            }
             if (level.isLoaded(part.pos()) && !level.getBlockState(part.pos()).is(WindTurbineScan.blockFor(part.kind()))) {
                 missing.add(part);
             }

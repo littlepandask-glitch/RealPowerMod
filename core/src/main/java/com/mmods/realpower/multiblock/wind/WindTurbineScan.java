@@ -20,6 +20,8 @@ import net.minecraft.world.level.block.state.BlockState;
 public class WindTurbineScan implements StructureScan {
     private final Level level;
     private final List<TurbineBlueprint.Part> parts;
+    private final BlockPos controller;
+    private final Direction facing;
     private final EnumMap<TurbineBlueprint.Kind, Integer> missing = new EnumMap<>(TurbineBlueprint.Kind.class);
     private int cursor;
     private boolean unloaded;
@@ -27,6 +29,8 @@ public class WindTurbineScan implements StructureScan {
 
     public WindTurbineScan(Level level, BlockPos controller, Direction facing) {
         this.level = level;
+        this.controller = controller;
+        this.facing = facing;
         this.parts = TurbineBlueprint.parts(controller, facing);
         for (TurbineBlueprint.Kind kind : TurbineBlueprint.Kind.values()) {
             missing.put(kind, 0);
@@ -37,6 +41,9 @@ public class WindTurbineScan implements StructureScan {
     public boolean advance(int blockBudget) {
         for (int i = 0; i < blockBudget && cursor < parts.size() && !unloaded; i++) {
             TurbineBlueprint.Part part = parts.get(cursor++);
+            if (part.kind() == TurbineBlueprint.Kind.POST || part.kind() == TurbineBlueprint.Kind.PORT) {
+                continue; // o poste da porta pode ficar em qualquer canto: verificado a parte em finish()
+            }
             if (!level.isLoaded(part.pos())) {
                 unloaded = true;
                 break;
@@ -71,7 +78,32 @@ public class WindTurbineScan implements StructureScan {
         };
     }
 
+    /** Blocos que faltam no poste da porta de energia do canto {@code corner} (0 = completo). */
+    public static int cornerMissing(Level level, BlockPos controller, Direction facing, int corner) {
+        BlockPos top = TurbineBlueprint.portPos(controller, facing, corner);
+        int missing = level.getBlockState(top).is(ModBlocks.TURBINE_POWER_PORT.get()) ? 0 : 1;
+        for (int y = 1; y <= 2; y++) {
+            if (!level.getBlockState(top.below(y)).is(ModBlocks.TURBINE_POST.get())) {
+                missing++;
+            }
+        }
+        return missing;
+    }
+
+    /** Menor numero de blocos que faltam entre os 4 cantos; 0 quando algum canto tem o poste completo. */
+    public static int portMissing(Level level, BlockPos controller, Direction facing) {
+        int best = Integer.MAX_VALUE;
+        for (int corner = 0; corner < TurbineBlueprint.PORT_CORNER_COUNT; corner++) {
+            best = Math.min(best, cornerMissing(level, controller, facing, corner));
+        }
+        return best;
+    }
+
     private void finish() {
+        int portMissing = portMissing(level, controller, facing);
+        if (portMissing > 0) {
+            missing.merge(TurbineBlueprint.Kind.PORT, portMissing, Integer::sum);
+        }
         List<Component> problems = new ArrayList<>();
         for (TurbineBlueprint.Kind kind : TurbineBlueprint.Kind.values()) {
             int count = missing.get(kind);
