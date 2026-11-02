@@ -52,5 +52,7 @@
   "block.realpower.turbine_post": "Poste da Turbina",
   "block.realpower.turbine_power_port": "Porta de Energia da Turbina",
   "kind.realpower.post": "fustes do poste da turbina",
-  "kind.realpower.port": "portas de energia da turbina"
+  "kind.realpower.port": "portas de energia da turbina",
+  "block.realpower.pole_structure": "Estrutura de Poste",
+  "block.realpower.tower_structure": "Estrutura de Torre"
 }

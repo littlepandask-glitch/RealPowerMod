@@ -143,7 +143,7 @@ public final class ScaffoldGhostRenderer {
             case BASE -> BASE;
             case CASING -> CASING;
             case LIGHT -> LIGHT;
-            case POST, PORT -> POST;
+            case PORT -> POST;
             case FAIRING -> FAIRING;
             case BLADE -> BLADE;
         };

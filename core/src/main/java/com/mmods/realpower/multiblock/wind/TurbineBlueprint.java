@@ -25,7 +25,7 @@ import net.minecraft.core.Direction;
  * </ul>
  */
 public final class TurbineBlueprint {
-    public enum Kind { BASE, CASING, LIGHT, POST, PORT, FAIRING, BLADE }
+    public enum Kind { BASE, CASING, LIGHT, PORT, FAIRING, BLADE }
 
     /** Posicao relativa ao controlador. */
     public record Local(int u, int v, int y, Kind kind, boolean tower) {
@@ -43,7 +43,7 @@ public final class TurbineBlueprint {
     /** Espessura da parede do corpo, em metros. */
     public static final double TOWER_WALL = 1.2;
 
-    /** Poste da porta de energia, sobre a laje (u, v em relacao ao controlador): 2 fustes e a travessa no topo. */
+    /** Porta de energia: um bloco conector sobre a laje (u, v em relacao ao controlador). */
     public static final int PORT_U = 8;
     public static final int PORT_V = 8;
     public static final int SLAB_HALF = 10;
@@ -109,18 +109,18 @@ public final class TurbineBlueprint {
     private static final int[][] PORT_CORNERS = {{PORT_U, PORT_V}, {PORT_U, -PORT_V}, {-PORT_U, PORT_V}, {-PORT_U, -PORT_V}};
     public static final int PORT_CORNER_COUNT = PORT_CORNERS.length;
 
-    /** Topo (a travessa) do poste da porta no canto {@code corner} para um controlador virado para {@code facing}. */
+    /** Bloco da porta de energia no canto {@code corner} para um controlador virado para {@code facing}. */
     public static BlockPos portPos(BlockPos controller, Direction facing, int corner) {
         Direction right = facing.getClockWise();
         int u = PORT_CORNERS[corner][0];
         int v = PORT_CORNERS[corner][1];
         return controller
                 .offset(facing.getStepX() * u, 0, facing.getStepZ() * u)
-                .offset(right.getStepX() * v, 3, right.getStepZ() * v);
+                .offset(right.getStepX() * v, 1, right.getStepZ() * v);
     }
 
     public static boolean isPortPart(Kind kind) {
-        return kind == Kind.POST || kind == Kind.PORT;
+        return kind == Kind.PORT;
     }
 
     public static int count(Kind kind) {
@@ -178,9 +178,7 @@ public final class TurbineBlueprint {
         }
 
         // poste da porta de energia: dois fustes e a travessa com isoladores
-        put(cells, order, new Local(PORT_U, PORT_V, 1, Kind.POST));
-        put(cells, order, new Local(PORT_U, PORT_V, 2, Kind.POST));
-        put(cells, order, new Local(PORT_U, PORT_V, 3, Kind.PORT));
+        put(cells, order, new Local(PORT_U, PORT_V, 1, Kind.PORT));
 
         // corpo: aneis de espessura ~1 bloco; porta 3x3 atras
         for (int y = 1; y <= TOWER_HEIGHT; y++) {

@@ -4,49 +4,6 @@
    "apply": {
     "model": "realpower:block/power_pole_basic_core"
    }
-  },
-  {
-   "when": {
-    "up": "false"
-   },
-   "apply": {
-    "model": "realpower:block/power_pole_basic_top"
-   }
-  },
-  {
-   "when": {
-    "north": "true"
-   },
-   "apply": {
-    "model": "realpower:block/power_pole_basic_arm"
-   }
-  },
-  {
-   "when": {
-    "south": "true"
-   },
-   "apply": {
-    "model": "realpower:block/power_pole_basic_arm",
-    "y": 180
-   }
-  },
-  {
-   "when": {
-    "east": "true"
-   },
-   "apply": {
-    "model": "realpower:block/power_pole_basic_arm",
-    "y": 90
-   }
-  },
-  {
-   "when": {
-    "west": "true"
-   },
-   "apply": {
-    "model": "realpower:block/power_pole_basic_arm",
-    "y": 270
-   }
   }
  ]
 }

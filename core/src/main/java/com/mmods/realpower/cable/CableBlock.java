@@ -2,6 +2,7 @@ package com.mmods.realpower.cable;
 
 import com.mmods.realpower.api.tier.Tier;
 import com.mmods.realpower.api.tier.Tiered;
+import com.mmods.realpower.registry.ModBlocks;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.EnumMap;
@@ -54,7 +55,7 @@ public class CableBlock extends BaseEntityBlock implements Tiered {
             case CABLE -> Block.box(6, 6, 6, 10, 10, 10);
             case RELAY -> Block.box(4, 4, 4, 12, 12, 12);
             case POLE -> Block.box(5.5, 0, 5.5, 10.5, 16, 10.5);
-            case TOWER -> Block.box(3, 0, 3, 13, 16, 13);
+            case TOWER -> Block.box(2, 0, 2, 14, 3, 14);
         };
     }
 
@@ -65,6 +66,9 @@ public class CableBlock extends BaseEntityBlock implements Tiered {
             Direction.EAST, Block.box(10, 6, 6, 16, 10, 10),
             Direction.DOWN, Block.box(6, 0, 6, 10, 6, 10),
             Direction.UP, Block.box(6, 10, 6, 10, 16, 10)));
+    /** Sentido da linha de um poste/torre: as travessas ficam de lado e os fios seguem nesse eixo. */
+    public static final net.minecraft.world.level.block.state.properties.DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+
     private final VoxelShape[] shapes = new VoxelShape[64];
 
     private final Tier tier;
@@ -78,7 +82,7 @@ public class CableBlock extends BaseEntityBlock implements Tiered {
         for (BooleanProperty property : PROPERTY_BY_DIRECTION.values()) {
             state = state.setValue(property, false);
         }
-        registerDefaultState(state);
+        registerDefaultState(state.setValue(FACING, Direction.NORTH));
     }
 
     @Override
@@ -98,6 +102,7 @@ public class CableBlock extends BaseEntityBlock implements Tiered {
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         PROPERTY_BY_DIRECTION.values().forEach(builder::add);
+        builder.add(FACING);
     }
 
     @Override
@@ -124,7 +129,24 @@ public class CableBlock extends BaseEntityBlock implements Tiered {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return withConnections(context.getLevel(), context.getClickedPos(), defaultBlockState());
+        if (kind.overhead() && !hasRoom(context.getLevel(), context.getClickedPos())) {
+            return null; // sem espaco livre para a altura inteira
+        }
+        return withConnections(context.getLevel(), context.getClickedPos(),
+                defaultBlockState().setValue(FACING, context.getHorizontalDirection()));
+    }
+
+    private boolean hasRoom(Level level, BlockPos pos) {
+        for (int y = 1; y < kind.height(); y++) {
+            if (!level.getBlockState(pos.above(y)).canBeReplaced()) {
+                return false;
+            }
+        }
+        return !level.isOutsideBuildHeight(pos.above(kind.height()));
+    }
+
+    private Block fillerBlock() {
+        return (kind == CableKind.POLE ? ModBlocks.POLE_STRUCTURE : ModBlocks.TOWER_STRUCTURE).get();
     }
 
     @Override
@@ -132,8 +154,27 @@ public class CableBlock extends BaseEntityBlock implements Tiered {
         super.onPlace(state, level, pos, oldState, movedByPiston);
         // trocar o estado aqui dentro faria o setBlock externo nao avisar os vizinhos; adia para o proximo tick
         if (!level.isClientSide) {
+            if (kind.overhead()) {
+                for (int y = 1; y < kind.height(); y++) {
+                    if (level.getBlockState(pos.above(y)).canBeReplaced()) {
+                        level.setBlock(pos.above(y), fillerBlock().defaultBlockState(), Block.UPDATE_CLIENTS);
+                    }
+                }
+            }
             level.scheduleTick(pos, this, 1);
         }
+    }
+
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (kind.overhead() && !state.is(newState.getBlock()) && !level.isClientSide) {
+            for (int y = 1; y < kind.height(); y++) {
+                if (level.getBlockState(pos.above(y)).getBlock() instanceof PowerStructureBlock) {
+                    level.removeBlock(pos.above(y), false);
+                }
+            }
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override

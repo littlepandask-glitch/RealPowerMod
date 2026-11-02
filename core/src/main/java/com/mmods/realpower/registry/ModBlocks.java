@@ -4,10 +4,10 @@ import com.mmods.realpower.RealPower;
 import com.mmods.realpower.api.tier.Tier;
 import com.mmods.realpower.cable.CableBlock;
 import com.mmods.realpower.cable.CableKind;
+import com.mmods.realpower.cable.PowerStructureBlock;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import com.mmods.realpower.multiblock.wind.TurbineCasingBlock;
-import com.mmods.realpower.multiblock.wind.TurbinePostBlock;
 import com.mmods.realpower.multiblock.wind.TurbinePowerPortBlock;
 import com.mmods.realpower.multiblock.wind.WindStructureBlock;
 import com.mmods.realpower.multiblock.wind.WindTurbineControllerBlock;
@@ -32,9 +32,7 @@ public final class ModBlocks {
     public static final DeferredBlock<Block> INDUSTRIAL_LIGHT = BLOCKS.registerBlock("industrial_light", Block::new,
             BlockBehaviour.Properties.of().strength(1.5F, 3.0F).sound(SoundType.METAL).lightLevel(state -> 15));
 
-    /** Poste da porta de energia da turbina: fuste e topo com travessa. */
-    public static final DeferredBlock<TurbinePostBlock> TURBINE_POST = BLOCKS.registerBlock("turbine_post",
-            TurbinePostBlock::new, BlockBehaviour.Properties.of().strength(2.0F, 4.0F).sound(SoundType.METAL).noOcclusion());
+    /** Porta de energia da turbina: bloco conector sobre a laje, onde os cabos se ligam. */
     public static final DeferredBlock<TurbinePowerPortBlock> TURBINE_POWER_PORT = BLOCKS.registerBlock("turbine_power_port",
             TurbinePowerPortBlock::new, BlockBehaviour.Properties.of().strength(2.0F, 4.0F).sound(SoundType.METAL).noOcclusion());
 
@@ -56,6 +54,14 @@ public final class ModBlocks {
                 properties -> new WindTurbineControllerBlock(properties, tier),
                 BlockBehaviour.Properties.of().strength(4.0F, 8.0F).sound(SoundType.METAL));
     }
+
+    /** Preenchimento da coluna de postes e torres (invisivel; o conjunto 3D e desenhado pelo bloco base). */
+    public static final DeferredBlock<PowerStructureBlock> POLE_STRUCTURE = BLOCKS.registerBlock("pole_structure",
+            properties -> new PowerStructureBlock(properties, true),
+            BlockBehaviour.Properties.of().strength(1.5F, 3.0F).sound(SoundType.METAL).noOcclusion().noLootTable());
+    public static final DeferredBlock<PowerStructureBlock> TOWER_STRUCTURE = BLOCKS.registerBlock("tower_structure",
+            properties -> new PowerStructureBlock(properties, false),
+            BlockBehaviour.Properties.of().strength(1.5F, 3.0F).sound(SoundType.METAL).noOcclusion().noLootTable());
 
     /** Todos os nos da rede eletrica (cabo, rele, poste, torre), por id. */
     public static final Map<String, DeferredBlock<CableBlock>> NODES = new LinkedHashMap<>();

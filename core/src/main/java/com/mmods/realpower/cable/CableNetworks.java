@@ -17,6 +17,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.level.LevelEvent;
@@ -106,38 +107,57 @@ public final class CableNetworks {
     private record Link(BlockPos a, BlockPos b, double length, double factor) {
     }
 
-    private static final int MAX_LINKS_PER_NODE = 3;
+    /** Ponto de fixacao dos fios (topo da estrutura) de um poste/torre. */
+    private static Vec3 top(CableBlockEntity cable) {
+        BlockPos pos = cable.getBlockPos();
+        return new Vec3(pos.getX() + 0.5, pos.getY() + cable.kind().height(), pos.getZ() + 0.5);
+    }
 
-    /** Liga cada poste/torre de topo aos mais proximos que estejam no alcance de ambos. */
+    /**
+     * Liga so vizinhos proximos: dois postes/torres se ligam quando estao no alcance e nenhum terceiro esta mais
+     * perto dos dois que eles entre si (grafo de vizinhanca relativa); assim o fio nunca passa "por tras" de outro.
+     */
     private static Map<BlockPos, List<Link>> computeLinks(ServerLevel level, LevelNetworks nets) {
-        List<CableBlockEntity> tops = new ArrayList<>();
+        List<CableBlockEntity> nodes = new ArrayList<>();
         for (CableBlockEntity cable : nets.cables.values()) {
-            if (cable.kind().overhead() && !level.getBlockState(cable.getBlockPos().above()).is(cable.getBlockState().getBlock())) {
-                tops.add(cable);
+            if (cable.kind().overhead()) {
+                nodes.add(cable);
+            }
+        }
+        int n = nodes.size();
+        double[][] distance = new double[n][n];
+        boolean[][] reachable = new boolean[n][n];
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                double d = top(nodes.get(i)).distanceTo(top(nodes.get(j)));
+                distance[i][j] = d;
+                distance[j][i] = d;
+                boolean ok = d <= Math.min(nodes.get(i).kind().linkRange(), nodes.get(j).kind().linkRange());
+                reachable[i][j] = ok;
+                reachable[j][i] = ok;
             }
         }
         Map<BlockPos, List<Link>> byNode = new HashMap<>();
-        Set<Link> seen = new HashSet<>();
-        for (CableBlockEntity a : tops) {
-            List<Link> candidates = new ArrayList<>();
-            for (CableBlockEntity b : tops) {
-                if (a == b) {
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                if (!reachable[i][j]) {
                     continue;
                 }
-                double distance = Math.sqrt(a.getBlockPos().distSqr(b.getBlockPos()));
-                if (distance <= Math.min(a.kind().linkRange(), b.kind().linkRange())) {
-                    candidates.add(new Link(a.getBlockPos(), b.getBlockPos(), distance,
-                            Math.max(a.kind().overheadFactor(), b.kind().overheadFactor())));
+                boolean blocked = false;
+                for (int k = 0; k < n && !blocked; k++) {
+                    blocked = k != i && k != j && reachable[i][k] && reachable[k][j]
+                            && distance[i][k] < distance[i][j] - 1e-6 && distance[k][j] < distance[i][j] - 1e-6;
                 }
-            }
-            candidates.sort(Comparator.comparingDouble(Link::length));
-            for (Link link : candidates.subList(0, Math.min(MAX_LINKS_PER_NODE, candidates.size()))) {
-                boolean ordered = link.a().asLong() < link.b().asLong();
-                Link canonical = ordered ? link : new Link(link.b(), link.a(), link.length(), link.factor());
-                if (seen.add(canonical)) {
-                    byNode.computeIfAbsent(canonical.a(), k -> new ArrayList<>()).add(canonical);
-                    byNode.computeIfAbsent(canonical.b(), k -> new ArrayList<>()).add(canonical);
+                if (blocked) {
+                    continue;
                 }
+                CableBlockEntity a = nodes.get(i);
+                CableBlockEntity b = nodes.get(j);
+                boolean ordered = a.getBlockPos().asLong() < b.getBlockPos().asLong();
+                Link link = new Link(ordered ? a.getBlockPos() : b.getBlockPos(), ordered ? b.getBlockPos() : a.getBlockPos(),
+                        distance[i][j], Math.max(a.kind().overheadFactor(), b.kind().overheadFactor()));
+                byNode.computeIfAbsent(link.a(), k -> new ArrayList<>()).add(link);
+                byNode.computeIfAbsent(link.b(), k -> new ArrayList<>()).add(link);
             }
         }
         return byNode;

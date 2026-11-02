@@ -1,21 +1,22 @@
 {
  "parent": "minecraft:block/block",
  "textures": {
-  "pole": "realpower:block/turbine_post",
+  "pole": "realpower:block/turbine_port",
   "ins": "realpower:block/insulator",
-  "particle": "realpower:block/turbine_post"
+  "cap": "realpower:block/cap_basic",
+  "particle": "realpower:block/turbine_port"
  },
  "elements": [
   {
    "from": [
-    5.5,
+    2,
     0,
-    5.5
+    2
    ],
    "to": [
-    10.5,
-    13,
-    10.5
+    14,
+    8,
+    14
    ],
    "faces": {
     "north": {
@@ -40,46 +41,110 @@
   },
   {
    "from": [
-    0,
-    11,
+    3,
+    8,
+    3
+   ],
+   "to": [
+    13,
+    9,
+    13
+   ],
+   "faces": {
+    "north": {
+     "texture": "#cap"
+    },
+    "south": {
+     "texture": "#cap"
+    },
+    "east": {
+     "texture": "#cap"
+    },
+    "west": {
+     "texture": "#cap"
+    },
+    "up": {
+     "texture": "#cap"
+    },
+    "down": {
+     "texture": "#cap"
+    }
+   }
+  },
+  {
+   "from": [
+    4,
+    9,
+    4
+   ],
+   "to": [
+    6,
+    12,
     6
    ],
+   "faces": {
+    "north": {
+     "texture": "#ins"
+    },
+    "south": {
+     "texture": "#ins"
+    },
+    "east": {
+     "texture": "#ins"
+    },
+    "west": {
+     "texture": "#ins"
+    },
+    "up": {
+     "texture": "#ins"
+    },
+    "down": {
+     "texture": "#ins"
+    }
+   }
+  },
+  {
+   "from": [
+    10,
+    9,
+    4
+   ],
    "to": [
-    16,
-    13,
+    12,
+    12,
+    6
+   ],
+   "faces": {
+    "north": {
+     "texture": "#ins"
+    },
+    "south": {
+     "texture": "#ins"
+    },
+    "east": {
+     "texture": "#ins"
+    },
+    "west": {
+     "texture": "#ins"
+    },
+    "up": {
+     "texture": "#ins"
+    },
+    "down": {
+     "texture": "#ins"
+    }
+   }
+  },
+  {
+   "from": [
+    4,
+    9,
     10
    ],
-   "faces": {
-    "north": {
-     "texture": "#pole"
-    },
-    "south": {
-     "texture": "#pole"
-    },
-    "east": {
-     "texture": "#pole"
-    },
-    "west": {
-     "texture": "#pole"
-    },
-    "up": {
-     "texture": "#pole"
-    },
-    "down": {
-     "texture": "#pole"
-    }
-   }
-  },
-  {
-   "from": [
-    1.5,
-    13,
-    7
-   ],
    "to": [
-    3.5,
-    16,
-    9
+    6,
+    12,
+    12
    ],
    "faces": {
     "north": {
@@ -104,46 +169,14 @@
   },
   {
    "from": [
-    7,
-    13,
-    7
-   ],
-   "to": [
+    10,
     9,
-    16,
-    9
-   ],
-   "faces": {
-    "north": {
-     "texture": "#ins"
-    },
-    "south": {
-     "texture": "#ins"
-    },
-    "east": {
-     "texture": "#ins"
-    },
-    "west": {
-     "texture": "#ins"
-    },
-    "up": {
-     "texture": "#ins"
-    },
-    "down": {
-     "texture": "#ins"
-    }
-   }
-  },
-  {
-   "from": [
-    12.5,
-    13,
-    7
+    10
    ],
    "to": [
-    14.5,
-    16,
-    9
+    12,
+    12,
+    12
    ],
    "faces": {
     "north": {

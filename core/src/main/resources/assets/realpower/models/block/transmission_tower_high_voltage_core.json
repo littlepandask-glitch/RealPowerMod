@@ -6,41 +6,41 @@
   "pole": "realpower:block/pole_high_voltage",
   "lat": "realpower:block/lattice_high_voltage",
   "ins": "realpower:block/insulator",
-  "particle": "realpower:block/lattice_high_voltage"
+  "particle": "realpower:block/concrete",
+  "conc": "realpower:block/concrete"
  },
  "elements": [
   {
    "from": [
-    3,
+    2,
     0,
-    3
+    2
    ],
    "to": [
-    13,
-    16,
-    13
+    14,
+    3,
+    14
    ],
    "faces": {
     "north": {
-     "texture": "#lat"
+     "texture": "#conc"
     },
     "south": {
-     "texture": "#lat"
+     "texture": "#conc"
     },
     "east": {
-     "texture": "#lat"
+     "texture": "#conc"
     },
     "west": {
-     "texture": "#lat"
+     "texture": "#conc"
     },
     "up": {
-     "texture": "#lat"
+     "texture": "#conc"
     },
     "down": {
-     "texture": "#lat"
+     "texture": "#conc"
     }
    }
   }
- ],
- "render_type": "minecraft:cutout"
+ ]
 }

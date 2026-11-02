@@ -6,19 +6,52 @@
   "pole": "realpower:block/pole_industrial",
   "lat": "realpower:block/lattice_industrial",
   "ins": "realpower:block/insulator",
-  "particle": "realpower:block/pole_industrial"
+  "particle": "realpower:block/concrete",
+  "conc": "realpower:block/concrete"
  },
  "elements": [
   {
    "from": [
-    5.5,
+    4,
     0,
-    5.5
+    4
    ],
    "to": [
-    10.5,
-    16,
-    10.5
+    12,
+    3,
+    12
+   ],
+   "faces": {
+    "north": {
+     "texture": "#conc"
+    },
+    "south": {
+     "texture": "#conc"
+    },
+    "east": {
+     "texture": "#conc"
+    },
+    "west": {
+     "texture": "#conc"
+    },
+    "up": {
+     "texture": "#conc"
+    },
+    "down": {
+     "texture": "#conc"
+    }
+   }
+  },
+  {
+   "from": [
+    6,
+    3,
+    6
+   ],
+   "to": [
+    10,
+    6,
+    10
    ],
    "faces": {
     "north": {

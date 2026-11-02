@@ -22,7 +22,6 @@ public final class ModItems {
     }
 
     public static final DeferredItem<BlockItem> INDUSTRIAL_LIGHT = ITEMS.registerSimpleBlockItem(ModBlocks.INDUSTRIAL_LIGHT);
-    public static final DeferredItem<BlockItem> TURBINE_POST = ITEMS.registerSimpleBlockItem(ModBlocks.TURBINE_POST);
     public static final DeferredItem<BlockItem> TURBINE_POWER_PORT = ITEMS.registerSimpleBlockItem(ModBlocks.TURBINE_POWER_PORT);
     public static final DeferredItem<BlockItem> ROTOR_FAIRING = ITEMS.registerSimpleBlockItem(ModBlocks.ROTOR_FAIRING);
     public static final DeferredItem<BlockItem> TURBINE_BLADE = ITEMS.registerSimpleBlockItem(ModBlocks.TURBINE_BLADE);

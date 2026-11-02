@@ -24,7 +24,6 @@
   "realpower:cable_future",
   "realpower:relay_future",
   "realpower:transmission_tower_future",
-  "realpower:turbine_post",
   "realpower:turbine_power_port"
  ]
 }

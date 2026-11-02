@@ -52,5 +52,7 @@
   "block.realpower.turbine_post": "Turbine Post",
   "block.realpower.turbine_power_port": "Turbine Power Port",
   "kind.realpower.post": "turbine post blocks",
-  "kind.realpower.port": "turbine power ports"
+  "kind.realpower.port": "turbine power ports",
+  "block.realpower.pole_structure": "Pole Structure",
+  "block.realpower.tower_structure": "Tower Structure"
 }

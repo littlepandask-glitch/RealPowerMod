@@ -4,49 +4,6 @@
    "apply": {
     "model": "realpower:block/transmission_tower_future_core"
    }
-  },
-  {
-   "when": {
-    "up": "false"
-   },
-   "apply": {
-    "model": "realpower:block/transmission_tower_future_top"
-   }
-  },
-  {
-   "when": {
-    "north": "true"
-   },
-   "apply": {
-    "model": "realpower:block/transmission_tower_future_arm"
-   }
-  },
-  {
-   "when": {
-    "south": "true"
-   },
-   "apply": {
-    "model": "realpower:block/transmission_tower_future_arm",
-    "y": 180
-   }
-  },
-  {
-   "when": {
-    "east": "true"
-   },
-   "apply": {
-    "model": "realpower:block/transmission_tower_future_arm",
-    "y": 90
-   }
-  },
-  {
-   "when": {
-    "west": "true"
-   },
-   "apply": {
-    "model": "realpower:block/transmission_tower_future_arm",
-    "y": 270
-   }
   }
  ]
 }

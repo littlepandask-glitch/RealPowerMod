@@ -75,6 +75,20 @@ public final class Mesh {
             }
         }
 
+        /** Viga de secao quadrada entre dois pontos. */
+        void beam(Vec a, Vec b, double thickness, float[] rgb) {
+            Vec dir = b.sub(a).normalized();
+            Vec ref = Math.abs(dir.y()) > 0.9 ? new Vec(1, 0, 0) : new Vec(0, 1, 0);
+            Vec u = dir.cross(ref).normalized().scale(thickness / 2);
+            Vec w = dir.cross(u).normalized().scale(thickness / 2);
+            Vec[] ra = {a.add(u).add(w), a.sub(u).add(w), a.sub(u).sub(w), a.add(u).sub(w)};
+            Vec[] rb = {b.add(u).add(w), b.sub(u).add(w), b.sub(u).sub(w), b.add(u).sub(w)};
+            Vec mid = Vec.average(a, b);
+            strip(List.of(ra, rb), rgb);
+            quad(ra[0], ra[1], ra[2], ra[3], mid, rgb);
+            quad(rb[0], rb[1], rb[2], rb[3], mid, rgb);
+        }
+
         Mesh build() {
             int n = quads.size();
             float[] positions = new float[n * 12];

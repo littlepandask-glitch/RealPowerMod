@@ -156,12 +156,8 @@ public class WindTurbineGameTests {
         int other = TurbineBlueprint.PORT_CORNER_COUNT - 1;
         BlockPos oldTop = TurbineBlueprint.portPos(controller, Direction.NORTH, 0);
         BlockPos newTop = TurbineBlueprint.portPos(controller, Direction.NORTH, other);
-        for (int y = 0; y <= 2; y++) {
-            level.setBlock(oldTop.below(y), Blocks.AIR.defaultBlockState(), 2);
-        }
+        level.setBlock(oldTop, Blocks.AIR.defaultBlockState(), 2);
         level.setBlock(newTop, ModBlocks.TURBINE_POWER_PORT.get().defaultBlockState(), 2);
-        level.setBlock(newTop.below(1), ModBlocks.TURBINE_POST.get().defaultBlockState(), 2);
-        level.setBlock(newTop.below(2), ModBlocks.TURBINE_POST.get().defaultBlockState(), 2);
         helper.runAfterDelay(SCAN_TICKS, () -> {
             WindTurbineControllerBlockEntity be = turbine(helper, controller);
             helper.assertTrue(be.isFormed(), "turbina com porta em outro canto deveria formar: " + be.lastResult().problems());

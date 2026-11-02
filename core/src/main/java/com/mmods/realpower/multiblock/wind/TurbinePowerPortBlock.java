@@ -10,14 +10,12 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 /** Topo do poste da turbina: a travessa com isoladores onde cabos e linhas se conectam. */
 public class TurbinePowerPortBlock extends BaseEntityBlock {
     public static final MapCodec<TurbinePowerPortBlock> CODEC = simpleCodec(TurbinePowerPortBlock::new);
-    private static final VoxelShape SHAPE = Shapes.or(
-            Block.box(5.5, 0, 5.5, 10.5, 13, 10.5), Block.box(0, 11, 5, 16, 14, 11));
+    private static final VoxelShape SHAPE = Block.box(2, 0, 2, 14, 12, 14);
 
     public TurbinePowerPortBlock(Properties properties) {
         super(properties);

@@ -41,8 +41,8 @@ public class WindTurbineScan implements StructureScan {
     public boolean advance(int blockBudget) {
         for (int i = 0; i < blockBudget && cursor < parts.size() && !unloaded; i++) {
             TurbineBlueprint.Part part = parts.get(cursor++);
-            if (part.kind() == TurbineBlueprint.Kind.POST || part.kind() == TurbineBlueprint.Kind.PORT) {
-                continue; // o poste da porta pode ficar em qualquer canto: verificado a parte em finish()
+            if (part.kind() == TurbineBlueprint.Kind.PORT) {
+                continue; // a porta pode ficar em qualquer canto: verificada a parte em finish()
             }
             if (!level.isLoaded(part.pos())) {
                 unloaded = true;
@@ -71,7 +71,6 @@ public class WindTurbineScan implements StructureScan {
             case BASE -> ModBlocks.TURBINE_BASE.get();
             case CASING -> ModBlocks.TURBINE_CASING.get();
             case LIGHT -> ModBlocks.INDUSTRIAL_LIGHT.get();
-            case POST -> ModBlocks.TURBINE_POST.get();
             case PORT -> ModBlocks.TURBINE_POWER_PORT.get();
             case FAIRING -> ModBlocks.ROTOR_FAIRING.get();
             case BLADE -> ModBlocks.TURBINE_BLADE.get();
@@ -80,14 +79,8 @@ public class WindTurbineScan implements StructureScan {
 
     /** Blocos que faltam no poste da porta de energia do canto {@code corner} (0 = completo). */
     public static int cornerMissing(Level level, BlockPos controller, Direction facing, int corner) {
-        BlockPos top = TurbineBlueprint.portPos(controller, facing, corner);
-        int missing = level.getBlockState(top).is(ModBlocks.TURBINE_POWER_PORT.get()) ? 0 : 1;
-        for (int y = 1; y <= 2; y++) {
-            if (!level.getBlockState(top.below(y)).is(ModBlocks.TURBINE_POST.get())) {
-                missing++;
-            }
-        }
-        return missing;
+        return level.getBlockState(TurbineBlueprint.portPos(controller, facing, corner))
+                .is(ModBlocks.TURBINE_POWER_PORT.get()) ? 0 : 1;
     }
 
     /** Menor numero de blocos que faltam entre os 4 cantos; 0 quando algum canto tem o poste completo. */

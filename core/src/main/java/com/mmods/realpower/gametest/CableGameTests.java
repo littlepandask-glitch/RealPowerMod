@@ -154,6 +154,38 @@ public class CableGameTests {
     }
 
     @GameTest(template = "empty", timeoutTicks = 200, batch = "cable")
+    public static void linesNeverCrossThroughANeighbour(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        Block pole = ModBlocks.node(CableKind.POLE, Tier.BASIC).get();
+        BlockPos[] poles = {helper.absolutePos(new BlockPos(2, 2, 17)), helper.absolutePos(new BlockPos(12, 2, 17)),
+                helper.absolutePos(new BlockPos(22, 2, 17))};
+        for (BlockPos at : poles) {
+            level.setBlock(at, pole.defaultBlockState(), 3);
+        }
+        helper.runAfterDelay(10, () -> {
+            var first = (com.mmods.realpower.cable.CableBlockEntity) level.getBlockEntity(poles[0]);
+            var middle = (com.mmods.realpower.cable.CableBlockEntity) level.getBlockEntity(poles[1]);
+            helper.assertTrue(first.links().contains(poles[1]) && middle.links().contains(poles[2]), "vizinhos proximos deveriam ligar");
+            helper.assertTrue(!first.links().contains(poles[2]), "linha atravessou o poste do meio");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 200, batch = "cable")
+    public static void towerOccupiesAFullColumn(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos base = helper.absolutePos(new BlockPos(2, 2, 19));
+        level.setBlock(base, ModBlocks.node(CableKind.TOWER, Tier.HIGH_VOLTAGE).get().defaultBlockState(), 3);
+        helper.runAfterDelay(5, () -> {
+            helper.assertTrue(level.getBlockState(base.above(CableKind.TOWER.height() - 1)).is(ModBlocks.TOWER_STRUCTURE.get()),
+                    "a coluna da torre nao foi preenchida");
+            level.destroyBlock(base.above(10), false);
+            helper.assertTrue(level.getBlockState(base).isAir(), "quebrar a coluna deveria derrubar a torre");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 200, batch = "cable")
     public static void turbinePortFeedsAdjacentCable(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         BlockPos port = helper.absolutePos(new BlockPos(2, 2, 15));
