@@ -7,6 +7,8 @@ import com.mmods.realpower.multiblock.wind.WindTurbineScaffold;
 import com.mmods.realpower.registry.ModBlocks;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LevelRenderer;
@@ -81,14 +83,7 @@ public final class ScaffoldGhostRenderer {
             return;
         }
 
-        PoseStack poseStack = event.getPoseStack();
-        Vec3 camera = event.getCamera().getPosition();
-        MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
-        VertexConsumer fill = buffers.getBuffer(RenderType.debugQuads());
-        VertexConsumer lines = buffers.getBuffer(RenderType.lines());
-
-        poseStack.pushPose();
-        poseStack.translate(-camera.x, -camera.y, -camera.z);
+        List<Ghost> ghosts = new ArrayList<>();
         for (WindTurbineScaffold.Part part : WindTurbineScaffold.minimum(anchor, facing)) {
             if (existingController && part.kind() == WindTurbineScaffold.Kind.CONTROLLER) {
                 continue;
@@ -98,13 +93,36 @@ public final class ScaffoldGhostRenderer {
                 continue;
             }
             float[] color = state.canBeReplaced() ? colorOf(part.kind()) : BLOCKED;
-            AABB box = new AABB(part.pos()).deflate(INSET);
-            filledBox(poseStack.last().pose(), fill, box, color[0], color[1], color[2], 0.30f);
-            LevelRenderer.renderLineBox(poseStack, lines, box, color[0], color[1], color[2], 0.9f);
+            ghosts.add(new Ghost(new AABB(part.pos()).deflate(INSET), color));
         }
-        poseStack.popPose();
+        if (ghosts.isEmpty()) {
+            return;
+        }
+
+        PoseStack poseStack = event.getPoseStack();
+        Vec3 camera = event.getCamera().getPosition();
+        MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
+
+        poseStack.pushPose();
+        poseStack.translate(-camera.x, -camera.y, -camera.z);
+
+        // Um tipo de render por vez: pedir outro buffer ao BufferSource encerra o anterior.
+        VertexConsumer fill = buffers.getBuffer(RenderType.debugQuads());
+        for (Ghost ghost : ghosts) {
+            filledBox(poseStack.last().pose(), fill, ghost.box(), ghost.color()[0], ghost.color()[1], ghost.color()[2], 0.30f);
+        }
         buffers.endBatch(RenderType.debugQuads());
+
+        VertexConsumer lines = buffers.getBuffer(RenderType.lines());
+        for (Ghost ghost : ghosts) {
+            LevelRenderer.renderLineBox(poseStack, lines, ghost.box(), ghost.color()[0], ghost.color()[1], ghost.color()[2], 0.9f);
+        }
         buffers.endBatch(RenderType.lines());
+
+        poseStack.popPose();
+    }
+
+    private record Ghost(AABB box, float[] color) {
     }
 
     private static Block heldRelevantBlock(Player player) {
