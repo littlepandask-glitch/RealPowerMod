@@ -170,13 +170,17 @@ public final class PowerStructureModel {
         b.box(v(0, 0.3 + (tankTop - 0.3) * 0.5, 0), tankW + 0.06, 0.2, tankD + 0.06, accent);
         b.box(v(0, tankTop + 0.05, 0), tankW + 0.2, 0.1, tankD + 0.2, STEEL);
         // radiadores de aletas nas duas extremidades
-        double radiatorHeight = tankTop - 0.8;
+        double radiatorHeight = tankTop - 1.5;
         for (int side = -1; side <= 1; side += 2) {
             double x = side * (tankW / 2 + 0.45);
-            b.box(v(x, 0.5 + radiatorHeight / 2, 0), 0.9, radiatorHeight, tankD - 0.2, DARK);
+            b.box(v(x, 1.4 + radiatorHeight / 2, 0), 0.9, radiatorHeight, tankD - 0.2, DARK);
             for (double z = -(tankD / 2 - 0.3); z <= tankD / 2 - 0.3 + 1e-6; z += 0.3) {
-                b.box(v(x + side * 0.1, 0.5 + radiatorHeight / 2, z), 1.0, radiatorHeight - 0.1, 0.1, STEEL);
+                b.box(v(x + side * 0.1, 1.4 + radiatorHeight / 2, z), 1.0, radiatorHeight - 0.1, 0.1, STEEL);
             }
+            // porta de energia visivel: caixa de conexao no nivel do chao, com o conector luminoso para fora
+            b.box(v(side * (w / 2.0 - 0.4), 0.7, 0), 0.8, 0.8, 0.8, STEEL);
+            b.box(v(side * (w / 2.0 - 0.06), 0.7, 0), 0.12, 0.64, 0.64, CERAMIC);
+            b.box(v(side * (w / 2.0 - 0.0), 0.7, 0), 0.06, 0.34, 0.34, accent);
         }
         // conservador de oleo sobre o tanque
         b.beam(v(-tankW * 0.3, tankTop + 0.45, -tankD * 0.25), v(tankW * 0.3, tankTop + 0.45, -tankD * 0.25), 0.55, STEEL);

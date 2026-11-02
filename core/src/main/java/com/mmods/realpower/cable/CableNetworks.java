@@ -251,6 +251,15 @@ public final class CableNetworks {
             cable.setLinks(targets);
         }
 
+        // celulas de porta de transformador -> bloco base (a rede trata a porta como o proprio transformador)
+        Map<BlockPos, BlockPos> portOwner = new HashMap<>();
+        for (CableBlockEntity cable : nets.cables.values()) {
+            if (cable.kind() == CableKind.TRANSFORMER) {
+                for (BlockPos port : ((CableBlock) cable.getBlockState().getBlock()).portCells(cable.getBlockPos(), cable.getBlockState())) {
+                    portOwner.put(port, cable.getBlockPos());
+                }
+            }
+        }
         Set<BlockPos> visited = new HashSet<>();
         for (BlockPos start : nets.cables.keySet()) {
             if (visited.contains(start)) {
@@ -278,7 +287,12 @@ public final class CableNetworks {
                         continue;
                     }
                     BlockPos neighbor = pos.relative(direction);
-                    if (nets.cables.containsKey(neighbor)) {
+                    if (portOwner.containsKey(neighbor)) {
+                        neighbor = portOwner.get(neighbor);
+                        if (visited.add(neighbor)) {
+                            queue.add(neighbor);
+                        }
+                    } else if (nets.cables.containsKey(neighbor)) {
                         if (visited.add(neighbor)) {
                             queue.add(neighbor);
                         }
@@ -291,6 +305,17 @@ public final class CableNetworks {
                     BlockPos other = link.a().equals(pos) ? link.b() : link.a();
                     if (visited.add(other)) {
                         queue.add(other);
+                    }
+                }
+                if (cable.kind() == CableKind.TRANSFORMER) {
+                    // cabos encostados nas portas do transformador entram na mesma rede
+                    for (BlockPos port : ((CableBlock) state.getBlock()).portCells(pos, state)) {
+                        for (Direction direction : Direction.values()) {
+                            BlockPos outside = port.relative(direction);
+                            if (nets.cables.containsKey(outside) && visited.add(outside)) {
+                                queue.add(outside);
+                            }
+                        }
                     }
                 }
             }

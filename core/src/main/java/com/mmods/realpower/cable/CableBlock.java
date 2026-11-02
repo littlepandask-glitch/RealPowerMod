@@ -147,6 +147,38 @@ public class CableBlock extends BaseEntityBlock implements Tiered {
         return true;
     }
 
+    /** Celulas de porta de energia (nivel do chao, nas pontas da largura) do transformador. */
+    public java.util.List<BlockPos> portCells(BlockPos base, BlockState state) {
+        if (kind != CableKind.TRANSFORMER) {
+            return java.util.List.of();
+        }
+        int half = (kind.size(tier)[0] - 1) / 2;
+        return java.util.List.of(rotate(base, state.getValue(FACING), -half, 0, 0), rotate(base, state.getValue(FACING), half, 0, 0));
+    }
+
+    private static BlockPos rotate(BlockPos base, Direction facing, int lx, int lz, int y) {
+        return switch (facing) {
+            case EAST -> base.offset(-lz, y, lx);
+            case SOUTH -> base.offset(-lx, y, -lz);
+            case WEST -> base.offset(lz, y, -lx);
+            default -> base.offset(lx, y, lz);
+        };
+    }
+
+    /** Base do transformador a que a celula de porta {@code port} pertence, ou null. */
+    public static BlockPos baseOfPort(BlockGetter level, BlockPos port) {
+        for (int dx = -5; dx <= 5; dx++) {
+            for (int dz = -5; dz <= 5; dz++) {
+                BlockPos candidate = port.offset(dx, 0, dz);
+                BlockState candidateState = level.getBlockState(candidate);
+                if (candidateState.getBlock() instanceof CableBlock cable && cable.portCells(candidate, candidateState).contains(port)) {
+                    return candidate;
+                }
+            }
+        }
+        return null;
+    }
+
     /** Celulas (sem o bloco base) que o conjunto multibloco ocupa; a largura segue o eixo local x, girado pelo FACING. */
     public java.util.List<BlockPos> structureCells(BlockPos base, BlockState state) {
         int[] size = kind.size(tier);
@@ -158,15 +190,7 @@ public class CableBlock extends BaseEntityBlock implements Tiered {
                     if (lx == 0 && lz == 0 && y == 0) {
                         continue;
                     }
-                    int wx;
-                    int wz;
-                    switch (facing) {
-                        case EAST -> { wx = -lz; wz = lx; }
-                        case SOUTH -> { wx = -lx; wz = -lz; }
-                        case WEST -> { wx = lz; wz = -lx; }
-                        default -> { wx = lx; wz = lz; }
-                    }
-                    cells.add(base.offset(wx, y, wz));
+                    cells.add(rotate(base, facing, lx, lz, y));
                 }
             }
         }
@@ -187,9 +211,11 @@ public class CableBlock extends BaseEntityBlock implements Tiered {
         // trocar o estado aqui dentro faria o setBlock externo nao avisar os vizinhos; adia para o proximo tick
         if (!level.isClientSide) {
             if (kind.overhead()) {
+                java.util.List<BlockPos> ports = portCells(pos, state);
                 for (BlockPos cell : structureCells(pos, state)) {
                     if (level.getBlockState(cell).canBeReplaced()) {
-                        level.setBlock(cell, fillerBlock().defaultBlockState(), Block.UPDATE_CLIENTS);
+                        Block block = ports.contains(cell) ? ModBlocks.TRANSFORMER_PORT.get() : fillerBlock();
+                        level.setBlock(cell, block.defaultBlockState(), Block.UPDATE_ALL);
                     }
                 }
             }

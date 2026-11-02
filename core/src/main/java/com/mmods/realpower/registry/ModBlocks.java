@@ -65,6 +65,10 @@ public final class ModBlocks {
     public static final DeferredBlock<PowerStructureBlock> TRANSFORMER_STRUCTURE = BLOCKS.registerBlock("transformer_structure",
             properties -> new PowerStructureBlock(properties, PowerStructureBlock.Variant.BULK),
             BlockBehaviour.Properties.of().strength(3.0F, 6.0F).sound(SoundType.METAL).noOcclusion().noLootTable());
+    /** Porta de energia visivel do transformador: celula do volume onde os cabos comuns se ligam. */
+    public static final DeferredBlock<PowerStructureBlock> TRANSFORMER_PORT = BLOCKS.registerBlock("transformer_port",
+            properties -> new PowerStructureBlock(properties, PowerStructureBlock.Variant.PORT),
+            BlockBehaviour.Properties.of().strength(3.0F, 6.0F).sound(SoundType.METAL).noOcclusion().noLootTable());
 
     /** Todos os nos da rede eletrica (cabo, rele, poste, torre), por id. */
     public static final Map<String, DeferredBlock<CableBlock>> NODES = new LinkedHashMap<>();

@@ -232,17 +232,18 @@ public class CableGameTests {
     @GameTest(template = "empty", timeoutTicks = 200, batch = "cable")
     public static void transformerFeedsOverheadLine(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        BlockPos transformer = helper.absolutePos(new BlockPos(2, 2, 21));
+        BlockPos transformer = helper.absolutePos(new BlockPos(4, 2, 21));
         BlockPos pole = helper.absolutePos(new BlockPos(22, 2, 21));
         BlockPos sink = helper.absolutePos(new BlockPos(23, 2, 21));
         level.setBlock(sink, Blocks.GOLD_BLOCK.defaultBlockState(), 3);
         TestEnergySink.RECEIVED.put(sink, 0L);
+        level.setBlock(helper.absolutePos(new BlockPos(2, 2, 21)), ModBlocks.node(CableKind.CABLE, Tier.INDUSTRIAL).get().defaultBlockState(), 3);
         level.setBlock(transformer, ModBlocks.node(CableKind.TRANSFORMER, Tier.INDUSTRIAL).get().defaultBlockState(), 3);
         level.setBlock(pole, alongX(ModBlocks.node(CableKind.POLE, Tier.INDUSTRIAL).get()), 3);
         feed(helper, 21);
         helper.runAfterDelay(TICKS, () -> {
             CableNetwork network = CableNetworks.networkAt(level, transformer);
-            helper.assertTrue(network != null && network.cableCount() >= 2, "transformador deveria ligar ao poste por fio");
+            helper.assertTrue(network != null && network.cableCount() >= 3, "cabo na porta + transformador + poste deveriam formar uma rede");
             helper.assertTrue(TestEnergySink.RECEIVED.get(sink) > 0, "nada chegou pela linha aerea");
             helper.succeed();
         });

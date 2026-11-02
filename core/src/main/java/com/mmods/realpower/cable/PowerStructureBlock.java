@@ -28,7 +28,7 @@ public class PowerStructureBlock extends Block {
 
     /** Forma do preenchimento: poste (fino e solido), torre (so selecao) ou volume cheio (transformador). */
     public enum Variant implements net.minecraft.util.StringRepresentable {
-        POLE("pole"), TOWER("tower"), BULK("bulk");
+        POLE("pole"), TOWER("tower"), BULK("bulk"), PORT("port");
 
         public static final Codec<Variant> CODEC = net.minecraft.util.StringRepresentable.fromEnum(Variant::values);
         private final String id;
@@ -65,7 +65,7 @@ public class PowerStructureBlock extends Block {
         return switch (variant) {
             case POLE -> POLE;
             case TOWER -> TOWER;
-            case BULK -> Shapes.block();
+            case BULK, PORT -> Shapes.block();
         };
     }
 

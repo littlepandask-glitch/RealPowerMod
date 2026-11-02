@@ -59,5 +59,6 @@
   "block.realpower.transformer_high_voltage": "Transformador Elevador de Alta Tensão",
   "block.realpower.transformer_advanced": "Transformador Elevador Avançado",
   "block.realpower.transformer_future": "Transformador Elevador Futuro",
-  "block.realpower.transformer_structure": "Estrutura de Transformador"
+  "block.realpower.transformer_structure": "Estrutura de Transformador",
+  "block.realpower.transformer_port": "Porta de Energia do Transformador"
 }

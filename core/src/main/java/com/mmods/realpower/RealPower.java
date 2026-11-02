@@ -1,5 +1,7 @@
 package com.mmods.realpower;
 
+import com.mmods.realpower.cable.CableBlock;
+import com.mmods.realpower.cable.CableBlockEntity;
 import com.mmods.realpower.gametest.TestEnergySink;
 import com.mmods.realpower.registry.ModBlockEntities;
 import com.mmods.realpower.registry.ModBlocks;
@@ -7,6 +9,7 @@ import com.mmods.realpower.registry.ModCreativeTabs;
 import com.mmods.realpower.registry.ModItems;
 import com.mmods.realpower.registry.ModMenus;
 import com.mojang.logging.LogUtils;
+import net.minecraft.core.BlockPos;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -33,6 +36,10 @@ public class RealPower {
         event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK,
                 ModBlockEntities.WIND_TURBINE_CONTROLLER.get(),
                 (be, side) -> be.getEnergyOutput());
+        event.registerBlock(Capabilities.EnergyStorage.BLOCK, (level, pos, state, be, side) -> {
+            BlockPos base = CableBlock.baseOfPort(level, pos);
+            return base != null && level.getBlockEntity(base) instanceof CableBlockEntity cable ? cable.energyPort() : null;
+        }, ModBlocks.TRANSFORMER_PORT.get());
         event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ModBlockEntities.CABLE.get(),
                 (be, side) -> be.energyPort());
         event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ModBlockEntities.TURBINE_POWER_PORT.get(),
