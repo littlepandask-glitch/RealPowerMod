@@ -26,5 +26,6 @@ public final class ClientSetup {
     @SubscribeEvent
     public static void registerScreens(RegisterMenuScreensEvent event) {
         event.register(ModMenus.WIND_TURBINE.get(), TurbineScreen::new);
+        event.register(ModMenus.COMPUTER.get(), ComputerScreen::new);
     }
 }

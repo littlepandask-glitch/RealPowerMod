@@ -4,6 +4,9 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -81,6 +84,17 @@ public class PowerStructureBlock extends Block {
     @Override
     protected boolean propagatesSkylightDown(BlockState state, BlockGetter level, BlockPos pos) {
         return true;
+    }
+
+    /** Usar qualquer celula usa o bloco base (ex.: abrir o menu do computador). */
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+        BlockPos base = findBase(level, pos);
+        if (base == null) {
+            return InteractionResult.PASS;
+        }
+        return level.getBlockState(base).useWithoutItem(level, player,
+                new BlockHitResult(hit.getLocation(), hit.getDirection(), base, hit.isInside()));
     }
 
     @Override

@@ -5,6 +5,7 @@ import com.mmods.realpower.api.tier.Tier;
 import com.mmods.realpower.cable.CableBlock;
 import com.mmods.realpower.computer.ComputerBlock;
 import com.mmods.realpower.computer.ComputerBlockEntity;
+import com.mmods.realpower.computer.ControlRule;
 import com.mmods.realpower.data.DataDevice;
 import com.mmods.realpower.data.DataPortBlock;
 import com.mmods.realpower.energy.GeneratorBuffer;
@@ -243,6 +244,27 @@ public class WindTurbineGameTests {
         helper.runAfterDelay(SCAN_TICKS + 100, () -> {
             ComputerBlockEntity computer = (ComputerBlockEntity) level.getBlockEntity(base);
             helper.assertTrue(computer.generation().latest() == 0.0F, "desligada, a geracao devia cair a 0: " + computer.generation().latest());
+            // regras sempre verdadeiras (geracao < 30000 kW): a 1 religa o gerador, a 2 aciona o redstone
+            computer.addRule();
+            computer.addRule();
+            for (int rule = 0; rule < 2; rule++) {
+                computer.editRule(rule, 0);
+                computer.editRule(rule, 1);
+                for (int i = 0; i < 300; i++) {
+                    computer.editRule(rule, 2);
+                }
+            }
+            computer.editRule(0, 4);
+            computer.editRule(1, 4);
+            computer.editRule(1, 4);
+            computer.editRule(1, 4);
+        });
+        helper.runAfterDelay(SCAN_TICKS + 160, () -> {
+            ComputerBlockEntity computer = (ComputerBlockEntity) level.getBlockEntity(base);
+            helper.assertTrue(computer.rules().size() == 2 && computer.rules().get(0).action() == ControlRule.Action.ON
+                    && computer.rules().get(1).action() == ControlRule.Action.REDSTONE, "regras: " + computer.rules());
+            helper.assertTrue(computer.devices().get(0).enabled(), "regra ON devia religar o gerador");
+            helper.assertTrue(computer.redstone(), "regra REDSTONE devia acionar a saida");
             helper.succeed();
         });
     }

@@ -97,5 +97,18 @@
   "alarm.realpower.no_devices": "No devices linked to this computer",
   "alarm.realpower.offline": "%s: structure incomplete",
   "alarm.realpower.disabled": "%s: turned off",
-  "alarm.realpower.full": "%s: buffer full, energy is being wasted"
+  "alarm.realpower.full": "%s: buffer full, energy is being wasted",
+  "menu.realpower.computer": "%s Computer",
+  "menu.realpower.computer.summary": "Devices %s/%s | Gen %s kW | Use %s kW | Stored %s%%",
+  "menu.realpower.computer.redstone_on": "Redstone output: ON",
+  "menu.realpower.computer.redstone_off": "Redstone output: off",
+  "menu.realpower.computer.rules": "Automatic rules (later rules win)",
+  "menu.realpower.computer.add_rule": "Add rule",
+  "menu.realpower.computer.quantity.0": "Generation",
+  "menu.realpower.computer.quantity.1": "Consumption",
+  "menu.realpower.computer.quantity.2": "Stored",
+  "menu.realpower.computer.action.0": "Turn off",
+  "menu.realpower.computer.action.1": "Turn on",
+  "menu.realpower.computer.action.2": "Limit",
+  "menu.realpower.computer.action.3": "Redstone"
 }

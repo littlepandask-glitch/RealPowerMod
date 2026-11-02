@@ -97,5 +97,18 @@
   "alarm.realpower.no_devices": "Nenhum equipamento ligado a este computador",
   "alarm.realpower.offline": "%s: estrutura incompleta",
   "alarm.realpower.disabled": "%s: desligado",
-  "alarm.realpower.full": "%s: buffer cheio, energia sendo desperdiçada"
+  "alarm.realpower.full": "%s: buffer cheio, energia sendo desperdiçada",
+  "menu.realpower.computer": "Computador %s",
+  "menu.realpower.computer.summary": "Equip. %s/%s | Ger %s kW | Uso %s kW | Armaz. %s%%",
+  "menu.realpower.computer.redstone_on": "Saída de redstone: LIGADA",
+  "menu.realpower.computer.redstone_off": "Saída de redstone: desligada",
+  "menu.realpower.computer.rules": "Regras automáticas (a última verdadeira vence)",
+  "menu.realpower.computer.add_rule": "Adicionar regra",
+  "menu.realpower.computer.quantity.0": "Geração",
+  "menu.realpower.computer.quantity.1": "Consumo",
+  "menu.realpower.computer.quantity.2": "Armazenado",
+  "menu.realpower.computer.action.0": "Desligar",
+  "menu.realpower.computer.action.1": "Ligar",
+  "menu.realpower.computer.action.2": "Limitar",
+  "menu.realpower.computer.action.3": "Redstone"
 }
