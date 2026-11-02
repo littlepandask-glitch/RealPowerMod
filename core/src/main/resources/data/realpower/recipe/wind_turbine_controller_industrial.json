@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"redstone","pattern":["SCS","CTC","SCS"],"key":{"S":{"item":"realpower:steel_ingot"},"C":{"item":"minecraft:copper_ingot"},"T":{"item":"realpower:wind_turbine_controller_basic"}},"result":{"id":"realpower:wind_turbine_controller_industrial"}}

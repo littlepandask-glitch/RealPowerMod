@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"redstone","pattern":["ICI","CRC","ICI"],"key":{"I":{"item":"minecraft:iron_ingot"},"C":{"item":"minecraft:copper_ingot"},"R":{"item":"minecraft:redstone"}},"result":{"id":"realpower:wind_turbine_controller_basic"}}

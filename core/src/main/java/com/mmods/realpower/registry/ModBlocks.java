@@ -1,6 +1,7 @@
 package com.mmods.realpower.registry;
 
 import com.mmods.realpower.RealPower;
+import com.mmods.realpower.api.tier.Tier;
 import com.mmods.realpower.multiblock.wind.WindTurbineControllerBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
@@ -18,9 +19,16 @@ public final class ModBlocks {
     public static final DeferredBlock<Block> WIND_BLADE = BLOCKS.registerBlock("wind_blade", Block::new,
             BlockBehaviour.Properties.of().strength(2.0F, 4.0F).sound(SoundType.METAL));
 
-    public static final DeferredBlock<WindTurbineControllerBlock> WIND_TURBINE_CONTROLLER = BLOCKS.registerBlock(
-            "wind_turbine_controller", WindTurbineControllerBlock::new,
-            BlockBehaviour.Properties.of().strength(4.0F, 8.0F).sound(SoundType.METAL));
+    public static final DeferredBlock<WindTurbineControllerBlock> WIND_TURBINE_CONTROLLER_BASIC =
+            windController(Tier.BASIC);
+    public static final DeferredBlock<WindTurbineControllerBlock> WIND_TURBINE_CONTROLLER_INDUSTRIAL =
+            windController(Tier.INDUSTRIAL);
+
+    private static DeferredBlock<WindTurbineControllerBlock> windController(Tier tier) {
+        return BLOCKS.registerBlock("wind_turbine_controller_" + tier.getSerializedName(),
+                properties -> new WindTurbineControllerBlock(properties, tier),
+                BlockBehaviour.Properties.of().strength(4.0F, 8.0F).sound(SoundType.METAL));
+    }
 
     private ModBlocks() {
     }

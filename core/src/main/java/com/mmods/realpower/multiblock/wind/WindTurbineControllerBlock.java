@@ -1,7 +1,11 @@
 package com.mmods.realpower.multiblock.wind;
 
+import com.mmods.realpower.api.tier.Tier;
+import com.mmods.realpower.api.tier.Tiered;
+import com.mmods.realpower.generator.AbstractGeneratorBlockEntity;
 import com.mmods.realpower.registry.ModBlockEntities;
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionResult;
@@ -20,13 +24,24 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
 /** Nacele da turbina: valida a estrutura e gera energia. A frente do bloco e o lado do rotor. */
-public class WindTurbineControllerBlock extends BaseEntityBlock {
-    public static final MapCodec<WindTurbineControllerBlock> CODEC = simpleCodec(WindTurbineControllerBlock::new);
+public class WindTurbineControllerBlock extends BaseEntityBlock implements Tiered {
+    public static final MapCodec<WindTurbineControllerBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+            propertiesCodec(),
+            Tier.CODEC.fieldOf("tier").forGetter(WindTurbineControllerBlock::tier)
+    ).apply(instance, WindTurbineControllerBlock::new));
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
 
-    public WindTurbineControllerBlock(Properties properties) {
+    private final Tier tier;
+
+    public WindTurbineControllerBlock(Properties properties, Tier tier) {
         super(properties);
+        this.tier = tier;
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+    }
+
+    @Override
+    public Tier tier() {
+        return tier;
     }
 
     @Override
@@ -57,7 +72,7 @@ public class WindTurbineControllerBlock extends BaseEntityBlock {
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return level.isClientSide ? null : createTickerHelper(type, ModBlockEntities.WIND_TURBINE_CONTROLLER.get(),
-                WindTurbineControllerBlockEntity::serverTick);
+                AbstractGeneratorBlockEntity::serverTick);
     }
 
     @Override

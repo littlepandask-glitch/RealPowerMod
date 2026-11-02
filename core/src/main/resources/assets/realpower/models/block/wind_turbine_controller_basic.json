@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "top": "realpower:block/wind_turbine_controller_basic_side",
+    "front": "realpower:block/wind_turbine_controller_basic_front",
+    "side": "realpower:block/wind_turbine_controller_basic_side"
+  }
+}

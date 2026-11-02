@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"building","pattern":[" C ","CIC"," C "],"key":{"C":{"item":"minecraft:white_concrete"},"I":{"item":"minecraft:iron_ingot"}},"result":{"id":"realpower:wind_blade","count":2}}

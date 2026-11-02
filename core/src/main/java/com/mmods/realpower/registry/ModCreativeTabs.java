@@ -15,9 +15,11 @@ public final class ModCreativeTabs {
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> MAIN = TABS.register("main",
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup." + RealPower.MOD_ID))
-                    .icon(() -> ModItems.WIND_TURBINE_CONTROLLER.get().getDefaultInstance())
+                    .icon(() -> ModItems.WIND_TURBINE_CONTROLLER_BASIC.get().getDefaultInstance())
                     .displayItems((params, output) -> {
-                        output.accept(ModItems.WIND_TURBINE_CONTROLLER.get());
+                        output.accept(ModItems.STEEL_INGOT.get());
+                        output.accept(ModItems.WIND_TURBINE_CONTROLLER_BASIC.get());
+                        output.accept(ModItems.WIND_TURBINE_CONTROLLER_INDUSTRIAL.get());
                         output.accept(ModItems.WIND_TOWER.get());
                         output.accept(ModItems.WIND_BLADE.get());
                     })

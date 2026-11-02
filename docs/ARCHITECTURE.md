@@ -38,6 +38,30 @@ Estruturas reais sao enormes (represa com 100 m+ de altura, turbina eolica com
 6. **Energia.** Usar a capability `IEnergyStorage` (compat com outros mods). Para
    valores de fusao/fissao, manter `long` internamente e converter na borda.
 
+## Tiers (`api/tier/Tier`)
+
+| Tier | Eficiencia | Transferencia max. (FE/tick) |
+|---|---|---|
+| 1 Basic | 0,50 | 512 |
+| 2 Industrial | 0,68 | 4.096 |
+| 3 High Voltage | 0,80 | 65.536 |
+| 4 Advanced | 0,90 | 1.048.576 |
+| 5 Future | 0,97 | 16.777.216 |
+
+Blocos e block entities de um tier implementam `Tiered`. Hoje o controlador da
+turbina existe nos tiers Basic e Industrial (o Industrial exige aco).
+
+## Geradores (`generator/AbstractGeneratorBlockEntity`)
+
+Base de todo gerador multibloco: validacao incremental, producao, buffer e envio de FE.
+Um novo gerador implementa apenas `createScan`, `onStructureScanned`,
+`currentOutputWatts` e `ratedOutputWatts`.
+
+- Saida em FE; 1 FE/tick = 1 kW (`PowerScale`).
+- O buffer (`GeneratorBuffer`) e `long` e guarda de 5 s (eficiencia 0) a 20 s
+  (eficiencia 1) da potencia nominal, entao tiers maiores guardam mais.
+- Para outros mods ele e exposto como `IEnergyStorage` (so extracao, limitado a int).
+
 ## Proximos passos sugeridos
 
 1. API de multibloco (`api/multiblock`): controlador, regras, resultado de validacao.

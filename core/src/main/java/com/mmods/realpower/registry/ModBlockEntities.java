@@ -15,7 +15,8 @@ public final class ModBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<WindTurbineControllerBlockEntity>>
             WIND_TURBINE_CONTROLLER = BLOCK_ENTITIES.register("wind_turbine_controller",
                     () -> BlockEntityType.Builder.of(WindTurbineControllerBlockEntity::new,
-                            ModBlocks.WIND_TURBINE_CONTROLLER.get()).build(null));
+                            ModBlocks.WIND_TURBINE_CONTROLLER_BASIC.get(),
+                            ModBlocks.WIND_TURBINE_CONTROLLER_INDUSTRIAL.get()).build(null));
 
     private ModBlockEntities() {
     }
