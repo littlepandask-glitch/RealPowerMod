@@ -2,7 +2,10 @@ package com.mmods.realpower.data;
 
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
+import com.mmods.realpower.cable.CableBlock;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -25,7 +28,11 @@ public class DataPortBlock extends Block implements DataNode {
 
     public DataPortBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+        BlockState state = stateDefinition.any().setValue(FACING, Direction.NORTH);
+        for (BooleanProperty property : CableBlock.PROPERTY_BY_DIRECTION.values()) {
+            state = state.setValue(property, false);
+        }
+        registerDefaultState(state);
     }
 
     @Override
@@ -36,11 +43,26 @@ public class DataPortBlock extends Block implements DataNode {
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(FACING);
+        CableBlock.PROPERTY_BY_DIRECTION.values().forEach(builder::add);
     }
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(FACING, context.getClickedFace());
+        BlockState state = defaultBlockState().setValue(FACING, context.getClickedFace());
+        for (Direction side : Direction.values()) {
+            state = state.setValue(CableBlock.PROPERTY_BY_DIRECTION.get(side),
+                    side != context.getClickedFace().getOpposite() && DataCableBlock.linksTo(context.getLevel(), context.getClickedPos(), side));
+        }
+        return state;
+    }
+
+    /** As propriedades de lado so marcam onde ha cabo ligado: o modelo desenha um trecho de conector ate ele. */
+    @Override
+    protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState,
+                                     LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
+        boolean linked = direction != state.getValue(FACING).getOpposite()
+                && neighborState.getBlock() instanceof DataNode node && node.connects(neighborState, direction.getOpposite());
+        return state.setValue(CableBlock.PROPERTY_BY_DIRECTION.get(direction), linked);
     }
 
     /** O no nao se liga ao equipamento que esta atras dele. */

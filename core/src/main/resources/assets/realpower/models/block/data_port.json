@@ -1,9 +1,10 @@
 {
  "parent": "minecraft:block/block",
  "textures": {
-  "particle": "realpower:block/data_cable",
-  "body": "realpower:block/data_cable",
-  "plate": "realpower:block/data_port"
+  "particle": "realpower:block/data_node",
+  "plate": "realpower:block/data_port",
+  "node": "realpower:block/data_node",
+  "cap": "realpower:block/data_cable_cap"
  },
  "elements": [
   {
@@ -19,86 +20,194 @@
    ],
    "faces": {
     "north": {
-     "texture": "#plate"
+     "texture": "#plate",
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ]
     },
     "south": {
-     "texture": "#plate"
+     "texture": "#plate",
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ]
     },
     "east": {
-     "texture": "#plate"
+     "texture": "#plate",
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ]
     },
     "west": {
-     "texture": "#plate"
+     "texture": "#plate",
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ]
     },
     "up": {
-     "texture": "#plate"
+     "texture": "#plate",
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ]
     },
     "down": {
-     "texture": "#plate"
+     "texture": "#plate",
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ]
     }
    }
   },
   {
    "from": [
-    5,
-    5,
-    8
+    6,
+    6,
+    11
    ],
    "to": [
-    11,
-    11,
+    10,
+    10,
     12
    ],
    "faces": {
     "north": {
-     "texture": "#body"
+     "texture": "#cap",
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ]
     },
     "south": {
-     "texture": "#body"
+     "texture": "#cap",
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ]
     },
     "east": {
-     "texture": "#body"
+     "texture": "#cap",
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ]
     },
     "west": {
-     "texture": "#body"
+     "texture": "#cap",
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ]
     },
     "up": {
-     "texture": "#body"
+     "texture": "#cap",
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ]
     },
     "down": {
-     "texture": "#body"
+     "texture": "#cap",
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ]
     }
    }
   },
   {
    "from": [
-    6,
-    6,
-    7
+    5,
+    5,
+    5
    ],
    "to": [
-    10,
-    10,
-    8
+    11,
+    11,
+    11
    ],
    "faces": {
     "north": {
-     "texture": "#plate"
+     "texture": "#node",
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ]
     },
     "south": {
-     "texture": "#plate"
+     "texture": "#node",
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ]
     },
     "east": {
-     "texture": "#plate"
+     "texture": "#node",
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ]
     },
     "west": {
-     "texture": "#plate"
+     "texture": "#node",
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ]
     },
     "up": {
-     "texture": "#plate"
+     "texture": "#node",
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ]
     },
     "down": {
-     "texture": "#plate"
+     "texture": "#node",
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ]
     }
    }
   }

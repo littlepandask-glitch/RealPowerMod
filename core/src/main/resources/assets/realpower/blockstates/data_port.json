@@ -1,27 +1,110 @@
 {
- "variants": {
-  "facing=north": {
-   "model": "realpower:block/data_port"
+ "multipart": [
+  {
+   "when": {
+    "facing": "north"
+   },
+   "apply": {
+    "model": "realpower:block/data_port"
+   }
   },
-  "facing=south": {
-   "model": "realpower:block/data_port",
-   "y": 180
+  {
+   "when": {
+    "facing": "south"
+   },
+   "apply": {
+    "model": "realpower:block/data_port",
+    "y": 180
+   }
   },
-  "facing=east": {
-   "model": "realpower:block/data_port",
-   "y": 90
+  {
+   "when": {
+    "facing": "east"
+   },
+   "apply": {
+    "model": "realpower:block/data_port",
+    "y": 90
+   }
   },
-  "facing=west": {
-   "model": "realpower:block/data_port",
-   "y": 270
+  {
+   "when": {
+    "facing": "west"
+   },
+   "apply": {
+    "model": "realpower:block/data_port",
+    "y": 270
+   }
   },
-  "facing=up": {
-   "model": "realpower:block/data_port",
-   "x": 90
+  {
+   "when": {
+    "facing": "up"
+   },
+   "apply": {
+    "model": "realpower:block/data_port",
+    "x": 90
+   }
   },
-  "facing=down": {
-   "model": "realpower:block/data_port",
-   "x": 270
+  {
+   "when": {
+    "facing": "down"
+   },
+   "apply": {
+    "model": "realpower:block/data_port",
+    "x": 270
+   }
+  },
+  {
+   "when": {
+    "north": "true"
+   },
+   "apply": {
+    "model": "realpower:block/data_cable_arm"
+   }
+  },
+  {
+   "when": {
+    "south": "true"
+   },
+   "apply": {
+    "model": "realpower:block/data_cable_arm",
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "east": "true"
+   },
+   "apply": {
+    "model": "realpower:block/data_cable_arm",
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "west": "true"
+   },
+   "apply": {
+    "model": "realpower:block/data_cable_arm",
+    "y": 270
+   }
+  },
+  {
+   "when": {
+    "up": "true"
+   },
+   "apply": {
+    "model": "realpower:block/data_cable_arm",
+    "x": 270
+   }
+  },
+  {
+   "when": {
+    "down": "true"
+   },
+   "apply": {
+    "model": "realpower:block/data_cable_arm",
+    "x": 90
+   }
   }
- }
+ ]
 }
