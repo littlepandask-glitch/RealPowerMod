@@ -1,40 +1,7 @@
 {
- "multipart": [
-  {
-   "when": {
-    "facing": "north"
-   },
-   "apply": {
-    "model": "realpower:block/transformer_high_voltage_core",
-    "y": 0
-   }
-  },
-  {
-   "when": {
-    "facing": "east"
-   },
-   "apply": {
-    "model": "realpower:block/transformer_high_voltage_core",
-    "y": 90
-   }
-  },
-  {
-   "when": {
-    "facing": "south"
-   },
-   "apply": {
-    "model": "realpower:block/transformer_high_voltage_core",
-    "y": 180
-   }
-  },
-  {
-   "when": {
-    "facing": "west"
-   },
-   "apply": {
-    "model": "realpower:block/transformer_high_voltage_core",
-    "y": 270
-   }
+ "variants": {
+  "": {
+   "model": "realpower:block/structure_filler"
   }
- ]
+ }
 }

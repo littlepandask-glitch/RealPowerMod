@@ -20,17 +20,34 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 public class PowerStructureBlock extends Block {
     public static final MapCodec<PowerStructureBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             propertiesCodec(),
-            Codec.BOOL.fieldOf("solid").forGetter(block -> block.solid)
+            Variant.CODEC.fieldOf("variant").forGetter(block -> block.variant)
     ).apply(instance, PowerStructureBlock::new));
 
     private static final VoxelShape POLE = Block.box(5.5, 0, 5.5, 10.5, 16, 10.5);
     private static final VoxelShape TOWER = Block.box(4, 0, 4, 12, 16, 12);
 
-    private final boolean solid;
+    /** Forma do preenchimento: poste (fino e solido), torre (so selecao) ou volume cheio (transformador). */
+    public enum Variant implements net.minecraft.util.StringRepresentable {
+        POLE("pole"), TOWER("tower"), BULK("bulk");
 
-    public PowerStructureBlock(Properties properties, boolean solid) {
+        public static final Codec<Variant> CODEC = net.minecraft.util.StringRepresentable.fromEnum(Variant::values);
+        private final String id;
+
+        Variant(String id) {
+            this.id = id;
+        }
+
+        @Override
+        public String getSerializedName() {
+            return id;
+        }
+    }
+
+    private final Variant variant;
+
+    public PowerStructureBlock(Properties properties, Variant variant) {
         super(properties);
-        this.solid = solid;
+        this.variant = variant;
     }
 
     @Override
@@ -45,12 +62,16 @@ public class PowerStructureBlock extends Block {
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return solid ? POLE : TOWER;
+        return switch (variant) {
+            case POLE -> POLE;
+            case TOWER -> TOWER;
+            case BULK -> Shapes.block();
+        };
     }
 
     @Override
     protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return solid ? POLE : Shapes.empty();
+        return variant == Variant.TOWER ? Shapes.empty() : getShape(state, level, pos, context);
     }
 
     @Override
@@ -64,15 +85,18 @@ public class PowerStructureBlock extends Block {
         if (state.is(newState.getBlock()) || level.isClientSide) {
             return;
         }
-        // procura o bloco base abaixo e o quebra (ele remove o resto da coluna)
-        for (int d = 1; d < 64; d++) {
-            BlockState below = level.getBlockState(pos.below(d));
-            if (below.getBlock() instanceof CableBlock cable && cable.kind().overhead()) {
-                level.destroyBlock(pos.below(d), true);
-                return;
-            }
-            if (!(below.getBlock() instanceof PowerStructureBlock)) {
-                return;
+        // procura o bloco base cujo conjunto contem esta celula e o quebra (ele remove o resto)
+        for (int dy = 0; dy < 40; dy++) {
+            for (int dx = -5; dx <= 5; dx++) {
+                for (int dz = -5; dz <= 5; dz++) {
+                    BlockPos candidate = pos.offset(dx, -dy, dz);
+                    BlockState candidateState = level.getBlockState(candidate);
+                    if (candidateState.getBlock() instanceof CableBlock cable && cable.kind().overhead()
+                            && cable.structureCells(candidate, candidateState).contains(pos)) {
+                        level.destroyBlock(candidate, true);
+                        return;
+                    }
+                }
             }
         }
     }

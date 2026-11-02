@@ -1,5 +1,6 @@
 package com.mmods.realpower.cable;
 
+import com.mmods.realpower.api.tier.Tier;
 import com.mojang.serialization.Codec;
 import net.minecraft.util.StringRepresentable;
 
@@ -14,7 +15,7 @@ public enum CableKind implements StringRepresentable {
     POLE("power_pole", 3, 48, 0.25, 12),
     TOWER("transmission_tower", 14, 160, 0.08, 36),
     /** Transformador elevador: ponte entre geradores/cabos e a linha aerea; liga-se por fio a postes e torres. */
-    TRANSFORMER("transformer", 3, 48, 0.1, 1);
+    TRANSFORMER("transformer", 8, 48, 0.1, 1);
 
     public static final Codec<CableKind> CODEC = StringRepresentable.fromEnum(CableKind::values);
 
@@ -55,6 +56,32 @@ public enum CableKind implements StringRepresentable {
     /** Altura da estrutura em blocos (1 bloco = 1 m); poste e torre ocupam uma coluna acima do bloco base. */
     public int height() {
         return height;
+    }
+
+    /**
+     * Dimensoes (largura, profundidade, altura) em blocos do conjunto multibloco. Poste e torre sao colunas; o
+     * transformador cresce com o tier. Largura e profundidade sao impares (o bloco base fica no centro).
+     */
+    public int[] size(Tier tier) {
+        if (this != TRANSFORMER) {
+            return new int[]{1, 1, height};
+        }
+        return switch (tier) {
+            case BASIC, INDUSTRIAL -> new int[]{3, 3, 3};
+            case HIGH_VOLTAGE -> new int[]{5, 3, 4};
+            case ADVANCED -> new int[]{7, 5, 5};
+            case FUTURE -> new int[]{9, 5, 6};
+        };
+    }
+
+    /** Altura (m) onde os fios se prendem, acima da base. */
+    public double anchorHeight(Tier tier) {
+        return this == TRANSFORMER ? size(tier)[2] + 1.3 : height;
+    }
+
+    /** Poste e torre so se ligam ao longo do eixo das travessas (nunca de lado). */
+    public boolean linksAlongAxisOnly() {
+        return this == POLE || this == TOWER;
     }
 
     public boolean overhead() {

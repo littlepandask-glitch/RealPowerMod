@@ -110,7 +110,18 @@ public final class CableNetworks {
     /** Ponto de fixacao dos fios (topo da estrutura) de um poste/torre. */
     private static Vec3 top(CableBlockEntity cable) {
         BlockPos pos = cable.getBlockPos();
-        return new Vec3(pos.getX() + 0.5, pos.getY() + cable.kind().height(), pos.getZ() + 0.5);
+        return new Vec3(pos.getX() + 0.5, pos.getY() + cable.kind().anchorHeight(cable.tier()), pos.getZ() + 0.5);
+    }
+
+    /** Postes e torres so se ligam ao longo do eixo das travessas (ate 30 graus); de lado, nunca. */
+    private static boolean alongAxis(CableBlockEntity node, Vec3 direction) {
+        if (!node.kind().linksAlongAxisOnly()) {
+            return true;
+        }
+        Direction facing = node.getBlockState().getValue(CableBlock.FACING);
+        double length = Math.hypot(direction.x, direction.z);
+        return length < 1e-6
+                || Math.abs(direction.x * facing.getStepX() + direction.z * facing.getStepZ()) / length >= 0.866;
     }
 
     /**
@@ -132,7 +143,9 @@ public final class CableNetworks {
                 double d = top(nodes.get(i)).distanceTo(top(nodes.get(j)));
                 distance[i][j] = d;
                 distance[j][i] = d;
-                boolean ok = d <= Math.min(nodes.get(i).kind().linkRange(), nodes.get(j).kind().linkRange())
+                Vec3 dir = top(nodes.get(j)).subtract(top(nodes.get(i)));
+                boolean ok = alongAxis(nodes.get(i), dir) && alongAxis(nodes.get(j), dir)
+                        && d <= Math.min(nodes.get(i).kind().linkRange(), nodes.get(j).kind().linkRange())
                         && d >= Math.max(nodes.get(i).kind().minLink(), nodes.get(j).kind().minLink());
                 reachable[i][j] = ok;
                 reachable[j][i] = ok;

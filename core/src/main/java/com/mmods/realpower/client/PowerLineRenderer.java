@@ -38,16 +38,21 @@ public class PowerLineRenderer implements BlockEntityRenderer<CableBlockEntity> 
     private static Mesh meshFor(CableBlockEntity cable) {
         CableKind kind = cable.kind();
         Tier tier = cable.tier();
-        return MESHES.computeIfAbsent(kind.ordinal() * 8 + tier.ordinal(), k -> kind == CableKind.TOWER
-                ? PowerStructureModel.tower(kind.height(), ACCENT[tier.ordinal()])
-                : PowerStructureModel.pole(kind.height(), tier == Tier.BASIC, ACCENT[tier.ordinal()]));
+        int[] size = kind.size(tier);
+        return MESHES.computeIfAbsent(kind.ordinal() * 8 + tier.ordinal(), k -> switch (kind) {
+            case TOWER -> PowerStructureModel.tower(kind.height(), ACCENT[tier.ordinal()]);
+            case TRANSFORMER -> PowerStructureModel.transformer(size[0], size[1], size[2], ACCENT[tier.ordinal()]);
+            default -> PowerStructureModel.pole(kind.height(), tier == Tier.BASIC, ACCENT[tier.ordinal()]);
+        });
     }
 
-    private static double[][] anchors(CableKind kind) {
-        if (kind == CableKind.TRANSFORMER) {
-            return new double[][]{{-0.25, 1.45, 0}, {0, 1.45, 0}, {0.25, 1.45, 0}};
-        }
-        return kind == CableKind.TOWER ? PowerStructureModel.towerAnchors(kind.height()) : PowerStructureModel.poleAnchors(kind.height());
+    private static double[][] anchors(CableBlockEntity cable) {
+        CableKind kind = cable.kind();
+        return switch (kind) {
+            case TRANSFORMER -> PowerStructureModel.transformerAnchors(kind.size(cable.tier())[0], kind.size(cable.tier())[2]);
+            case TOWER -> PowerStructureModel.towerAnchors(kind.height());
+            default -> PowerStructureModel.poleAnchors(kind.height());
+        };
     }
 
     /** Rotacao da estrutura em graus (o eixo z local aponta no sentido da linha). */
@@ -69,27 +74,25 @@ public class PowerLineRenderer implements BlockEntityRenderer<CableBlockEntity> 
             return;
         }
         BlockPos from = cable.getBlockPos();
-        int lightTop = LevelRenderer.getLightColor(cable.getLevel(), from.above(cable.kind().height()));
+        int lightTop = LevelRenderer.getLightColor(cable.getLevel(), from.above(cable.kind().size(cable.tier())[2]));
 
-        if (cable.kind() != CableKind.TRANSFORMER) { // o transformador e um modelo de bloco; so os fios sao desenhados
-            pose.pushPose();
-            pose.translate(0.5, 0.0, 0.5);
-            pose.mulPose(Axis.YP.rotationDegrees(yaw(cable)));
-            draw(meshFor(cable), pose, buffers.getBuffer(RenderType.entityCutoutNoCull(TEXTURE)), lightTop);
-            pose.popPose();
-        }
+        pose.pushPose();
+        pose.translate(0.5, 0.0, 0.5);
+        pose.mulPose(Axis.YP.rotationDegrees(yaw(cable)));
+        draw(meshFor(cable), pose, buffers.getBuffer(RenderType.entityCutoutNoCull(TEXTURE)), lightTop);
+        pose.popPose();
 
         if (cable.links().isEmpty()) {
             return;
         }
         VertexConsumer lines = buffers.getBuffer(RenderType.lines());
-        double[][] fromAnchors = anchors(cable.kind());
+        double[][] fromAnchors = anchors(cable);
         for (BlockPos to : cable.links()) {
             if (from.asLong() > to.asLong() || !(cable.getLevel().getBlockEntity(to) instanceof CableBlockEntity other)
                     || !other.kind().overhead()) {
                 continue; // cada linha e desenhada por um so dos extremos
             }
-            double[][] toAnchors = anchors(other.kind());
+            double[][] toAnchors = anchors(other);
             Vec3[] fromWorld = sortedAnchors(cable, fromAnchors, other.getBlockPos());
             Vec3[] toWorld = sortedAnchors(other, toAnchors, from);
             int wires = Math.min(fromWorld.length, toWorld.length);
@@ -156,10 +159,10 @@ public class PowerLineRenderer implements BlockEntityRenderer<CableBlockEntity> 
 
     @Override
     public AABB getRenderBoundingBox(CableBlockEntity cable) {
-        int h = cable.kind().height();
-        AABB box = new AABB(cable.getBlockPos()).inflate(10.0, 0.0, 10.0).expandTowards(0, h + 3, 0);
+        int h = cable.kind().size(cable.tier())[2];
+        AABB box = new AABB(cable.getBlockPos()).inflate(12.0, 0.0, 12.0).expandTowards(0, h + 3, 0);
         for (BlockPos link : cable.links()) {
-            box = box.minmax(new AABB(link).inflate(10.0, 0.0, 10.0).expandTowards(0, h + 3, 0));
+            box = box.minmax(new AABB(link).inflate(12.0, 0.0, 12.0).expandTowards(0, h + 3, 0));
         }
         return box;
     }

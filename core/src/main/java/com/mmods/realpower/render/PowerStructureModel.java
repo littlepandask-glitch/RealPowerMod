@@ -151,4 +151,54 @@ public final class PowerStructureModel {
         }
         return out;
     }
+
+    // ---------- transformador ----------
+
+    /** Posicao x das buchas (3 condutores) de um transformador de largura {@code w}. */
+    private static double bushingSpacing(int w) {
+        return w * 0.3;
+    }
+
+    /** Transformador elevador w x d x h metros, centrado na origem; o eixo x e o da largura. */
+    public static Mesh transformer(int w, int d, int h, float[] accent) {
+        Mesh.Builder b = new Mesh.Builder();
+        b.box(v(0, 0.15, 0), w, 0.3, d, CONCRETE);
+        double tankW = w - 1.6;
+        double tankD = d - 0.6;
+        double tankTop = h - 0.9;
+        b.box(v(0, 0.3 + (tankTop - 0.3) / 2, 0), tankW, tankTop - 0.3, tankD, DARK);
+        b.box(v(0, 0.3 + (tankTop - 0.3) * 0.5, 0), tankW + 0.06, 0.2, tankD + 0.06, accent);
+        b.box(v(0, tankTop + 0.05, 0), tankW + 0.2, 0.1, tankD + 0.2, STEEL);
+        // radiadores de aletas nas duas extremidades
+        double radiatorHeight = tankTop - 0.8;
+        for (int side = -1; side <= 1; side += 2) {
+            double x = side * (tankW / 2 + 0.45);
+            b.box(v(x, 0.5 + radiatorHeight / 2, 0), 0.9, radiatorHeight, tankD - 0.2, DARK);
+            for (double z = -(tankD / 2 - 0.3); z <= tankD / 2 - 0.3 + 1e-6; z += 0.3) {
+                b.box(v(x + side * 0.1, 0.5 + radiatorHeight / 2, z), 1.0, radiatorHeight - 0.1, 0.1, STEEL);
+            }
+        }
+        // conservador de oleo sobre o tanque
+        b.beam(v(-tankW * 0.3, tankTop + 0.45, -tankD * 0.25), v(tankW * 0.3, tankTop + 0.45, -tankD * 0.25), 0.55, STEEL);
+        // buchas de porcelana, uma por condutor
+        double s = bushingSpacing(w);
+        for (int i = -1; i <= 1; i++) {
+            double x = i * s;
+            b.box(v(x, tankTop + 0.2, 0), 0.5, 0.2, 0.5, STEEL);
+            double top = h + 1.2;
+            b.beam(v(x, tankTop + 0.3, 0), v(x, top, 0), 0.28, CERAMIC);
+            for (double y = tankTop + 0.45; y < top; y += 0.2) {
+                b.box(v(x, y, 0), 0.5, 0.05, 0.5, CERAMIC);
+            }
+            b.box(v(x, top + 0.07, 0), 0.2, 0.14, 0.2, accent);
+        }
+        return b.build();
+    }
+
+    /** Pontos de fixacao dos 3 fios do transformador, no topo das buchas. */
+    public static double[][] transformerAnchors(int w, int h) {
+        double s = bushingSpacing(w);
+        double y = h + 1.3;
+        return new double[][]{{-s, y, 0}, {0, y, 0}, {s, y, 0}};
+    }
 }

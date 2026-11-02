@@ -56,7 +56,7 @@ public class CableBlock extends BaseEntityBlock implements Tiered {
             case RELAY -> Block.box(4, 4, 4, 12, 12, 12);
             case POLE -> Block.box(5.5, 0, 5.5, 10.5, 16, 10.5);
             case TOWER -> Block.box(2, 0, 2, 14, 3, 14);
-            case TRANSFORMER -> Block.box(0, 0, 3, 16, 14, 13);
+            case TRANSFORMER -> Shapes.block();
         };
     }
 
@@ -130,24 +130,55 @@ public class CableBlock extends BaseEntityBlock implements Tiered {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        if (kind.overhead() && !hasRoom(context.getLevel(), context.getClickedPos())) {
-            return null; // sem espaco livre para a altura inteira
-        }
-        return withConnections(context.getLevel(), context.getClickedPos(),
+        BlockState state = withConnections(context.getLevel(), context.getClickedPos(),
                 defaultBlockState().setValue(FACING, context.getHorizontalDirection()));
+        if (kind.overhead() && !hasRoom(context.getLevel(), context.getClickedPos(), state)) {
+            return null; // sem espaco livre para o conjunto inteiro
+        }
+        return state;
     }
 
-    private boolean hasRoom(Level level, BlockPos pos) {
-        for (int y = 1; y < kind.height(); y++) {
-            if (!level.getBlockState(pos.above(y)).canBeReplaced()) {
+    private boolean hasRoom(Level level, BlockPos pos, BlockState state) {
+        for (BlockPos cell : structureCells(pos, state)) {
+            if (!level.getBlockState(cell).canBeReplaced() || level.isOutsideBuildHeight(cell)) {
                 return false;
             }
         }
-        return !level.isOutsideBuildHeight(pos.above(kind.height()));
+        return true;
+    }
+
+    /** Celulas (sem o bloco base) que o conjunto multibloco ocupa; a largura segue o eixo local x, girado pelo FACING. */
+    public java.util.List<BlockPos> structureCells(BlockPos base, BlockState state) {
+        int[] size = kind.size(tier);
+        Direction facing = state.getValue(FACING);
+        java.util.List<BlockPos> cells = new java.util.ArrayList<>();
+        for (int y = 0; y < size[2]; y++) {
+            for (int lx = -(size[0] - 1) / 2; lx <= (size[0] - 1) / 2; lx++) {
+                for (int lz = -(size[1] - 1) / 2; lz <= (size[1] - 1) / 2; lz++) {
+                    if (lx == 0 && lz == 0 && y == 0) {
+                        continue;
+                    }
+                    int wx;
+                    int wz;
+                    switch (facing) {
+                        case EAST -> { wx = -lz; wz = lx; }
+                        case SOUTH -> { wx = -lx; wz = -lz; }
+                        case WEST -> { wx = lz; wz = -lx; }
+                        default -> { wx = lx; wz = lz; }
+                    }
+                    cells.add(base.offset(wx, y, wz));
+                }
+            }
+        }
+        return cells;
     }
 
     private Block fillerBlock() {
-        return (kind == CableKind.POLE ? ModBlocks.POLE_STRUCTURE : ModBlocks.TOWER_STRUCTURE).get();
+        return switch (kind) {
+            case POLE -> ModBlocks.POLE_STRUCTURE.get();
+            case TOWER -> ModBlocks.TOWER_STRUCTURE.get();
+            default -> ModBlocks.TRANSFORMER_STRUCTURE.get();
+        };
     }
 
     @Override
@@ -156,9 +187,9 @@ public class CableBlock extends BaseEntityBlock implements Tiered {
         // trocar o estado aqui dentro faria o setBlock externo nao avisar os vizinhos; adia para o proximo tick
         if (!level.isClientSide) {
             if (kind.overhead()) {
-                for (int y = 1; y < kind.height(); y++) {
-                    if (level.getBlockState(pos.above(y)).canBeReplaced()) {
-                        level.setBlock(pos.above(y), fillerBlock().defaultBlockState(), Block.UPDATE_CLIENTS);
+                for (BlockPos cell : structureCells(pos, state)) {
+                    if (level.getBlockState(cell).canBeReplaced()) {
+                        level.setBlock(cell, fillerBlock().defaultBlockState(), Block.UPDATE_CLIENTS);
                     }
                 }
             }
@@ -169,9 +200,9 @@ public class CableBlock extends BaseEntityBlock implements Tiered {
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (kind.overhead() && !state.is(newState.getBlock()) && !level.isClientSide) {
-            for (int y = 1; y < kind.height(); y++) {
-                if (level.getBlockState(pos.above(y)).getBlock() instanceof PowerStructureBlock) {
-                    level.removeBlock(pos.above(y), false);
+            for (BlockPos cell : structureCells(pos, state)) {
+                if (level.getBlockState(cell).getBlock() instanceof PowerStructureBlock) {
+                    level.removeBlock(cell, false);
                 }
             }
         }

@@ -57,11 +57,14 @@ public final class ModBlocks {
 
     /** Preenchimento da coluna de postes e torres (invisivel; o conjunto 3D e desenhado pelo bloco base). */
     public static final DeferredBlock<PowerStructureBlock> POLE_STRUCTURE = BLOCKS.registerBlock("pole_structure",
-            properties -> new PowerStructureBlock(properties, true),
+            properties -> new PowerStructureBlock(properties, PowerStructureBlock.Variant.POLE),
             BlockBehaviour.Properties.of().strength(1.5F, 3.0F).sound(SoundType.METAL).noOcclusion().noLootTable());
     public static final DeferredBlock<PowerStructureBlock> TOWER_STRUCTURE = BLOCKS.registerBlock("tower_structure",
-            properties -> new PowerStructureBlock(properties, false),
+            properties -> new PowerStructureBlock(properties, PowerStructureBlock.Variant.TOWER),
             BlockBehaviour.Properties.of().strength(1.5F, 3.0F).sound(SoundType.METAL).noOcclusion().noLootTable());
+    public static final DeferredBlock<PowerStructureBlock> TRANSFORMER_STRUCTURE = BLOCKS.registerBlock("transformer_structure",
+            properties -> new PowerStructureBlock(properties, PowerStructureBlock.Variant.BULK),
+            BlockBehaviour.Properties.of().strength(3.0F, 6.0F).sound(SoundType.METAL).noOcclusion().noLootTable());
 
     /** Todos os nos da rede eletrica (cabo, rele, poste, torre), por id. */
     public static final Map<String, DeferredBlock<CableBlock>> NODES = new LinkedHashMap<>();

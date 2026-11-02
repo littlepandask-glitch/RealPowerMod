@@ -8,6 +8,9 @@ import com.mmods.realpower.cable.CableNetworks;
 import com.mmods.realpower.registry.ModBlocks;
 import java.util.concurrent.atomic.AtomicLong;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.state.BlockState;
+import com.mmods.realpower.cable.CableBlock;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
@@ -23,6 +26,11 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 @PrefixGameTestTemplate(false)
 public class CableGameTests {
     private static final int TICKS = 40;
+
+    /** Poste/torre com as travessas ao longo de x (a linha de testes corre em +x). */
+    private static BlockState alongX(Block block) {
+        return block.defaultBlockState().setValue(CableBlock.FACING, Direction.EAST);
+    }
 
     /** Linha de cabos ao longo de +x com um consumidor de teste depois do ultimo. Devolve a posicao do consumidor. */
     private static BlockPos line(GameTestHelper helper, int row, Block... cables) {
@@ -141,8 +149,8 @@ public class CableGameTests {
         level.setBlock(sink, Blocks.GOLD_BLOCK.defaultBlockState(), 3);
         TestEnergySink.RECEIVED.put(sink, 0L);
         level.setBlock(helper.absolutePos(new BlockPos(2, 2, 13)), cable.defaultBlockState(), 3);
-        level.setBlock(helper.absolutePos(new BlockPos(3, 2, 13)), pole.defaultBlockState(), 3);
-        level.setBlock(helper.absolutePos(new BlockPos(23, 2, 13)), pole.defaultBlockState(), 3);
+        level.setBlock(helper.absolutePos(new BlockPos(3, 2, 13)), alongX(pole), 3);
+        level.setBlock(helper.absolutePos(new BlockPos(23, 2, 13)), alongX(pole), 3);
         feed(helper, 13);
         helper.runAfterDelay(TICKS, () -> {
             CableNetwork network = CableNetworks.networkAt(level, helper.absolutePos(new BlockPos(2, 2, 13)));
@@ -160,7 +168,7 @@ public class CableGameTests {
         BlockPos[] poles = {helper.absolutePos(new BlockPos(2, 2, 17)), helper.absolutePos(new BlockPos(12, 2, 17)),
                 helper.absolutePos(new BlockPos(22, 2, 17))};
         for (BlockPos at : poles) {
-            level.setBlock(at, pole.defaultBlockState(), 3);
+            level.setBlock(at, alongX(pole), 3);
         }
         helper.runAfterDelay(10, () -> {
             var first = (com.mmods.realpower.cable.CableBlockEntity) level.getBlockEntity(poles[0]);
@@ -186,6 +194,42 @@ public class CableGameTests {
     }
 
     @GameTest(template = "empty", timeoutTicks = 200, batch = "cable")
+    public static void towersDoNotLinkSideways(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        Block tower = ModBlocks.node(CableKind.TOWER, Tier.HIGH_VOLTAGE).get();
+        BlockPos a = helper.absolutePos(new BlockPos(2, 2, 25));
+        BlockPos b = helper.absolutePos(new BlockPos(2, 2, 45));
+        BlockPos c = helper.absolutePos(new BlockPos(22, 2, 25));
+        // as travessas de a e b correm ao longo de z (frente-fundo): b esta na linha, c esta de lado
+        for (BlockPos at : new BlockPos[]{a, b, c}) {
+            level.setBlock(at, tower.defaultBlockState(), 3);
+        }
+        helper.runAfterDelay(10, () -> {
+            var first = (com.mmods.realpower.cable.CableBlockEntity) level.getBlockEntity(a);
+            helper.assertTrue(first.links().contains(b), "torres alinhadas ao eixo deveriam ligar");
+            helper.assertTrue(!first.links().contains(c), "torre ao lado nao deveria ligar");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 200, batch = "cable")
+    public static void transformerGrowsWithTier(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos base = helper.absolutePos(new BlockPos(6, 2, 27));
+        level.setBlock(base, ModBlocks.node(CableKind.TRANSFORMER, Tier.FUTURE).get().defaultBlockState(), 3);
+        helper.runAfterDelay(5, () -> {
+            int[] size = CableKind.TRANSFORMER.size(Tier.FUTURE);
+            helper.assertTrue(size[0] > CableKind.TRANSFORMER.size(Tier.INDUSTRIAL)[0], "tier maior deveria ser maior");
+            helper.assertTrue(level.getBlockState(base.offset(0, size[2] - 1, 0)).is(ModBlocks.TRANSFORMER_STRUCTURE.get()),
+                    "volume do transformador nao preenchido");
+            level.destroyBlock(base.offset(0, 1, 1), false);
+            helper.assertTrue(level.getBlockState(base).isAir() && level.getBlockState(base.offset(0, 2, 0)).isAir(),
+                    "quebrar uma parte deveria remover o transformador inteiro");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 200, batch = "cable")
     public static void transformerFeedsOverheadLine(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         BlockPos transformer = helper.absolutePos(new BlockPos(2, 2, 21));
@@ -194,7 +238,7 @@ public class CableGameTests {
         level.setBlock(sink, Blocks.GOLD_BLOCK.defaultBlockState(), 3);
         TestEnergySink.RECEIVED.put(sink, 0L);
         level.setBlock(transformer, ModBlocks.node(CableKind.TRANSFORMER, Tier.INDUSTRIAL).get().defaultBlockState(), 3);
-        level.setBlock(pole, ModBlocks.node(CableKind.POLE, Tier.INDUSTRIAL).get().defaultBlockState(), 3);
+        level.setBlock(pole, alongX(ModBlocks.node(CableKind.POLE, Tier.INDUSTRIAL).get()), 3);
         feed(helper, 21);
         helper.runAfterDelay(TICKS, () -> {
             CableNetwork network = CableNetworks.networkAt(level, transformer);
