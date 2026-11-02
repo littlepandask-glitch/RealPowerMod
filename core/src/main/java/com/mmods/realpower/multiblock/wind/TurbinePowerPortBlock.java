@@ -15,7 +15,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 /** Topo do poste da turbina: a travessa com isoladores onde cabos e linhas se conectam. */
 public class TurbinePowerPortBlock extends BaseEntityBlock {
     public static final MapCodec<TurbinePowerPortBlock> CODEC = simpleCodec(TurbinePowerPortBlock::new);
-    private static final VoxelShape SHAPE = Block.box(2, 0, 2, 14, 12, 14);
+    private static final VoxelShape SHAPE = Block.box(0, 0, 0, 16, 10, 16);
 
     public TurbinePowerPortBlock(Properties properties) {
         super(properties);

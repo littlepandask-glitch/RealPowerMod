@@ -104,6 +104,7 @@ public final class PowerStructureModel {
             double y = arm[0];
             double half = arm[1];
             for (int side = -1; side <= 1; side += 2) {
+                boolean wired = side == arm[2];
                 for (double z : new double[]{-0.85, 0.85}) {
                     b.beam(v(side * 1.0, y, z), v(side * half, y, z), 0.16, STEEL);
                     b.beam(v(side * 1.0, y + 1.1, z), v(side * half, y + 0.35, z), 0.12, STEEL);
@@ -121,6 +122,9 @@ public final class PowerStructureModel {
                     }
                 }
                 b.beam(v(side * half, y, -0.85), v(side * half, y, 0.85), 0.14, STEEL);
+                if (!wired) {
+                    continue;
+                }
                 // cadeia de isoladores pendurada na ponta
                 double drop = 2.2;
                 b.beam(v(side * half, y, 0), v(side * half, y - drop, 0), 0.16, CERAMIC);
@@ -133,19 +137,17 @@ public final class PowerStructureModel {
         return b.build();
     }
 
-    /** Travessas da torre: {altura, meia-largura}; cada uma mais larga que a de cima. */
+    /** Travessas da torre: {altura, meia-largura, lado do fio}; cada uma mais larga que a de cima. */
     private static double[][] towerArms(double h) {
-        return new double[][]{{h - 3, 4.5}, {h - 8, 6.0}, {h - 13, 7.5}};
+        return new double[][]{{h - 3, 4.5, -1}, {h - 8, 6.0, 1}, {h - 13, 7.5, -1}};
     }
 
-    /** Pontos de fixacao dos fios da torre: par esquerda/direita de cada travessa, de cima para baixo. */
+    /** Pontos de fixacao dos 3 fios da torre: um por travessa (lados alternados), de cima para baixo. */
     public static double[][] towerAnchors(double h) {
         double[][] arms = towerArms(h);
-        double[][] out = new double[arms.length * 2][];
+        double[][] out = new double[arms.length][];
         for (int i = 0; i < arms.length; i++) {
-            double y = arms[i][0] - 2.5;
-            out[i * 2] = new double[]{-arms[i][1], y, 0};
-            out[i * 2 + 1] = new double[]{arms[i][1], y, 0};
+            out[i] = new double[]{arms[i][2] * arms[i][1], arms[i][0] - 2.5, 0};
         }
         return out;
     }

@@ -132,7 +132,8 @@ public final class CableNetworks {
                 double d = top(nodes.get(i)).distanceTo(top(nodes.get(j)));
                 distance[i][j] = d;
                 distance[j][i] = d;
-                boolean ok = d <= Math.min(nodes.get(i).kind().linkRange(), nodes.get(j).kind().linkRange());
+                boolean ok = d <= Math.min(nodes.get(i).kind().linkRange(), nodes.get(j).kind().linkRange())
+                        && d >= Math.max(nodes.get(i).kind().minLink(), nodes.get(j).kind().minLink());
                 reachable[i][j] = ok;
                 reachable[j][i] = ok;
             }

@@ -85,10 +85,12 @@ public class PowerLineRenderer implements BlockEntityRenderer<CableBlockEntity> 
                 continue; // cada linha e desenhada por um so dos extremos
             }
             double[][] toAnchors = anchors(other.kind());
-            int wires = Math.min(fromAnchors.length, toAnchors.length);
+            Vec3[] fromWorld = sortedAnchors(cable, fromAnchors, other.getBlockPos());
+            Vec3[] toWorld = sortedAnchors(other, toAnchors, from);
+            int wires = Math.min(fromWorld.length, toWorld.length);
             for (int w = 0; w < wires; w++) {
-                Vec3 a = anchorWorld(cable, fromAnchors[w]).subtract(from.getX(), from.getY(), from.getZ());
-                Vec3 b = anchorWorld(other, toAnchors[w]).subtract(from.getX(), from.getY(), from.getZ());
+                Vec3 a = fromWorld[w].subtract(from.getX(), from.getY(), from.getZ());
+                Vec3 b = toWorld[w].subtract(from.getX(), from.getY(), from.getZ());
                 double sag = SAG_PER_BLOCK * b.subtract(a).length();
                 Vec3 previous = a;
                 for (int i = 1; i <= SEGMENTS; i++) {
@@ -99,6 +101,25 @@ public class PowerLineRenderer implements BlockEntityRenderer<CableBlockEntity> 
                 }
             }
         }
+    }
+
+    /** Pontos de fixacao no mundo, ordenados lateralmente em relacao a linha entre as duas estruturas (ordem igual nas duas pontas). */
+    private static Vec3[] sortedAnchors(CableBlockEntity cable, double[][] local, BlockPos lineEnd) {
+        BlockPos own = cable.getBlockPos();
+        Vec3 from = Vec3.atBottomCenterOf(own);
+        Vec3 to = Vec3.atBottomCenterOf(lineEnd);
+        // a direcao da linha e sempre vista do extremo de menor posicao, para as duas pontas ordenarem igual
+        boolean flip = own.asLong() > lineEnd.asLong();
+        double dx = flip ? from.x - to.x : to.x - from.x;
+        double dz = flip ? from.z - to.z : to.z - from.z;
+        Vec3[] world = new Vec3[local.length];
+        for (int i = 0; i < local.length; i++) {
+            world[i] = anchorWorld(cable, local[i]);
+        }
+        java.util.Arrays.sort(world, java.util.Comparator
+                .comparingDouble((Vec3 p) -> Math.round((p.x * -dz + p.z * dx) / Math.hypot(dx, dz) * 100.0))
+                .thenComparingDouble(p -> p.y));
+        return world;
     }
 
     private static void draw(Mesh mesh, PoseStack pose, VertexConsumer consumer, int light) {
