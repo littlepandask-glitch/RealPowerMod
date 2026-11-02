@@ -9,6 +9,7 @@ import com.mmods.realpower.render.TurbineModel;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -42,6 +43,12 @@ public class WindTurbineRenderer implements BlockEntityRenderer<WindTurbineContr
         double angle = turbine.renderState().advance(
                 turbine.getLevel().getGameTime() + partialTick, turbine.windSpeed(), ROTOR.tipRadius());
 
+        // o controlador fica dentro da torre (escuro): a luz vem de um ponto livre a frente do rotor
+        BlockPos outside = turbine.getBlockPos()
+                .relative(facing, TurbineBlueprint.HUB_U + (int) TurbineBlueprint.SPINNER_HALF_LENGTH + 2)
+                .above(TurbineBlueprint.HUB_Y);
+        int light = LevelRenderer.getLightColor(turbine.getLevel(), outside);
+
         VertexConsumer consumer = buffer.getBuffer(RenderType.entityCutoutNoCull(TEXTURE));
         poseStack.pushPose();
         poseStack.translate(0.5, 0.5, 0.5);
@@ -49,7 +56,7 @@ public class WindTurbineRenderer implements BlockEntityRenderer<WindTurbineContr
         // o centro do cubo fica HUB_U blocos a frente (-Z local) e HUB_Y blocos acima do controlador
         poseStack.translate(0.0, TurbineBlueprint.HUB_Y, -TurbineBlueprint.HUB_U);
         poseStack.mulPose(Axis.ZP.rotation((float) angle));
-        draw(turbine.renderState().rotorMesh(ROTOR), poseStack, consumer, packedLight);
+        draw(turbine.renderState().rotorMesh(ROTOR), poseStack, consumer, light);
         poseStack.popPose();
     }
 
@@ -79,6 +86,12 @@ public class WindTurbineRenderer implements BlockEntityRenderer<WindTurbineContr
         return new AABB(p.getX() - reach, p.getY(), p.getZ() - reach,
                 p.getX() + reach + 1.0, p.getY() + TurbineBlueprint.HUB_Y + TurbineBlueprint.BLADE_LENGTH + 4.0,
                 p.getZ() + reach + 1.0);
+    }
+
+    /** O controlador pode estar fora da vista (secao oculta) enquanto o rotor, la em cima, esta visivel. */
+    @Override
+    public boolean shouldRenderOffScreen(WindTurbineControllerBlockEntity turbine) {
+        return true;
     }
 
     @Override
