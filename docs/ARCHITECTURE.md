@@ -113,6 +113,14 @@ depois sem reescrever receitas. O aco do mod e registrado em `c:ingots/steel`.
 - Turbina: a porta de energia e um bloco unico (`TurbinePowerPortBlock`) sobre a laje, em qualquer um dos 4 cantos; recebe a energia do controlador (`extraOutput`) e a passa aos cabos encostados.
 - Oculos de engenheiro (`goggles/`, `EngineerGogglesItem`): equipados na cabeca ou no slot `head` do Curios (reflexao, tag `curios:head`), o servidor descreve o bloco observado a cada 5 ticks (`Goggles.describe`) e envia `GogglesPayload`; `client/GogglesHud` desenha o balao no canto superior esquerdo. Chave inglesa (`WrenchItem`): shift + clique direito remove blocos do mod; sem shift reservado a configuracoes futuras. Testes: `CableGameTests` (consumidor de teste `TestEnergySink` so existe com gametest ativo).
 
+## Rede de dados e gerenciamento (`data/`, `computer/`, `screen/`)
+
+- Rede de dados separada da de energia, sem estado global: `DataNetwork.scan` faz busca em largura (max 1024 nos) a partir das portas do computador sobre blocos `DataNode` (`DataCableBlock` fino, `DataPortBlock`) e encontra equipamentos pelas portas, que expoem o `DataDevice` do bloco encostado (`DataPortBlock.deviceOf`, que resolve multiblocos via `StructureBase`/`findBase`). Na turbina a porta de dados encosta numa porta de energia ou no controlador.
+- `DataDevice`: telemetria (online, potencia, armazenado, capacidade), identidade (varias portas do mesmo equipamento contam uma vez) e controle (`enabled`, `limit` em %). `AbstractGeneratorBlockEntity` implementa; producao = `fePerTick * limit / 100` quando ligado.
+- Computador (`ComputerBlock`, rack 3x1x2, base embaixo no centro, portas de dados nas duas pontas do chao; basico 8 equipamentos, x4 por tier): a cada segundo varre a rede e alimenta `Metric` (aneis de 300 amostras de 1 s + 288 medias de 5 min, salvos em NBT). Regras (`ControlRule`, ate 8; "se geracao/consumo (kW) ou armazenado (%) acima/abaixo de X, ligar/desligar/limitar/redstone") sao avaliadas na ordem e a ultima verdadeira vence; para histerese use duas regras. Redstone sai do bloco base (15). Menu: `ComputerMenu`/`ComputerScreen` (botoes ciclicos por campo via `clickMenuButton`).
+- Telas (`ScreenBlock`): blocos coplanares formam retangulo ate 8x6 (`ScreenGroup`, senao 1x1); o mestre (canto superior esquerdo) desenha tudo (`ScreenRenderer`) e trata cliques (`ScreenLayout` e a geometria compartilhada servidor/cliente: abas Geral/Geradores/Graficos/Alarmes, janela 5 min/24 h, liga/desliga e limite por gerador). O servidor envia `ScreenPayload` a jogadores a 48 blocos a cada segundo; o cliente guarda em `ScreenData`.
+- Oculos mostram porta de dados, computador, tela e estado de controle; a chave inglesa sem shift liga/desliga o equipamento. Testes: `DataNetworkGameTests`, `ScreenGameTests`, `WindTurbineGameTests`.
+
 ## Proximos passos sugeridos
 
 1. API de multibloco (`api/multiblock`): controlador, regras, resultado de validacao.

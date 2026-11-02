@@ -110,5 +110,12 @@
   "menu.realpower.computer.action.0": "Desligar",
   "menu.realpower.computer.action.1": "Ligar",
   "menu.realpower.computer.action.2": "Limitar",
-  "menu.realpower.computer.action.3": "Redstone"
+  "menu.realpower.computer.action.3": "Redstone",
+  "goggles.realpower.screen": "Painel: %sx%s blocos",
+  "goggles.realpower.computer": "Equipamentos: %s/%s | Rede: %s nós",
+  "goggles.realpower.computer_rules": "Regras automáticas: %s",
+  "goggles.realpower.redstone": "Saída de redstone: LIGADA",
+  "goggles.realpower.control_on": "Controle: LIGADO, limite %s%%",
+  "goggles.realpower.control_off": "Controle: DESLIGADO (limite %s%%)",
+  "goggles.realpower.port_empty": "Nenhum equipamento ligado"
 }

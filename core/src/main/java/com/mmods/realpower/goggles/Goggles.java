@@ -6,10 +6,16 @@ import com.mmods.realpower.cable.CableBlockEntity;
 import com.mmods.realpower.cable.CableNetwork;
 import com.mmods.realpower.cable.CableNetworks;
 import com.mmods.realpower.cable.PowerStructureBlock;
+import com.mmods.realpower.computer.ComputerBlock;
+import com.mmods.realpower.computer.ComputerBlockEntity;
+import com.mmods.realpower.data.DataDevice;
+import com.mmods.realpower.data.DataPortBlock;
 import com.mmods.realpower.generator.AbstractGeneratorBlockEntity;
 import com.mmods.realpower.multiblock.wind.WindTurbineControllerBlockEntity;
 import com.mmods.realpower.registry.ModBlocks;
 import com.mmods.realpower.registry.ModItems;
+import com.mmods.realpower.screen.ScreenBlock;
+import com.mmods.realpower.screen.ScreenGroup;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -100,10 +106,38 @@ public final class Goggles {
         LAST_SENT.remove(event.getEntity().getUUID());
     }
 
+    private static Component controlLine(DataDevice device) {
+        return Component.translatable(device.enabled() ? "goggles.realpower.control_on" : "goggles.realpower.control_off", device.limit());
+    }
+
+    private static List<Component> describePort(Level level, BlockPos pos, BlockState state) {
+        List<Component> lines = new ArrayList<>();
+        lines.add(state.getBlock().getName());
+        DataDevice device = DataPortBlock.deviceOf(level, pos, state);
+        if (device == null) {
+            lines.add(Component.translatable("goggles.realpower.port_empty"));
+            return lines;
+        }
+        lines.add(device.deviceLabel());
+        DataDevice.Telemetry telemetry = device.telemetry();
+        lines.add(Component.translatable(telemetry.online() ? "goggles.realpower.formed" : "goggles.realpower.unformed"));
+        if (device.controllable()) {
+            lines.add(controlLine(device));
+        }
+        return lines;
+    }
+
     /** Linhas do balao para o bloco em {@code pos}; vazio se nao ha o que mostrar. */
     public static List<Component> describe(Level level, BlockPos pos) {
         BlockState state = level.getBlockState(pos);
         BlockPos origin = pos;
+        if (state.getBlock() instanceof DataPortBlock) {
+            return describePort(level, pos, state);
+        }
+        if (state.getBlock() instanceof ScreenBlock) {
+            ScreenGroup group = ScreenGroup.of(level, pos);
+            return List.of(state.getBlock().getName(), Component.translatable("goggles.realpower.screen", group.width(), group.height()));
+        }
         if (state.getBlock() instanceof PowerStructureBlock) {
             BlockPos base = state.is(ModBlocks.TRANSFORMER_PORT.get()) ? CableBlock.baseOfPort(level, pos)
                     : PowerStructureBlock.findBase(level, pos);
@@ -115,6 +149,15 @@ public final class Goggles {
         }
         List<Component> lines = new ArrayList<>();
         lines.add(state.getBlock().getName());
+        if (level.getBlockEntity(origin) instanceof ComputerBlockEntity computer) {
+            int limit = state.getBlock() instanceof ComputerBlock block ? block.maxDevices() : 0;
+            lines.add(Component.translatable("goggles.realpower.computer", computer.devices().size(), limit, computer.networkSize()));
+            lines.add(Component.translatable("goggles.realpower.computer_rules", computer.rules().size()));
+            if (computer.redstone()) {
+                lines.add(Component.translatable("goggles.realpower.redstone"));
+            }
+            return lines;
+        }
         if (state.getBlock() instanceof CableBlock && level.getBlockEntity(origin) instanceof CableBlockEntity cable) {
             CableNetwork network = CableNetworks.networkAt(level, origin);
             if (network != null) {
@@ -136,6 +179,7 @@ public final class Goggles {
             }
             lines.add(Component.translatable("goggles.realpower.power", String.format("%.1f", generator.powerWatts() / 1000.0)));
             lines.add(Component.translatable("goggles.realpower.buffer", generator.storedEnergy(), generator.bufferCapacity()));
+            lines.add(controlLine(generator));
             return lines;
         }
         IEnergyStorage energy = level.getCapability(Capabilities.EnergyStorage.BLOCK, origin, null);

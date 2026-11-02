@@ -110,5 +110,12 @@
   "menu.realpower.computer.action.0": "Turn off",
   "menu.realpower.computer.action.1": "Turn on",
   "menu.realpower.computer.action.2": "Limit",
-  "menu.realpower.computer.action.3": "Redstone"
+  "menu.realpower.computer.action.3": "Redstone",
+  "goggles.realpower.screen": "Panel: %sx%s blocks",
+  "goggles.realpower.computer": "Devices: %s/%s | Network: %s nodes",
+  "goggles.realpower.computer_rules": "Automatic rules: %s",
+  "goggles.realpower.redstone": "Redstone output: ON",
+  "goggles.realpower.control_on": "Control: ON, limit %s%%",
+  "goggles.realpower.control_off": "Control: OFF (limit %s%%)",
+  "goggles.realpower.port_empty": "No device attached"
 }
