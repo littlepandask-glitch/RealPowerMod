@@ -5,6 +5,7 @@ import com.mmods.realpower.api.multiblock.StructureScan;
 import com.mmods.realpower.api.multiblock.ValidationResult;
 import com.mmods.realpower.api.tier.Tier;
 import com.mmods.realpower.api.tier.Tiered;
+import com.mmods.realpower.data.DataDevice;
 import com.mmods.realpower.energy.GeneratorBuffer;
 import com.mmods.realpower.energy.PowerScale;
 import java.util.List;
@@ -12,6 +13,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -27,7 +29,7 @@ import net.neoforged.neoforge.energy.IEnergyStorage;
  * Base de todo gerador multibloco: ciclo de validacao incremental, producao, buffer
  * proporcional a eficiencia do tier e envio de FE aos vizinhos.
  */
-public abstract class AbstractGeneratorBlockEntity extends BlockEntity implements MultiblockController, Tiered {
+public abstract class AbstractGeneratorBlockEntity extends BlockEntity implements MultiblockController, Tiered, DataDevice {
     /** Intervalo entre revalidacoes automaticas. TODO: notificar o controlador quando um bloco da estrutura mudar. */
     public static final int REVALIDATE_INTERVAL = 100;
     public static final int PHYSICS_INTERVAL = 20;
@@ -44,6 +46,8 @@ public abstract class AbstractGeneratorBlockEntity extends BlockEntity implement
     private double powerWatts;
     private double fePerTick;
     private double carry;
+    private boolean enabled = true;
+    private int limitPercent = 100;
 
     protected AbstractGeneratorBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, Tier tier) {
         super(type, pos, state);
@@ -92,8 +96,8 @@ public abstract class AbstractGeneratorBlockEntity extends BlockEntity implement
             syncToClient();
         }
 
-        if (formed && fePerTick > 0.0) {
-            carry += fePerTick;
+        if (formed && enabled && fePerTick > 0.0) {
+            carry += fePerTick * limitPercent / 100.0;
             long whole = (long) carry;
             carry -= whole;
             buffer.produce(whole);
@@ -176,6 +180,46 @@ public abstract class AbstractGeneratorBlockEntity extends BlockEntity implement
         return powerWatts;
     }
 
+    // --- DataDevice: supervisao e controle pelo computador central ---
+
+    @Override
+    public Component deviceLabel() {
+        return getBlockState().getBlock().getName();
+    }
+
+    @Override
+    public Telemetry telemetry() {
+        double output = formed && enabled ? powerWatts * limitPercent / 100.0 : 0.0;
+        return new Telemetry(formed, output, buffer.stored(), buffer.capacity());
+    }
+
+    @Override
+    public boolean controllable() {
+        return true;
+    }
+
+    @Override
+    public boolean enabled() {
+        return enabled;
+    }
+
+    @Override
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+        setChanged();
+    }
+
+    @Override
+    public int limit() {
+        return limitPercent;
+    }
+
+    @Override
+    public void setLimit(int percent) {
+        this.limitPercent = Math.max(0, Math.min(100, percent));
+        setChanged();
+    }
+
     @Override
     public Tier tier() {
         return tier;
@@ -200,6 +244,8 @@ public abstract class AbstractGeneratorBlockEntity extends BlockEntity implement
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.putBoolean("Formed", formed);
+        tag.putBoolean("Enabled", enabled);
+        tag.putInt("Limit", limitPercent);
         tag.putDouble("PowerWatts", powerWatts);
         tag.putLong("Capacity", buffer.capacity());
         tag.putLong("Energy", buffer.stored());
@@ -209,6 +255,8 @@ public abstract class AbstractGeneratorBlockEntity extends BlockEntity implement
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         formed = tag.getBoolean("Formed");
+        enabled = !tag.contains("Enabled") || tag.getBoolean("Enabled");
+        limitPercent = tag.contains("Limit") ? tag.getInt("Limit") : 100;
         powerWatts = tag.getDouble("PowerWatts");
         fePerTick = PowerScale.toFePerTick(powerWatts);
         buffer.setCapacity(tag.getLong("Capacity"));

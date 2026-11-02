@@ -2,6 +2,8 @@ package com.mmods.realpower.gametest;
 
 import com.mmods.realpower.RealPower;
 import com.mmods.realpower.api.tier.Tier;
+import com.mmods.realpower.data.DataDevice;
+import com.mmods.realpower.data.DataPortBlock;
 import com.mmods.realpower.energy.GeneratorBuffer;
 import com.mmods.realpower.multiblock.wind.TurbineAutobuild;
 import com.mmods.realpower.multiblock.wind.TurbineBlueprint;
@@ -147,6 +149,43 @@ public class WindTurbineGameTests {
         long industrial = GeneratorBuffer.capacityFor(1000.0, Tier.INDUSTRIAL.efficiency());
         helper.assertTrue(industrial > basic, "industrial " + industrial + " deveria superar basico " + basic);
         helper.succeed();
+    }
+
+    /** Porta de dados no controlador expoe a turbina; desligar zera a producao e o limite a escala. */
+    @GameTest(template = "empty", timeoutTicks = 400, batch = "turbinedata")
+    public static void dataPortControlsTurbine(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos controller = build(helper, ModBlocks.WIND_TURBINE_CONTROLLER_BASIC.get());
+        BlockPos portPos = null;
+        Direction facing = null;
+        for (Direction direction : Direction.values()) {
+            if (level.getBlockState(controller.relative(direction)).isAir()) {
+                portPos = controller.relative(direction);
+                facing = direction;
+                break;
+            }
+        }
+        helper.assertTrue(portPos != null, "controlador sem face livre");
+        level.setBlock(portPos, ModBlocks.DATA_PORT.get().defaultBlockState().setValue(DataPortBlock.FACING, facing), 3);
+        final BlockPos port = portPos;
+        helper.runAfterDelay(SCAN_TICKS, () -> {
+            DataDevice device = DataPortBlock.deviceOf(level, port, level.getBlockState(port));
+            helper.assertTrue(device != null, "porta devia achar o controlador");
+            DataDevice.Telemetry on = device.telemetry();
+            helper.assertTrue(on.online() && on.powerWatts() > 0.0, "turbina devia estar produzindo: " + on);
+            device.setLimit(50);
+            helper.assertTrue(Math.abs(device.telemetry().powerWatts() - on.powerWatts() / 2.0) < 1e-6, "limite de 50% devia dividir a potencia");
+            device.setEnabled(false);
+            helper.assertTrue(device.telemetry().powerWatts() == 0.0, "desligada devia produzir 0");
+            long stored = device.telemetry().stored();
+            helper.runAfterDelay(40, () -> {
+                helper.assertTrue(device.telemetry().stored() <= stored, "desligada nao devia encher o buffer");
+                device.setEnabled(true);
+                device.setLimit(100);
+                helper.assertTrue(device.telemetry().powerWatts() > 0.0, "religada devia produzir");
+                helper.succeed();
+            });
+        });
     }
 
     @GameTest(template = "empty", timeoutTicks = 400, batch = "turbinecorner")
