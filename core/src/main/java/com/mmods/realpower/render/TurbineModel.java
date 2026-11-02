@@ -75,8 +75,22 @@ public final class TurbineModel {
                 double a1 = 2.0 * Math.PI * (i + 1) / TOWER_SEGMENTS;
                 double mx = Math.sin((a0 + a1) / 2.0);
                 double mz = Math.cos((a0 + a1) / 2.0);
-                if (band == 0 && mz > 0 && Math.abs(mx * r0) < s.doorHalfWidth()) {
-                    continue; // vao da porta
+                if (band == 0 && doorSegment(i, r0, s)) {
+                    // vao da porta: fecha a secao da parede (verga e batentes) para nao parecer oca
+                    double i1d = r1 - s.wall();
+                    double i0d = r0 - s.wall();
+                    Vec solidAbove = new Vec(0, y1 + 5, 0);
+                    outer.quad(ring(a0, r1, y1), ring(a1, r1, y1), ring(a1, i1d, y1), ring(a0, i1d, y1), solidAbove, TOWER_PAINT);
+                    for (int side = -1; side <= 1; side += 2) {
+                        int n = Math.floorMod(i + side, TOWER_SEGMENTS);
+                        if (!doorSegment(n, r0, s)) {
+                            double a = side < 0 ? a0 : a1;
+                            double aSolid = 2.0 * Math.PI * (n + 0.5) / TOWER_SEGMENTS;
+                            outer.quad(ring(a, r0, y0), ring(a, i0d, y0), ring(a, i1d, y1), ring(a, r1, y1),
+                                    ring(aSolid, r0 - s.wall() / 2.0, (y0 + y1) / 2.0), TOWER_PAINT);
+                        }
+                    }
+                    continue;
                 }
                 double ym = (y0 + y1) / 2.0;
                 outer.quad(ring(a0, r0, y0), ring(a1, r0, y0), ring(a1, r1, y1), ring(a0, r1, y1), new Vec(0, ym, 0), TOWER_PAINT);
@@ -177,6 +191,12 @@ public final class TurbineModel {
             b.box(new Vec(Math.sin(phi) * r, Math.cos(phi) * r, 0.0), 0.7, 0.7, 0.7, LIGHT_RED);
         }
         return b.build();
+    }
+
+    /** O segmento angular {@code i} da faixa da porta cai dentro do vao (atras, +z)? */
+    private static boolean doorSegment(int i, double radius, StructureSpec s) {
+        double mid = 2.0 * Math.PI * (i + 0.5) / TOWER_SEGMENTS;
+        return Math.cos(mid) > 0 && Math.abs(Math.sin(mid) * radius) < s.doorHalfWidth();
     }
 
     private static boolean hatch(int u, int v, int radiusSq) {

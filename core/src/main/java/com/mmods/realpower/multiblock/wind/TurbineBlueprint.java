@@ -25,7 +25,7 @@ import net.minecraft.core.Direction;
  * </ul>
  */
 public final class TurbineBlueprint {
-    public enum Kind { BASE, CASING, FAIRING, BLADE }
+    public enum Kind { BASE, CASING, LIGHT, FAIRING, BLADE }
 
     /** Posicao relativa ao controlador. */
     public record Local(int u, int v, int y, Kind kind, boolean tower) {
@@ -53,6 +53,9 @@ public final class TurbineBlueprint {
     public static final int NACELLE_HALF_WIDTH = 4;
     /** Escotilha do piso da nacele: blocos com u^2 + v^2 ate este valor ficam vazados. */
     public static final int HATCH_RADIUS_SQ = 7;
+    /** Primeira luminaria interna (altura em blocos) e distancia vertical entre niveis. */
+    public static final int LIGHT_FIRST = 6;
+    public static final int LIGHT_SPACING = 8;
     public static final int NACELLE_FLOOR = TOWER_HEIGHT + 1;
     public static final int NACELLE_ROOF = NACELLE_FLOOR + 6;
     /** Altura do centro do cubo do rotor acima do controlador. */
@@ -182,6 +185,20 @@ public final class TurbineBlueprint {
                 }
             }
         }
+
+        // luminarias: 4 por nivel, coladas na parede interna, a cada LIGHT_SPACING m; 2 no teto da nacele
+        for (int y = LIGHT_FIRST; y <= TOWER_HEIGHT - 2; y += LIGHT_SPACING) {
+            int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+            for (int[] d : dirs) {
+                int k = 1;
+                while (k < 20 && !towerCell(d[0] * (k + 1), d[1] * (k + 1), y)) {
+                    k++;
+                }
+                put(cells, order, new Local(d[0] * k, d[1] * k, y, Kind.LIGHT));
+            }
+        }
+        put(cells, order, new Local(-3, 0, NACELLE_ROOF - 1, Kind.LIGHT));
+        put(cells, order, new Local(4, 0, NACELLE_ROOF - 1, Kind.LIGHT));
 
         // carenagem do rotor: casca elipsoidal em torno do eixo do rotor
         int radius = (int) Math.ceil(SPINNER_RADIUS);

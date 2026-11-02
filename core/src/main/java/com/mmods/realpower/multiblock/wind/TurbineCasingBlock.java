@@ -43,6 +43,12 @@ public class TurbineCasingBlock extends WindStructureBlock {
         return state.getValue(FORMED) ? shapeFor(state.getValue(MASK)) : Shapes.block();
     }
 
+    /** noOcclusion evita que as faces vizinhas (a laje) sumam, mas a luz continua bloqueada. */
+    @Override
+    protected int getLightBlock(BlockState state, BlockGetter level, BlockPos pos) {
+        return 15;
+    }
+
     @Override
     protected boolean propagatesSkylightDown(BlockState state, BlockGetter level, BlockPos pos) {
         return false;

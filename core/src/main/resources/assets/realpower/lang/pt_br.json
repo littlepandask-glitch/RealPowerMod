@@ -30,5 +30,6 @@
   "menu.realpower.autobuild_confirm": "Clique de novo para confirmar",
   "message.realpower.autobuild.done": "Autobuild: %1$s blocos colocados",
   "message.realpower.autobuild.failed": "Autobuild: blocos insuficientes",
-  "block.realpower.industrial_light": "Luz Industrial"
+  "block.realpower.industrial_light": "Luz Industrial",
+  "kind.realpower.light": "luminárias industriais"
 }

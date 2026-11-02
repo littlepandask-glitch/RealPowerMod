@@ -20,7 +20,7 @@ public final class ModBlocks {
 
     public static final DeferredBlock<TurbineCasingBlock> TURBINE_CASING = BLOCKS.registerBlock("turbine_casing",
             TurbineCasingBlock::new,
-            BlockBehaviour.Properties.of().strength(3.0F, 6.0F).sound(SoundType.METAL).requiresCorrectToolForDrops());
+            BlockBehaviour.Properties.of().strength(3.0F, 6.0F).sound(SoundType.METAL).requiresCorrectToolForDrops().noOcclusion());
 
     /** Luminaria industrial: componente comum a todos os multiblocos (ilumina o interior da torre). */
     public static final DeferredBlock<Block> INDUSTRIAL_LIGHT = BLOCKS.registerBlock("industrial_light", Block::new,
