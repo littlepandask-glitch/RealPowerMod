@@ -29,6 +29,8 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.TURBINE_BLADE.get());
                         output.accept(ModItems.INDUSTRIAL_LIGHT.get());
                         output.accept(ModItems.TURBINE_POWER_PORT.get());
+                        output.accept(ModItems.COMPUTER_BASIC.get());
+                        output.accept(ModItems.COMPUTER_INDUSTRIAL.get());
                         output.accept(ModItems.DATA_CABLE.get());
                         output.accept(ModItems.DATA_PORT.get());
                     })

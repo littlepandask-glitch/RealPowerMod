@@ -11,6 +11,11 @@ public interface DataDevice {
     record Telemetry(boolean online, double powerWatts, long stored, long capacity) {
     }
 
+    /** Objeto que representa o equipamento de fato (varias portas podem expor o mesmo). */
+    default Object identity() {
+        return this;
+    }
+
     Component deviceLabel();
 
     Telemetry telemetry();

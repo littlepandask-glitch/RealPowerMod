@@ -5,6 +5,8 @@ import com.mmods.realpower.api.tier.Tier;
 import com.mmods.realpower.cable.CableBlock;
 import com.mmods.realpower.cable.CableKind;
 import com.mmods.realpower.cable.PowerStructureBlock;
+import com.mmods.realpower.computer.ComputerBlock;
+import com.mmods.realpower.computer.ComputerPortBlock;
 import com.mmods.realpower.data.DataCableBlock;
 import com.mmods.realpower.data.DataPortBlock;
 import java.util.LinkedHashMap;
@@ -77,6 +79,21 @@ public final class ModBlocks {
             DataCableBlock::new, BlockBehaviour.Properties.of().strength(0.8F, 2.0F).sound(SoundType.METAL).noOcclusion());
     public static final DeferredBlock<DataPortBlock> DATA_PORT = BLOCKS.registerBlock("data_port",
             DataPortBlock::new, BlockBehaviour.Properties.of().strength(1.5F, 3.0F).sound(SoundType.METAL).noOcclusion());
+
+    /** Computador central (multibloco 3x1x2) e suas celulas: preenchimento invisivel e portas de dados. */
+    public static final DeferredBlock<ComputerBlock> COMPUTER_BASIC = computer(Tier.BASIC);
+    public static final DeferredBlock<ComputerBlock> COMPUTER_INDUSTRIAL = computer(Tier.INDUSTRIAL);
+    public static final DeferredBlock<PowerStructureBlock> COMPUTER_STRUCTURE = BLOCKS.registerBlock("computer_structure",
+            properties -> new PowerStructureBlock(properties, PowerStructureBlock.Variant.BULK),
+            BlockBehaviour.Properties.of().strength(3.0F, 6.0F).sound(SoundType.METAL).noOcclusion().noLootTable());
+    public static final DeferredBlock<ComputerPortBlock> COMPUTER_PORT = BLOCKS.registerBlock("computer_port",
+            ComputerPortBlock::new,
+            BlockBehaviour.Properties.of().strength(3.0F, 6.0F).sound(SoundType.METAL).noOcclusion().noLootTable());
+
+    private static DeferredBlock<ComputerBlock> computer(Tier tier) {
+        return BLOCKS.registerBlock("computer_" + tier.getSerializedName(), properties -> new ComputerBlock(properties, tier),
+                BlockBehaviour.Properties.of().strength(3.0F, 6.0F).sound(SoundType.METAL).noOcclusion());
+    }
 
     /** Todos os nos da rede eletrica (cabo, rele, poste, torre), por id. */
     public static final Map<String, DeferredBlock<CableBlock>> NODES = new LinkedHashMap<>();

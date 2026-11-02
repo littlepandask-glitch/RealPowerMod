@@ -53,6 +53,29 @@ public final class PowerStructureModel {
         b.box(v(x, y + length + 0.05, 0), 0.2, 0.1, 0.2, accent);
     }
 
+    // ---------- computador central ----------
+
+    /** Rack de 3 x 1 x 2 m com a frente em -z e uma porta de dados visivel em cada ponta, no chao. */
+    public static Mesh computer(float[] accent) {
+        Mesh.Builder b = new Mesh.Builder();
+        b.box(v(0, 0.1, 0), 3.0, 0.2, 1.0, CONCRETE);
+        b.box(v(0, 1.1, 0), 2.9, 1.8, 0.9, DARK);
+        b.box(v(0, 2.02, 0), 2.94, 0.04, 0.94, STEEL);
+        for (double y = 0.5; y < 1.9; y += 0.36) {
+            for (int col = -1; col <= 1; col++) {
+                b.box(v(col * 0.96, y, -0.46), 0.9, 0.3, 0.06, STEEL);
+                b.box(v(col * 0.96 + 0.3, y, -0.5), 0.2, 0.04, 0.02, accent);
+                b.box(v(col * 0.96 - 0.3, y, -0.5), 0.3, 0.06, 0.02, DARK);
+            }
+        }
+        for (int side = -1; side <= 1; side += 2) {
+            b.box(v(side * 1.2, 0.55, 0), 0.6, 0.7, 0.7, STEEL);
+            b.box(v(side * 1.52, 0.55, 0), 0.12, 0.5, 0.5, CERAMIC);
+            b.box(v(side * 1.58, 0.55, 0), 0.06, 0.26, 0.26, accent);
+        }
+        return b.build();
+    }
+
     // ---------- torre ----------
 
     private static double halfWidth(double y, double taperTop) {

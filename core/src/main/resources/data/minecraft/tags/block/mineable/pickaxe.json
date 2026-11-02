@@ -30,6 +30,10 @@
   "realpower:transformer_advanced",
   "realpower:transformer_future",
   "realpower:data_cable",
-  "realpower:data_port"
+  "realpower:data_port",
+  "realpower:computer_basic",
+  "realpower:computer_industrial",
+  "realpower:computer_structure",
+  "realpower:computer_port"
  ]
 }

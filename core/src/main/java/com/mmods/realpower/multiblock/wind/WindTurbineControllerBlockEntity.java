@@ -156,10 +156,22 @@ public class WindTurbineControllerBlockEntity extends AbstractGeneratorBlockEnti
             missingBlocks = scan.missingTotal();
         }
         if (formed) {
+            bindPorts();
             morph();
         } else {
             releaseStructure();
             windSpeed = 0.0;
+        }
+    }
+
+    /** Avisa cada porta de energia da turbina de quem e o controlador (as portas de dados fixadas nelas o usam). */
+    private void bindPorts() {
+        Direction facing = getBlockState().getValue(WindTurbineControllerBlock.FACING);
+        for (int corner = 0; corner < TurbineBlueprint.PORT_CORNER_COUNT; corner++) {
+            BlockPos pos = TurbineBlueprint.portPos(getBlockPos(), facing, corner);
+            if (level != null && level.isLoaded(pos) && level.getBlockEntity(pos) instanceof TurbinePowerPortBlockEntity port) {
+                port.bindController(getBlockPos());
+            }
         }
     }
 

@@ -2,6 +2,9 @@ package com.mmods.realpower.gametest;
 
 import com.mmods.realpower.RealPower;
 import com.mmods.realpower.api.tier.Tier;
+import com.mmods.realpower.cable.CableBlock;
+import com.mmods.realpower.computer.ComputerBlock;
+import com.mmods.realpower.computer.ComputerBlockEntity;
 import com.mmods.realpower.data.DataDevice;
 import com.mmods.realpower.data.DataPortBlock;
 import com.mmods.realpower.energy.GeneratorBuffer;
@@ -19,6 +22,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -185,6 +189,61 @@ public class WindTurbineGameTests {
                 helper.assertTrue(device.telemetry().powerWatts() > 0.0, "religada devia produzir");
                 helper.succeed();
             });
+        });
+    }
+
+    /** Turbina -> porta de dados -> cabos de dados -> computador: amostra, historico e comando de desligar. */
+    @GameTest(template = "empty", timeoutTicks = 600, batch = "turbinecomputer")
+    public static void computerSupervisesTurbineOverDataNetwork(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos controller = build(helper, ModBlocks.WIND_TURBINE_CONTROLLER_BASIC.get());
+        BlockPos portPos0 = TurbineBlueprint.portPos(controller, Direction.NORTH, 0);
+        BlockPos port = null;
+        BlockPos computerBase = null;
+        Direction computerFacing = null;
+        search:
+        for (Direction d : Direction.Plane.HORIZONTAL) {
+            BlockPos first = portPos0.relative(d, 1);
+            BlockPos last = portPos0.relative(d, 4);
+            for (Direction facing : Direction.Plane.HORIZONTAL) {
+                for (int lx = -1; lx <= 1; lx += 2) {
+                    BlockPos base = last.subtract(CableBlock.rotate(BlockPos.ZERO, facing, lx, 0, 0));
+                    BlockState candidate = ModBlocks.COMPUTER_BASIC.get().defaultBlockState().setValue(ComputerBlock.FACING, facing);
+                    boolean free = level.getBlockState(base).isAir() && level.getBlockState(first).isAir()
+                            && level.getBlockState(portPos0.relative(d, 2)).isAir()
+                            && level.getBlockState(portPos0.relative(d, 3)).isAir();
+                    for (BlockPos cell : ((ComputerBlock) candidate.getBlock()).structureCells(base, candidate)) {
+                        free &= level.getBlockState(cell).isAir();
+                    }
+                    if (free) {
+                        port = first;
+                        computerBase = base;
+                        computerFacing = facing;
+                        level.setBlock(first, ModBlocks.DATA_PORT.get().defaultBlockState().setValue(DataPortBlock.FACING, d), 3);
+                        level.setBlock(portPos0.relative(d, 2), ModBlocks.DATA_CABLE.get().defaultBlockState(), 3);
+                        level.setBlock(portPos0.relative(d, 3), ModBlocks.DATA_CABLE.get().defaultBlockState(), 3);
+                        level.setBlock(base, candidate, 3);
+                        break search;
+                    }
+                }
+            }
+        }
+        helper.assertTrue(computerBase != null, "sem espaco livre para montar o teste");
+        final BlockPos portPos = port;
+        final BlockPos base = computerBase;
+        helper.runAfterDelay(SCAN_TICKS + 60, () -> {
+            ComputerBlockEntity computer = (ComputerBlockEntity) level.getBlockEntity(base);
+            helper.assertTrue(computer.devices().size() == 1, "computador devia ver 1 equipamento: " + computer.devices().size());
+            ComputerBlockEntity.DeviceView view = computer.devices().get(0);
+            helper.assertTrue(view.port().equals(portPos) && view.telemetry().online() && view.controllable(),
+                    "equipamento inesperado: " + view);
+            helper.assertTrue(computer.generation().latest() > 0.0F, "historico de geracao vazio");
+            helper.assertTrue(computer.commandEnabled(portPos, false), "comando de desligar recusado");
+        });
+        helper.runAfterDelay(SCAN_TICKS + 100, () -> {
+            ComputerBlockEntity computer = (ComputerBlockEntity) level.getBlockEntity(base);
+            helper.assertTrue(computer.generation().latest() == 0.0F, "desligada, a geracao devia cair a 0: " + computer.generation().latest());
+            helper.succeed();
         });
     }
 

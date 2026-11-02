@@ -1,6 +1,10 @@
 package com.mmods.realpower.multiblock.wind;
 
+import com.mmods.realpower.data.DataDevice;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -12,12 +16,94 @@ import net.neoforged.neoforge.energy.IEnergyStorage;
  * Porta de energia da turbina. O controlador entrega a energia aqui ({@link #feed()}) e a porta a repassa aos
  * cabos e consumidores encostados nela. Para o mundo ela so se mostra como conectavel: nao aceita energia de fora.
  */
-public class TurbinePowerPortBlockEntity extends BlockEntity {
+public class TurbinePowerPortBlockEntity extends BlockEntity implements DataDevice {
     private final IEnergyStorage feed = new PortStorage(true);
     private final IEnergyStorage outside = new PortStorage(false);
 
+    /** Controlador da turbina a que esta porta pertence (gravado quando a estrutura se forma). */
+    private BlockPos controller;
+
     public TurbinePowerPortBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
+    }
+
+    public void bindController(BlockPos controller) {
+        if (!controller.equals(this.controller)) {
+            this.controller = controller.immutable();
+            setChanged();
+        }
+    }
+
+    /** A porta de dados fixada aqui supervisiona a turbina inteira, nao so este bloco. */
+    private DataDevice turbine() {
+        return controller != null && level != null && level.isLoaded(controller)
+                && level.getBlockEntity(controller) instanceof DataDevice device ? device : null;
+    }
+
+    @Override
+    public Object identity() {
+        DataDevice device = turbine();
+        return device == null ? this : device.identity();
+    }
+
+    @Override
+    public Component deviceLabel() {
+        DataDevice device = turbine();
+        return device == null ? getBlockState().getBlock().getName() : device.deviceLabel();
+    }
+
+    @Override
+    public Telemetry telemetry() {
+        DataDevice device = turbine();
+        return device == null ? new Telemetry(false, 0.0, 0L, 0L) : device.telemetry();
+    }
+
+    @Override
+    public boolean controllable() {
+        DataDevice device = turbine();
+        return device != null && device.controllable();
+    }
+
+    @Override
+    public boolean enabled() {
+        DataDevice device = turbine();
+        return device == null || device.enabled();
+    }
+
+    @Override
+    public void setEnabled(boolean enabled) {
+        DataDevice device = turbine();
+        if (device != null) {
+            device.setEnabled(enabled);
+        }
+    }
+
+    @Override
+    public int limit() {
+        DataDevice device = turbine();
+        return device == null ? 100 : device.limit();
+    }
+
+    @Override
+    public void setLimit(int percent) {
+        DataDevice device = turbine();
+        if (device != null) {
+            device.setLimit(percent);
+        }
+    }
+
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        if (controller != null) {
+            tag.putLong("Controller", controller.asLong());
+        }
+    }
+
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        controller = tag.contains("Controller") ? BlockPos.of(tag.getLong("Controller")) : null;
     }
 
     /** Lado do controlador: tudo que receber sai pelos vizinhos da porta. */

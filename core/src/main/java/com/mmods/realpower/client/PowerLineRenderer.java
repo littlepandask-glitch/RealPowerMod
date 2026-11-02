@@ -130,7 +130,7 @@ public class PowerLineRenderer implements BlockEntityRenderer<CableBlockEntity> 
         return world;
     }
 
-    private static void draw(Mesh mesh, PoseStack pose, VertexConsumer consumer, int light) {
+    static void draw(Mesh mesh, PoseStack pose, VertexConsumer consumer, int light) {
         PoseStack.Pose last = pose.last();
         for (int q = 0; q < mesh.quadCount(); q++) {
             float nx = mesh.normals[q * 3];

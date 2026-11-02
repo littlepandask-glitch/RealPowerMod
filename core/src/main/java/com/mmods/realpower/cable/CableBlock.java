@@ -35,7 +35,7 @@ import net.neoforged.neoforge.capabilities.Capabilities;
  * Cabo de energia. Cada face fica conectada quando o vizinho expoe energia (outro cabo, gerador,
  * consumidor). A vazao e a perda dependem do {@link Tier}; a logica da rede esta em {@link CableNetworks}.
  */
-public class CableBlock extends BaseEntityBlock implements Tiered {
+public class CableBlock extends BaseEntityBlock implements Tiered, StructureBase {
     public static final MapCodec<CableBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             propertiesCodec(),
             Tier.CODEC.fieldOf("tier").forGetter(CableBlock::tier),
@@ -163,7 +163,8 @@ public class CableBlock extends BaseEntityBlock implements Tiered {
                 rotate(base, facing, 0, -halfD, 0), rotate(base, facing, 0, halfD, 0));
     }
 
-    private static BlockPos rotate(BlockPos base, Direction facing, int lx, int lz, int y) {
+    /** Posicao mundial de uma celula local (lx lateral, lz de profundidade, y de altura) de um conjunto virado para {@code facing}. */
+    public static BlockPos rotate(BlockPos base, Direction facing, int lx, int lz, int y) {
         return switch (facing) {
             case EAST -> base.offset(-lz, y, lx);
             case SOUTH -> base.offset(-lx, y, -lz);
@@ -186,7 +187,13 @@ public class CableBlock extends BaseEntityBlock implements Tiered {
         return null;
     }
 
+    @Override
+    public boolean hasStructure() {
+        return kind.overhead();
+    }
+
     /** Celulas (sem o bloco base) que o conjunto multibloco ocupa; a largura segue o eixo local x, girado pelo FACING. */
+    @Override
     public java.util.List<BlockPos> structureCells(BlockPos base, BlockState state) {
         int[] size = kind.size(tier);
         Direction facing = state.getValue(FACING);

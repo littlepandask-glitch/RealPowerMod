@@ -1,0 +1,24 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "redstone",
+ "pattern": [
+  "GDG",
+  "DCD",
+  "GDG"
+ ],
+ "key": {
+  "G": {
+   "tag": "c:ingots/gold"
+  },
+  "D": {
+   "tag": "c:gems/diamond"
+  },
+  "C": {
+   "item": "realpower:computer_basic"
+  }
+ },
+ "result": {
+  "id": "realpower:computer_industrial",
+  "count": 1
+ }
+}

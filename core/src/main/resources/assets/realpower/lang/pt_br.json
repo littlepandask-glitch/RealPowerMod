@@ -73,5 +73,9 @@
   "goggles.realpower.wind": "Vento: %s m/s",
   "goggles.realpower.power": "Potência: %s kW",
   "block.realpower.data_cable": "Cabo de Dados",
-  "block.realpower.data_port": "Porta de Dados"
+  "block.realpower.data_port": "Porta de Dados",
+  "block.realpower.computer_basic": "Computador Central Básico",
+  "block.realpower.computer_industrial": "Computador Central Industrial",
+  "block.realpower.computer_structure": "Estrutura de Computador",
+  "block.realpower.computer_port": "Porta de Dados do Computador"
 }

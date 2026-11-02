@@ -45,7 +45,7 @@ public class PowerStructureBlock extends Block {
     }
 
     /** Ligado enquanto o bloco base reajusta suas celulas (trocar uma celula nao deve derrubar o conjunto). */
-    static boolean healing;
+    public static boolean healing;
 
     private final Variant variant;
 
@@ -102,8 +102,8 @@ public class PowerStructureBlock extends Block {
                 for (int dz = -5; dz <= 5; dz++) {
                     BlockPos candidate = pos.offset(dx, -dy, dz);
                     BlockState candidateState = level.getBlockState(candidate);
-                    if (candidateState.getBlock() instanceof CableBlock cable && cable.kind().overhead()
-                            && cable.structureCells(candidate, candidateState).contains(pos)) {
+                    if (candidateState.getBlock() instanceof StructureBase base && base.hasStructure()
+                            && base.structureCells(candidate, candidateState).contains(pos)) {
                         return candidate;
                     }
                 }

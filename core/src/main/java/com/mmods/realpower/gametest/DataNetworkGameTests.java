@@ -11,6 +11,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import com.mmods.realpower.computer.ComputerBlock;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -90,5 +92,43 @@ public final class DataNetworkGameTests {
             }
             helper.succeed();
         });
+    }
+
+    /** O computador forma 3x1x2 em qualquer direcao, tem 2 portas de dados que se ligam ao cabo, e quebrar uma celula o remove. */
+    @GameTest(template = "empty", timeoutTicks = 100, batch = "data")
+    public static void computerStructureInEveryFacing(GameTestHelper helper) {
+        int index = 0;
+        for (Direction facing : Direction.Plane.HORIZONTAL) {
+            BlockPos base = helper.absolutePos(new BlockPos(3 + index * 5, 2, 4));
+            helper.getLevel().setBlock(base, ModBlocks.COMPUTER_BASIC.get().defaultBlockState().setValue(ComputerBlock.FACING, facing), 3);
+            ComputerBlock block = ModBlocks.COMPUTER_BASIC.get();
+            BlockState state = helper.getLevel().getBlockState(base);
+            int ports = 0;
+            for (BlockPos cell : block.structureCells(base, state)) {
+                Block placed = helper.getLevel().getBlockState(cell).getBlock();
+                if (placed == ModBlocks.COMPUTER_PORT.get()) {
+                    ports++;
+                } else if (placed != ModBlocks.COMPUTER_STRUCTURE.get()) {
+                    helper.fail("celula inesperada em " + cell + ": " + placed);
+                }
+            }
+            if (ports != 2 || block.structureCells(base, state).size() != 5) {
+                helper.fail("computador virado para " + facing + " devia ter 5 celulas, 2 portas: " + ports);
+            }
+            // cabo de dados encostado na ponta de uma porta conecta
+            BlockPos beside = com.mmods.realpower.cable.CableBlock.rotate(base, facing, -2, 0, 0);
+            helper.getLevel().setBlock(beside, ModBlocks.DATA_CABLE.get().defaultBlockState(), 3);
+            DataNetwork network = DataNetwork.scan(helper.getLevel(), block.portCells(base, state));
+            if (!network.contains(beside)) {
+                helper.fail("cabo de dados ao lado da porta nao entrou na rede (" + facing + ")");
+            }
+            // quebrar uma celula derruba o conjunto
+            helper.getLevel().destroyBlock(block.structureCells(base, state).get(3), false);
+            if (!helper.getLevel().getBlockState(base).isAir()) {
+                helper.fail("quebrar uma celula devia remover o computador");
+            }
+            index++;
+        }
+        helper.succeed();
     }
 }

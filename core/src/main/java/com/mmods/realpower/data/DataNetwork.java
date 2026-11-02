@@ -2,6 +2,7 @@ package com.mmods.realpower.data;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,11 +31,19 @@ public final class DataNetwork {
 
     /** Varre a rede que contem {@code start}; blocos em chunks descarregados encerram aquele ramo. */
     public static DataNetwork scan(Level level, BlockPos start) {
+        return scan(level, List.of(start));
+    }
+
+    /** Varre a uniao das redes alcancadas a partir de varios pontos (ex.: as portas de um mesmo computador). */
+    public static DataNetwork scan(Level level, Collection<BlockPos> starts) {
         Set<BlockPos> seen = new HashSet<>();
         Map<BlockPos, DataDevice> devices = new LinkedHashMap<>();
         ArrayDeque<BlockPos> queue = new ArrayDeque<>();
-        seen.add(start);
-        queue.add(start);
+        for (BlockPos start : starts) {
+            if (seen.add(start)) {
+                queue.add(start);
+            }
+        }
         while (!queue.isEmpty() && seen.size() <= MAX_NODES) {
             BlockPos pos = queue.poll();
             BlockState state = level.getBlockState(pos);
