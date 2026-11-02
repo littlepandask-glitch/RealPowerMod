@@ -81,6 +81,12 @@ nacele pela escotilha. `WindTurbineScan` valida incrementalmente (256 blocos/tic
 falta por tipo. Ao formar, carenagem e helices recebem `formed=true` (invisiveis, sem colisao) e o
 `WindTurbineRenderer` desenha o rotor 3D giratorio (`render/TurbineModel`, Java puro).
 
+Detalhes do modelo formado: corpo e nacele tambem viram malha 3D (`TurbineModel.buildStructure`). O
+`turbine_casing` formado fica invisivel e opaco para a luz; sua colisao segue a parede lisa via
+`TurbineCasingBlock.MASK` (9 sub-colunas 3x3 por bloco, calculadas no blueprint). O interior usa a luz
+real do mundo por faixas de 10 m, entao precisa de `industrial_light` (componente comum a todos os
+multiblocos). As luzes vermelhas de posicao (teto da nacele e ponta das pas) so existem no modelo.
+
 ## Overlay de construcao
 
 Cada controlador colocado desenha o projeto faltante (`client/ScaffoldGhostRenderer`) ate a

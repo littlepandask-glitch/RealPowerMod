@@ -28,12 +28,20 @@ public final class TurbineBlueprint {
     public enum Kind { BASE, CASING, FAIRING, BLADE }
 
     /** Posicao relativa ao controlador. */
-    public record Local(int u, int v, int y, Kind kind) {
+    public record Local(int u, int v, int y, Kind kind, boolean tower) {
+        public Local(int u, int v, int y, Kind kind) {
+            this(u, v, y, kind, false);
+        }
     }
 
     /** Posicao no mundo. */
-    public record Part(BlockPos pos, Kind kind) {
+    public record Part(BlockPos pos, Kind kind, int mask) {
     }
+
+    /** Mascara de colisao completa (todas as 9 sub-colunas 3x3 do bloco). */
+    public static final int FULL_MASK = 511;
+    /** Espessura da parede do corpo, em metros. */
+    public static final double TOWER_WALL = 1.2;
 
     public static final int SLAB_HALF = 10;
     public static final int SLAB_DEPTH = 2;
@@ -67,9 +75,26 @@ public final class TurbineBlueprint {
         Direction right = facing.getClockWise();
         List<Part> parts = new ArrayList<>(LOCAL.size());
         for (Local local : LOCAL) {
+            int mask = FULL_MASK;
+            if (local.tower()) {
+                // colisao do corpo: sub-colunas 3x3 (eixos do mundo) cujo centro cai dentro da parede
+                mask = 0;
+                double outer = towerRadius(local.y()) + 0.5;
+                for (int ix = 0; ix < 3; ix++) {
+                    for (int iz = 0; iz < 3; iz++) {
+                        double wx = (ix - 1) / 3.0;
+                        double wz = (iz - 1) / 3.0;
+                        double ou = facing.getStepX() * wx + facing.getStepZ() * wz;
+                        double ov = right.getStepX() * wx + right.getStepZ() * wz;
+                        if (inWall(local.u() + ou, local.v() + ov, outer)) {
+                            mask |= 1 << (ix * 3 + iz);
+                        }
+                    }
+                }
+            }
             parts.add(new Part(controller
                     .offset(facing.getStepX() * local.u(), 0, facing.getStepZ() * local.u())
-                    .offset(right.getStepX() * local.v(), local.y(), right.getStepZ() * local.v()), local.kind()));
+                    .offset(right.getStepX() * local.v(), local.y(), right.getStepZ() * local.v()), local.kind(), mask));
         }
         return parts;
     }
@@ -80,6 +105,24 @@ public final class TurbineBlueprint {
 
     public static int totalBlocks() {
         return LOCAL.size();
+    }
+
+    private static boolean inWall(double u, double v, double outer) {
+        double d = Math.sqrt(u * u + v * v);
+        return d <= outer + 1e-9 && d >= outer - TOWER_WALL - 1e-9;
+    }
+
+    /** O bloco existe no corpo se alguma sub-coluna dele cai dentro da parede. */
+    private static boolean towerCell(int u, int v, int y) {
+        double outer = towerRadius(y) + 0.5;
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (inWall(u + (i - 1) / 3.0, v + (j - 1) / 3.0, outer)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /** Raio externo da torre no nivel {@code y} (1 a 80). */
@@ -112,19 +155,16 @@ public final class TurbineBlueprint {
 
         // corpo: aneis de espessura ~1 bloco; porta 3x3 atras
         for (int y = 1; y <= TOWER_HEIGHT; y++) {
-            double outer = towerRadius(y) + 0.5;
-            double inner = outer - 1.2;
-            int reach = (int) Math.ceil(outer);
+            int reach = (int) Math.ceil(towerRadius(y) + 0.5) + 1;
             for (int u = -reach; u <= reach; u++) {
                 for (int v = -reach; v <= reach; v++) {
-                    double d2 = u * u + v * v;
-                    if (d2 > outer * outer || d2 <= inner * inner) {
+                    if (!towerCell(u, v, y)) {
                         continue;
                     }
                     if (y <= 3 && Math.abs(v) <= 1 && u < 0) {
                         continue; // porta
                     }
-                    put(cells, order, new Local(u, v, y, Kind.CASING));
+                    put(cells, order, new Local(u, v, y, Kind.CASING, true));
                 }
             }
         }

@@ -29,5 +29,6 @@
   "menu.realpower.autobuild": "Auto-build (uses inventory)",
   "menu.realpower.autobuild_confirm": "Click again to confirm",
   "message.realpower.autobuild.done": "Auto-build: %1$s blocks placed",
-  "message.realpower.autobuild.failed": "Auto-build: not enough blocks"
+  "message.realpower.autobuild.failed": "Auto-build: not enough blocks",
+  "block.realpower.industrial_light": "Industrial Light"
 }

@@ -2,6 +2,7 @@ package com.mmods.realpower.registry;
 
 import com.mmods.realpower.RealPower;
 import com.mmods.realpower.api.tier.Tier;
+import com.mmods.realpower.multiblock.wind.TurbineCasingBlock;
 import com.mmods.realpower.multiblock.wind.WindStructureBlock;
 import com.mmods.realpower.multiblock.wind.WindTurbineControllerBlock;
 import net.minecraft.world.level.block.Block;
@@ -17,9 +18,13 @@ public final class ModBlocks {
     public static final DeferredBlock<Block> TURBINE_BASE = BLOCKS.registerBlock("turbine_base", Block::new,
             BlockBehaviour.Properties.of().strength(5.0F, 9.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
 
-    public static final DeferredBlock<WindStructureBlock> TURBINE_CASING = BLOCKS.registerBlock("turbine_casing",
-            properties -> new WindStructureBlock(properties, true),
-            BlockBehaviour.Properties.of().strength(3.0F, 6.0F).sound(SoundType.METAL).requiresCorrectToolForDrops().noOcclusion());
+    public static final DeferredBlock<TurbineCasingBlock> TURBINE_CASING = BLOCKS.registerBlock("turbine_casing",
+            TurbineCasingBlock::new,
+            BlockBehaviour.Properties.of().strength(3.0F, 6.0F).sound(SoundType.METAL).requiresCorrectToolForDrops());
+
+    /** Luminaria industrial: componente comum a todos os multiblocos (ilumina o interior da torre). */
+    public static final DeferredBlock<Block> INDUSTRIAL_LIGHT = BLOCKS.registerBlock("industrial_light", Block::new,
+            BlockBehaviour.Properties.of().strength(1.5F, 3.0F).sound(SoundType.METAL).lightLevel(state -> 15));
 
     public static final DeferredBlock<WindStructureBlock> ROTOR_FAIRING = BLOCKS.registerBlock("rotor_fairing",
             properties -> new WindStructureBlock(properties, false),

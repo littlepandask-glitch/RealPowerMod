@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"building","pattern":["IGI","ILI","III"],"key":{"I":{"tag":"c:ingots/iron"},"G":{"item":"minecraft:glass"},"L":{"item":"minecraft:glowstone"}},"result":{"id":"realpower:industrial_light","count":2}}

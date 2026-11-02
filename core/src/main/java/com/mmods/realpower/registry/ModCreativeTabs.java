@@ -24,6 +24,7 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.TURBINE_CASING.get());
                         output.accept(ModItems.ROTOR_FAIRING.get());
                         output.accept(ModItems.TURBINE_BLADE.get());
+                        output.accept(ModItems.INDUSTRIAL_LIGHT.get());
                     })
                     .build());
 

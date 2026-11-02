@@ -18,18 +18,33 @@ public final class TurbineRenderState {
         if (!wanted.equals(spec)) {
             spec = wanted;
             rotorMesh = TurbineModel.buildRotor(wanted);
+            rotorLights = null;
         }
         return rotorMesh;
     }
 
-    private Mesh structureMesh;
+    private java.util.List<TurbineModel.Section> structure;
+    private Mesh structureLights;
+    private Mesh rotorLights;
 
     /** Corpo e nacele: estaticos, gerados uma vez. */
-    public Mesh structureMesh(TurbineModel.StructureSpec wanted) {
-        if (structureMesh == null) {
-            structureMesh = TurbineModel.buildStructure(wanted);
+    public java.util.List<TurbineModel.Section> structure(TurbineModel.StructureSpec wanted) {
+        if (structure == null) {
+            structure = TurbineModel.buildStructure(wanted);
+            structureLights = TurbineModel.buildStructureLights(wanted);
         }
-        return structureMesh;
+        return structure;
+    }
+
+    public Mesh structureLights() {
+        return structureLights;
+    }
+
+    public Mesh rotorLights(TurbineModel.RotorSpec wanted) {
+        if (rotorLights == null) {
+            rotorLights = TurbineModel.buildRotorLights(wanted);
+        }
+        return rotorLights;
     }
 
     /**

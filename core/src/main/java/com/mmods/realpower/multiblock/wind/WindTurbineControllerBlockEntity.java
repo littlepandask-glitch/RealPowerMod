@@ -126,7 +126,7 @@ public class WindTurbineControllerBlockEntity extends AbstractGeneratorBlockEnti
         boolean fresh = !marked;
         marked = true;
         markedFacing = facing;
-        forEachFormedBlock(pos -> setPartFormed(pos, true));
+        forEachFormedBlock(part -> setPartFormed(part.pos(), true, part.mask()));
         if (fresh) {
             celebrate(facing);
         }
@@ -135,16 +135,16 @@ public class WindTurbineControllerBlockEntity extends AbstractGeneratorBlockEnti
     /** Devolve carenagem e helices ao aspecto normal (estrutura desfeita ou controlador removido). */
     public void releaseStructure() {
         if (marked) {
-            forEachFormedBlock(pos -> setPartFormed(pos, false));
+            forEachFormedBlock(part -> setPartFormed(part.pos(), false, TurbineBlueprint.FULL_MASK));
             marked = false;
         }
     }
 
     /** Tudo que vira modelo 3D: corpo, nacele, carenagem e helices (a base continua sendo bloco). */
-    private void forEachFormedBlock(Consumer<BlockPos> action) {
+    private void forEachFormedBlock(Consumer<TurbineBlueprint.Part> action) {
         for (TurbineBlueprint.Part part : TurbineBlueprint.parts(getBlockPos(), markedFacing)) {
             if (part.kind() != TurbineBlueprint.Kind.BASE) {
-                action.accept(part.pos());
+                action.accept(part);
             }
         }
     }
@@ -160,13 +160,20 @@ public class WindTurbineControllerBlockEntity extends AbstractGeneratorBlockEnti
         server.sendParticles(ParticleTypes.END_ROD, hub.getX() + 0.5, hub.getY() + 0.5, hub.getZ() + 0.5, 14, 1.5, 1.5, 1.5, 0.03);
     }
 
-    private void setPartFormed(BlockPos pos, boolean value) {
+    private void setPartFormed(BlockPos pos, boolean value, int mask) {
         if (level == null || !level.isLoaded(pos)) {
             return;
         }
         BlockState state = level.getBlockState(pos);
-        if (state.getBlock() instanceof WindStructureBlock && state.getValue(WindStructureBlock.FORMED) != value) {
-            level.setBlock(pos, state.setValue(WindStructureBlock.FORMED, value), Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
+        if (!(state.getBlock() instanceof WindStructureBlock)) {
+            return;
+        }
+        BlockState next = state.setValue(WindStructureBlock.FORMED, value);
+        if (state.getBlock() instanceof TurbineCasingBlock) {
+            next = next.setValue(TurbineCasingBlock.MASK, mask);
+        }
+        if (next != state) {
+            level.setBlock(pos, next, Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
         }
     }
 
