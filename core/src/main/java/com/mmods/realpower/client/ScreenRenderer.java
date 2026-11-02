@@ -39,8 +39,10 @@ public class ScreenRenderer implements BlockEntityRenderer<ScreenBlockEntity> {
     private static final float TEXT_LIFT = 0.4F;
 
     /** Estado de desenho de um quadro: matriz do painel, buffers e fonte. */
-    private record Canvas(Matrix4f matrix, VertexConsumer quads, MultiBufferSource buffers, Font font) {
+    private record Canvas(Matrix4f matrix, MultiBufferSource buffers, Font font) {
         void rect(float x0, float y0, float x1, float y1, float z, int argb) {
+            // o texto usa outro RenderType e fecha o buffer anterior: pedir o de quadros a cada retangulo
+            VertexConsumer quads = buffers.getBuffer(RenderType.gui());
             quads.addVertex(matrix, x0, y0, z).setColor(argb);
             quads.addVertex(matrix, x0, y1, z).setColor(argb);
             quads.addVertex(matrix, x1, y1, z).setColor(argb);
@@ -83,7 +85,7 @@ public class ScreenRenderer implements BlockEntityRenderer<ScreenBlockEntity> {
         pose.scale(scale, -scale, -scale);
         // z do painel cresce para dentro da placa; "levantar" um elemento e usar z negativo
 
-        Canvas canvas = new Canvas(pose.last().pose(), buffers.getBuffer(RenderType.gui()), buffers, Minecraft.getInstance().font);
+        Canvas canvas = new Canvas(pose.last().pose(), buffers, Minecraft.getInstance().font);
         ComputerSnapshot snapshot = ScreenData.get(group.master(), screen.getLevel().getGameTime());
         canvas.rect(0, 0, width, height, 0.0F, BG);
         drawTabs(canvas, screen.page(), width);
