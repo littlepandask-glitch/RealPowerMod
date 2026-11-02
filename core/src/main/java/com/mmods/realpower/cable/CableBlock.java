@@ -151,13 +151,16 @@ public class CableBlock extends BaseEntityBlock implements Tiered {
         return true;
     }
 
-    /** Celulas de porta de energia (nivel do chao, nas pontas da largura) do transformador. */
+    /** Celulas de porta de energia (nivel do chao, no centro de cada uma das 4 faces laterais) do transformador. */
     public java.util.List<BlockPos> portCells(BlockPos base, BlockState state) {
         if (kind != CableKind.TRANSFORMER) {
             return java.util.List.of();
         }
-        int half = (kind.size(tier)[0] - 1) / 2;
-        return java.util.List.of(rotate(base, state.getValue(FACING), -half, 0, 0), rotate(base, state.getValue(FACING), half, 0, 0));
+        int halfW = (kind.size(tier)[0] - 1) / 2;
+        int halfD = (kind.size(tier)[1] - 1) / 2;
+        Direction facing = state.getValue(FACING);
+        return java.util.List.of(rotate(base, facing, -halfW, 0, 0), rotate(base, facing, halfW, 0, 0),
+                rotate(base, facing, 0, -halfD, 0), rotate(base, facing, 0, halfD, 0));
     }
 
     private static BlockPos rotate(BlockPos base, Direction facing, int lx, int lz, int y) {

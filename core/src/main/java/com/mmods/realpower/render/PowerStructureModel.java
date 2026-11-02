@@ -182,6 +182,12 @@ public final class PowerStructureModel {
             b.box(v(side * (w / 2.0 - 0.06), 0.7, 0), 0.12, 0.64, 0.64, CERAMIC);
             b.box(v(side * (w / 2.0 - 0.0), 0.7, 0), 0.06, 0.34, 0.34, accent);
         }
+        // portas nas faces transversais (frente e fundo)
+        for (int side = -1; side <= 1; side += 2) {
+            b.box(v(0, 0.7, side * (d / 2.0 - 0.4)), 0.8, 0.8, 0.8, STEEL);
+            b.box(v(0, 0.7, side * (d / 2.0 - 0.06)), 0.64, 0.64, 0.12, CERAMIC);
+            b.box(v(0, 0.7, side * d / 2.0), 0.34, 0.34, 0.06, accent);
+        }
         // conservador de oleo sobre o tanque
         b.beam(v(-tankW * 0.3, tankTop + 0.45, -tankD * 0.25), v(tankW * 0.3, tankTop + 0.45, -tankD * 0.25), 0.55, STEEL);
         // buchas de porcelana, uma por condutor
