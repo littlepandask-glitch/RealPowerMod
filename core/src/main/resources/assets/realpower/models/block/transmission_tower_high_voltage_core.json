@@ -1,0 +1,78 @@
+{
+ "parent": "minecraft:block/block",
+ "textures": {
+  "body": "realpower:block/cable_high_voltage",
+  "cap": "realpower:block/cap_high_voltage",
+  "pole": "realpower:block/pole_high_voltage",
+  "lat": "realpower:block/lattice_high_voltage",
+  "ins": "realpower:block/insulator",
+  "particle": "realpower:block/lattice_high_voltage"
+ },
+ "elements": [
+  {
+   "from": [
+    3,
+    0,
+    3
+   ],
+   "to": [
+    13,
+    16,
+    13
+   ],
+   "faces": {
+    "north": {
+     "texture": "#lat"
+    },
+    "south": {
+     "texture": "#lat"
+    },
+    "east": {
+     "texture": "#lat"
+    },
+    "west": {
+     "texture": "#lat"
+    },
+    "up": {
+     "texture": "#lat"
+    },
+    "down": {
+     "texture": "#lat"
+    }
+   }
+  },
+  {
+   "from": [
+    2,
+    14,
+    2
+   ],
+   "to": [
+    14,
+    16,
+    14
+   ],
+   "faces": {
+    "north": {
+     "texture": "#cap"
+    },
+    "south": {
+     "texture": "#cap"
+    },
+    "east": {
+     "texture": "#cap"
+    },
+    "west": {
+     "texture": "#cap"
+    },
+    "up": {
+     "texture": "#cap"
+    },
+    "down": {
+     "texture": "#cap"
+    }
+   }
+  }
+ ],
+ "render_type": "minecraft:cutout"
+}

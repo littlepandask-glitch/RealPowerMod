@@ -25,7 +25,7 @@ import net.minecraft.core.Direction;
  * </ul>
  */
 public final class TurbineBlueprint {
-    public enum Kind { BASE, CASING, LIGHT, FAIRING, BLADE }
+    public enum Kind { BASE, CASING, LIGHT, POST, PORT, FAIRING, BLADE }
 
     /** Posicao relativa ao controlador. */
     public record Local(int u, int v, int y, Kind kind, boolean tower) {
@@ -43,6 +43,9 @@ public final class TurbineBlueprint {
     /** Espessura da parede do corpo, em metros. */
     public static final double TOWER_WALL = 1.2;
 
+    /** Poste da porta de energia, sobre a laje (u, v em relacao ao controlador): 2 fustes e a travessa no topo. */
+    public static final int PORT_U = 8;
+    public static final int PORT_V = 8;
     public static final int SLAB_HALF = 10;
     public static final int SLAB_DEPTH = 2;
     public static final int TOWER_HEIGHT = 80;
@@ -102,6 +105,14 @@ public final class TurbineBlueprint {
         return parts;
     }
 
+    /** Posicao da porta de energia para um controlador em {@code controller} virado para {@code facing}. */
+    public static BlockPos portPos(BlockPos controller, Direction facing) {
+        Direction right = facing.getClockWise();
+        return controller
+                .offset(facing.getStepX() * PORT_U, 0, facing.getStepZ() * PORT_U)
+                .offset(right.getStepX() * PORT_V, 3, right.getStepZ() * PORT_V);
+    }
+
     public static int count(Kind kind) {
         return COUNTS.get(kind);
     }
@@ -155,6 +166,11 @@ public final class TurbineBlueprint {
                 }
             }
         }
+
+        // poste da porta de energia: dois fustes e a travessa com isoladores
+        put(cells, order, new Local(PORT_U, PORT_V, 1, Kind.POST));
+        put(cells, order, new Local(PORT_U, PORT_V, 2, Kind.POST));
+        put(cells, order, new Local(PORT_U, PORT_V, 3, Kind.PORT));
 
         // corpo: aneis de espessura ~1 bloco; porta 3x3 atras
         for (int y = 1; y <= TOWER_HEIGHT; y++) {

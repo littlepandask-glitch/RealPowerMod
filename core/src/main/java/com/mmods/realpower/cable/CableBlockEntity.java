@@ -3,7 +3,15 @@ package com.mmods.realpower.cable;
 import com.mmods.realpower.api.tier.Tier;
 import com.mmods.realpower.api.tier.Tiered;
 import com.mmods.realpower.registry.ModBlockEntities;
+import java.util.Arrays;
+import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.energy.IEnergyStorage;
@@ -46,6 +54,9 @@ public class CableBlockEntity extends BlockEntity implements Tiered {
         }
     };
 
+    /** Linhas aereas deste no (so o poste/torre do topo de cada pilha tem), sincronizadas para o desenho dos fios. */
+    private List<BlockPos> links = List.of();
+
     public CableBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.CABLE.get(), pos, state);
     }
@@ -53,6 +64,46 @@ public class CableBlockEntity extends BlockEntity implements Tiered {
     @Override
     public Tier tier() {
         return ((Tiered) getBlockState().getBlock()).tier();
+    }
+
+    public CableKind kind() {
+        return ((CableBlock) getBlockState().getBlock()).kind();
+    }
+
+    public List<BlockPos> links() {
+        return links;
+    }
+
+    void setLinks(List<BlockPos> newLinks) {
+        if (!links.equals(newLinks)) {
+            links = List.copyOf(newLinks);
+            setChanged();
+            if (level != null) {
+                level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+            }
+        }
+    }
+
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        tag.putLongArray("Links", links.stream().mapToLong(BlockPos::asLong).toArray());
+    }
+
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        links = Arrays.stream(tag.getLongArray("Links")).mapToObj(BlockPos::of).toList();
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return saveWithoutMetadata(registries);
+    }
+
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     public IEnergyStorage energyPort() {

@@ -1,0 +1,21 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "redstone",
+ "pattern": [
+  "MCM",
+  " M ",
+  "M M"
+ ],
+ "key": {
+  "M": {
+   "tag": "c:ingots/gold"
+  },
+  "C": {
+   "item": "realpower:cable_high_voltage"
+  }
+ },
+ "result": {
+  "id": "realpower:transmission_tower_high_voltage",
+  "count": 1
+ }
+}

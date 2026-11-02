@@ -2,8 +2,11 @@ package com.mmods.realpower.registry;
 
 import com.mmods.realpower.RealPower;
 import com.mmods.realpower.cable.CableBlockEntity;
+import com.mmods.realpower.multiblock.wind.TurbinePowerPortBlockEntity;
 import com.mmods.realpower.multiblock.wind.WindTurbineControllerBlockEntity;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.level.block.Block;
+import net.neoforged.neoforge.registries.DeferredBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -21,7 +24,12 @@ public final class ModBlockEntities {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CableBlockEntity>> CABLE =
             BLOCK_ENTITIES.register("cable", () -> BlockEntityType.Builder.of(CableBlockEntity::new,
-                    ModBlocks.CABLE_BASIC.get(), ModBlocks.CABLE_INDUSTRIAL.get()).build(null));
+                    ModBlocks.NODES.values().stream().map(DeferredBlock::get).toArray(Block[]::new)).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TurbinePowerPortBlockEntity>> TURBINE_POWER_PORT =
+            BLOCK_ENTITIES.register("turbine_power_port", () -> BlockEntityType.Builder.of(
+                    (pos, state) -> new TurbinePowerPortBlockEntity(ModBlockEntities.TURBINE_POWER_PORT.get(), pos, state),
+                    ModBlocks.TURBINE_POWER_PORT.get()).build(null));
 
     private ModBlockEntities() {
     }

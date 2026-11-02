@@ -20,13 +20,14 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.STEEL_INGOT.get());
                         output.accept(ModItems.WIND_TURBINE_CONTROLLER_BASIC.get());
                         output.accept(ModItems.WIND_TURBINE_CONTROLLER_INDUSTRIAL.get());
-                        output.accept(ModItems.CABLE_BASIC.get());
-                        output.accept(ModItems.CABLE_INDUSTRIAL.get());
+                        ModItems.NODES.values().forEach(item -> output.accept(item.get()));
                         output.accept(ModItems.TURBINE_BASE.get());
                         output.accept(ModItems.TURBINE_CASING.get());
                         output.accept(ModItems.ROTOR_FAIRING.get());
                         output.accept(ModItems.TURBINE_BLADE.get());
                         output.accept(ModItems.INDUSTRIAL_LIGHT.get());
+                        output.accept(ModItems.TURBINE_POST.get());
+                        output.accept(ModItems.TURBINE_POWER_PORT.get());
                     })
                     .build());
 

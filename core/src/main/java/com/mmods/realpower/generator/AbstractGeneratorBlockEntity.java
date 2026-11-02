@@ -63,6 +63,11 @@ public abstract class AbstractGeneratorBlockEntity extends BlockEntity implement
     /** Potencia nominal (W) da estrutura formada; base do tamanho do buffer. */
     protected abstract double ratedOutputWatts();
 
+    /** Saida extra alem dos vizinhos diretos (ex.: porta de energia da turbina), ou {@code null}. */
+    protected IEnergyStorage extraOutput(Level level) {
+        return null;
+    }
+
     // ---
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, AbstractGeneratorBlockEntity be) {
@@ -136,6 +141,11 @@ public abstract class AbstractGeneratorBlockEntity extends BlockEntity implement
     private void pushEnergy(Level level, BlockPos pos) {
         if (buffer.stored() <= 0L) {
             return;
+        }
+        IEnergyStorage extra = formed ? extraOutput(level) : null;
+        if (extra != null) {
+            buffer.extract(extra.receiveEnergy((int) Math.min(Math.min(Integer.MAX_VALUE, tier.maxTransferPerTick()),
+                    buffer.extract(Integer.MAX_VALUE, true)), false), false);
         }
         for (Direction direction : Direction.values()) {
             IEnergyStorage target = level.getCapability(Capabilities.EnergyStorage.BLOCK,

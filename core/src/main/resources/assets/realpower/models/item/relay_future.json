@@ -1,0 +1,40 @@
+{
+ "parent": "realpower:block/relay_future_core",
+ "display": {
+  "gui": {
+   "rotation": [
+    30,
+    225,
+    0
+   ],
+   "scale": 0.62
+  },
+  "ground": {
+   "scale": 0.5
+  },
+  "fixed": {
+   "rotation": [
+    0,
+    90,
+    0
+   ],
+   "scale": 0.7
+  },
+  "thirdperson_righthand": {
+   "rotation": [
+    0,
+    90,
+    0
+   ],
+   "scale": 0.5
+  },
+  "firstperson_righthand": {
+   "rotation": [
+    0,
+    90,
+    0
+   ],
+   "scale": 0.5
+  }
+ }
+}

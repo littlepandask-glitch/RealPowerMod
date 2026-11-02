@@ -1,6 +1,8 @@
 package com.mmods.realpower.gametest;
 
 import com.mmods.realpower.RealPower;
+import com.mmods.realpower.api.tier.Tier;
+import com.mmods.realpower.cable.CableKind;
 import com.mmods.realpower.cable.CableNetwork;
 import com.mmods.realpower.cable.CableNetworks;
 import com.mmods.realpower.registry.ModBlocks;
@@ -49,7 +51,7 @@ public class CableGameTests {
 
     @GameTest(template = "empty", timeoutTicks = 200, batch = "cable")
     public static void basicCableLimitsRateAndLosesEnergy(GameTestHelper helper) {
-        Block basic = ModBlocks.CABLE_BASIC.get();
+        Block basic = ModBlocks.node(CableKind.CABLE, Tier.BASIC).get();
         BlockPos sink = line(helper, 1, basic, basic, basic, basic, basic, basic);
         AtomicLong accepted = feed(helper, 1);
         helper.runAfterDelay(TICKS, () -> {
@@ -66,7 +68,7 @@ public class CableGameTests {
 
     @GameTest(template = "empty", timeoutTicks = 200, batch = "cable")
     public static void industrialCableCarriesMoreThanBasic(GameTestHelper helper) {
-        Block industrial = ModBlocks.CABLE_INDUSTRIAL.get();
+        Block industrial = ModBlocks.node(CableKind.CABLE, Tier.INDUSTRIAL).get();
         BlockPos sink = line(helper, 3, industrial, industrial, industrial, industrial);
         feed(helper, 3);
         helper.runAfterDelay(TICKS, () -> {
@@ -79,8 +81,8 @@ public class CableGameTests {
 
     @GameTest(template = "empty", timeoutTicks = 200, batch = "cable")
     public static void weakestCableSetsNetworkRate(GameTestHelper helper) {
-        Block industrial = ModBlocks.CABLE_INDUSTRIAL.get();
-        Block basic = ModBlocks.CABLE_BASIC.get();
+        Block industrial = ModBlocks.node(CableKind.CABLE, Tier.INDUSTRIAL).get();
+        Block basic = ModBlocks.node(CableKind.CABLE, Tier.BASIC).get();
         BlockPos sink = line(helper, 5, industrial, industrial, basic, industrial, industrial);
         feed(helper, 5);
         helper.runAfterDelay(TICKS, () -> {
@@ -92,7 +94,7 @@ public class CableGameTests {
 
     @GameTest(template = "empty", timeoutTicks = 200, batch = "cable")
     public static void breakingACableSplitsTheNetwork(GameTestHelper helper) {
-        Block basic = ModBlocks.CABLE_BASIC.get();
+        Block basic = ModBlocks.node(CableKind.CABLE, Tier.BASIC).get();
         BlockPos sink = line(helper, 7, basic, basic, basic, basic);
         feed(helper, 7);
         BlockPos middle = helper.absolutePos(new BlockPos(4, 2, 7));
@@ -105,6 +107,68 @@ public class CableGameTests {
                     "energia passou por cabo quebrado: " + TestEnergySink.RECEIVED.get(sink));
             CableNetwork left = CableNetworks.networkAt(helper.getLevel(), helper.absolutePos(new BlockPos(2, 2, 7)));
             helper.assertTrue(left != null && left.cableCount() == 2, "rede esquerda deveria ter 2 cabos");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 200, batch = "cable")
+    public static void relayShortensTheLossyRun(GameTestHelper helper) {
+        Block cable = ModBlocks.node(CableKind.CABLE, Tier.BASIC).get();
+        Block relay = ModBlocks.node(CableKind.RELAY, Tier.BASIC).get();
+        Block[] plain = new Block[20];
+        java.util.Arrays.fill(plain, cable);
+        Block[] withRelays = plain.clone();
+        withRelays[6] = relay;
+        withRelays[13] = relay;
+        line(helper, 9, plain);
+        line(helper, 11, withRelays);
+        helper.runAfterDelay(10, () -> {
+            CableNetwork bare = CableNetworks.networkAt(helper.getLevel(), helper.absolutePos(new BlockPos(2, 2, 9)));
+            CableNetwork relayed = CableNetworks.networkAt(helper.getLevel(), helper.absolutePos(new BlockPos(2, 2, 11)));
+            helper.assertTrue(bare != null && relayed != null, "redes nao formadas");
+            helper.assertTrue(relayed.loss() < bare.loss() / 2.0,
+                    "rele deveria reduzir a perda: " + relayed.loss() + " vs " + bare.loss());
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 200, batch = "cable")
+    public static void poleLineCarriesEnergyWithLittleLoss(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        Block cable = ModBlocks.node(CableKind.CABLE, Tier.BASIC).get();
+        Block pole = ModBlocks.node(CableKind.POLE, Tier.BASIC).get();
+        BlockPos sink = helper.absolutePos(new BlockPos(24, 2, 13));
+        level.setBlock(sink, Blocks.GOLD_BLOCK.defaultBlockState(), 3);
+        TestEnergySink.RECEIVED.put(sink, 0L);
+        level.setBlock(helper.absolutePos(new BlockPos(2, 2, 13)), cable.defaultBlockState(), 3);
+        level.setBlock(helper.absolutePos(new BlockPos(3, 2, 13)), pole.defaultBlockState(), 3);
+        level.setBlock(helper.absolutePos(new BlockPos(23, 2, 13)), pole.defaultBlockState(), 3);
+        feed(helper, 13);
+        helper.runAfterDelay(TICKS, () -> {
+            CableNetwork network = CableNetworks.networkAt(level, helper.absolutePos(new BlockPos(2, 2, 13)));
+            helper.assertTrue(network != null && network.cableCount() == 3, "rede deveria ter 3 nos ligados pela linha aerea");
+            helper.assertTrue(network.loss() < 0.05, "linha aerea deveria perder pouco: " + network.loss());
+            helper.assertTrue(TestEnergySink.RECEIVED.get(sink) > 0, "nada chegou pela linha aerea");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 200, batch = "cable")
+    public static void turbinePortFeedsAdjacentCable(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos port = helper.absolutePos(new BlockPos(2, 2, 15));
+        BlockPos sink = helper.absolutePos(new BlockPos(4, 2, 15));
+        level.setBlock(sink, Blocks.GOLD_BLOCK.defaultBlockState(), 3);
+        TestEnergySink.RECEIVED.put(sink, 0L);
+        level.setBlock(port, ModBlocks.TURBINE_POWER_PORT.get().defaultBlockState(), 3);
+        level.setBlock(helper.absolutePos(new BlockPos(3, 2, 15)),
+                ModBlocks.node(CableKind.CABLE, Tier.BASIC).get().defaultBlockState(), 3);
+        helper.onEachTick(() -> ((com.mmods.realpower.multiblock.wind.TurbinePowerPortBlockEntity) level.getBlockEntity(port))
+                .feed().receiveEnergy(1000, false));
+        helper.runAfterDelay(TICKS, () -> {
+            helper.assertTrue(TestEnergySink.RECEIVED.get(sink) > 0, "a porta nao entregou energia ao cabo");
+            helper.assertTrue(level.getCapability(Capabilities.EnergyStorage.BLOCK, port, null).receiveEnergy(100, false) == 0,
+                    "a porta nao deveria aceitar energia de fora");
             helper.succeed();
         });
     }

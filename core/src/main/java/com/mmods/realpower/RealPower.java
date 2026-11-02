@@ -35,6 +35,8 @@ public class RealPower {
                 (be, side) -> be.getEnergyOutput());
         event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ModBlockEntities.CABLE.get(),
                 (be, side) -> be.energyPort());
+        event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ModBlockEntities.TURBINE_POWER_PORT.get(),
+                (be, side) -> be.outsideView());
         if (GameTestHooks.isGametestEnabled()) {
             TestEnergySink.register(event);
         }

@@ -1,0 +1,21 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "redstone",
+ "pattern": [
+  "MMM",
+  "MCM",
+  "MMM"
+ ],
+ "key": {
+  "M": {
+   "tag": "c:gems/diamond"
+  },
+  "C": {
+   "item": "realpower:cable_high_voltage"
+  }
+ },
+ "result": {
+  "id": "realpower:cable_advanced",
+  "count": 4
+ }
+}

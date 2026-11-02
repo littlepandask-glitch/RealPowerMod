@@ -105,6 +105,9 @@ depois sem reescrever receitas. O aco do mod e registrado em `c:ingots/steel`.
 - `CableBlock` (tiers BASIC/INDUSTRIAL) conecta nas faces cujo vizinho expoe `Capabilities.EnergyStorage.BLOCK`; o estado das conexoes e recalculado em `neighborChanged` e em um tick agendado apos `onPlace` (trocar o estado dentro de `onPlace` impede o aviso aos vizinhos).
 - `CableNetworks` (por mundo) registra os `CableBlockEntity` carregados e refaz as redes por busca em largura quando algo muda. `CableNetwork` e um pool: geradores empurram energia pela capability do cabo (so recebe), e a cada tick a rede entrega aos consumidores encostados nela.
 - Vazao = a do cabo mais fraco da rede (`Tier.maxTransferPerTick`); buffer = 2 ticks de vazao. Perda = `Tier.lineLossPerBlock` x vao da rede (soma das 3 dimensoes da caixa que a contem), limitada a 50%.
+- Nos (`CableKind`): cabo, rele, poste e torre, cada um nos 5 tiers (postes ate alta tensao, torres a partir dela). Cabos e reles sao enterrados; poste/torre de topo de pilha ligam-se sozinhos (3 vizinhos mais proximos no alcance: poste 24, torre 96) e os fios sao desenhados por `PowerLineRenderer`.
+- Perda: comprimento equivalente = soma das corridas de cabo (vao da corrida / (1 + reles)) + linhas aereas (comprimento x fator: poste 0,25, torre 0,08). Reles e linhas aereas mitigam a perda por distancia.
+- Turbina: o poste da porta de energia (2 `TurbinePostBlock` + `TurbinePowerPortBlock` no blueprint, sobre a laje) recebe a energia do controlador (`extraOutput`) e a passa aos cabos encostados.
 - Clique direito num cabo mostra tier, cabos, vazao, perda e buffer. Testes: `CableGameTests` (consumidor de teste `TestEnergySink` so existe com gametest ativo).
 
 ## Proximos passos sugeridos

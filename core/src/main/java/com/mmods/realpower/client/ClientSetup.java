@@ -18,6 +18,7 @@ public final class ClientSetup {
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ModBlockEntities.WIND_TURBINE_CONTROLLER.get(),
                 context -> new WindTurbineRenderer());
+        event.registerBlockEntityRenderer(ModBlockEntities.CABLE.get(), context -> new PowerLineRenderer());
     }
 
     @SubscribeEvent

@@ -1,0 +1,21 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "redstone",
+ "pattern": [
+  "C",
+  "M",
+  "M"
+ ],
+ "key": {
+  "M": {
+   "tag": "c:ingots/gold"
+  },
+  "C": {
+   "item": "realpower:cable_high_voltage"
+  }
+ },
+ "result": {
+  "id": "realpower:power_pole_high_voltage",
+  "count": 2
+ }
+}

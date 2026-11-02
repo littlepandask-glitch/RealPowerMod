@@ -1,0 +1,24 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "redstone",
+ "pattern": [
+  "MRM",
+  "RCR",
+  "MRM"
+ ],
+ "key": {
+  "M": {
+   "tag": "c:ingots/netherite"
+  },
+  "R": {
+   "item": "minecraft:redstone"
+  },
+  "C": {
+   "item": "realpower:cable_future"
+  }
+ },
+ "result": {
+  "id": "realpower:relay_future",
+  "count": 1
+ }
+}

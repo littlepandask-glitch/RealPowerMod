@@ -16,8 +16,7 @@ import net.neoforged.neoforge.energy.IEnergyStorage;
  * empurram energia para dentro pelos cabos e a rede a entrega aos consumidores encostados nela.
  *
  * <p>Limites reais simplificados: a vazao por tick e a do cabo mais fraco (o condutor mais fino
- * limita a corrente) e a perda cresce com o comprimento da linha, aproximado pelo maior vao da rede
- * (soma das tres dimensoes da caixa que a contem).
+ * limita a corrente) e a perda cresce com o comprimento equivalente da linha (ver {@link CableNetworks}).
  */
 public final class CableNetwork {
     /** Perda maxima por transmissao. */
@@ -30,6 +29,7 @@ public final class CableNetwork {
     private final long rate;
     private final long capacity;
     private final double loss;
+    private final double effectiveLength;
     private final List<BlockCapabilityCache<IEnergyStorage, Direction>> endpoints = new ArrayList<>();
 
     private long stored;
@@ -38,31 +38,18 @@ public final class CableNetwork {
     private boolean discarded;
 
     CableNetwork(ServerLevel level, Set<BlockPos> cables, Tier weakestTier, List<BlockPos> endpointPositions,
-                 List<Direction> endpointFaces, long inheritedEnergy) {
+                 List<Direction> endpointFaces, long inheritedEnergy, double effectiveLength) {
         this.cables = cables;
         this.weakestTier = weakestTier;
         this.rate = weakestTier.maxTransferPerTick();
         this.capacity = rate * BUFFER_TICKS;
-        this.loss = Math.min(MAX_LOSS, weakestTier.lineLossPerBlock() * span(cables));
+        this.effectiveLength = effectiveLength;
+        this.loss = Math.min(MAX_LOSS, weakestTier.lineLossPerBlock() * effectiveLength);
         this.stored = Math.min(inheritedEnergy, capacity);
         for (int i = 0; i < endpointPositions.size(); i++) {
             endpoints.add(BlockCapabilityCache.create(Capabilities.EnergyStorage.BLOCK, level,
                     endpointPositions.get(i), endpointFaces.get(i), () -> !discarded, () -> { }));
         }
-    }
-
-    private static int span(Set<BlockPos> cables) {
-        int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
-        int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
-        for (BlockPos pos : cables) {
-            minX = Math.min(minX, pos.getX());
-            minY = Math.min(minY, pos.getY());
-            minZ = Math.min(minZ, pos.getZ());
-            maxX = Math.max(maxX, pos.getX());
-            maxY = Math.max(maxY, pos.getY());
-            maxZ = Math.max(maxZ, pos.getZ());
-        }
-        return (maxX - minX) + (maxY - minY) + (maxZ - minZ) + 1;
     }
 
     void discard() {
@@ -84,6 +71,11 @@ public final class CableNetwork {
     /** Vazao maxima da rede em FE/tick. */
     public long rate() {
         return rate;
+    }
+
+    /** Comprimento equivalente da linha (m): corridas de cabo enterrado, divididas pelos reles, mais as linhas aereas. */
+    public double effectiveLength() {
+        return effectiveLength;
     }
 
     public long capacity() {

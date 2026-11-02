@@ -37,6 +37,7 @@ import org.joml.Matrix4f;
 public final class ScaffoldGhostRenderer {
     private static final float[] BASE = {0.75f, 0.65f, 0.45f};
     private static final float[] CASING = {0.30f, 0.60f, 1.00f};
+    private static final float[] POST = {0.85f, 0.45f, 0.20f};
     private static final float[] LIGHT = {1.00f, 0.90f, 0.30f};
     private static final float[] FAIRING = {0.25f, 0.95f, 0.90f};
     private static final float[] BLADE = {0.95f, 0.95f, 0.95f};
@@ -138,6 +139,7 @@ public final class ScaffoldGhostRenderer {
             case BASE -> BASE;
             case CASING -> CASING;
             case LIGHT -> LIGHT;
+            case POST, PORT -> POST;
             case FAIRING -> FAIRING;
             case BLADE -> BLADE;
         };

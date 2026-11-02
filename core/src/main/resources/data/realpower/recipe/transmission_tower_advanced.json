@@ -1,0 +1,21 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "redstone",
+ "pattern": [
+  "MCM",
+  " M ",
+  "M M"
+ ],
+ "key": {
+  "M": {
+   "tag": "c:gems/diamond"
+  },
+  "C": {
+   "item": "realpower:cable_advanced"
+  }
+ },
+ "result": {
+  "id": "realpower:transmission_tower_advanced",
+  "count": 1
+ }
+}

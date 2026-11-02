@@ -1,0 +1,7 @@
+{
+ "variants": {
+  "": {
+   "model": "realpower:block/turbine_power_port"
+  }
+ }
+}

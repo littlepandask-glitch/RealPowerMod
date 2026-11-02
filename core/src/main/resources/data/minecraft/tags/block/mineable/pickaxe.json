@@ -1,1 +1,30 @@
-{"replace": false, "values": ["realpower:turbine_base", "realpower:turbine_casing", "realpower:rotor_fairing", "realpower:turbine_blade", "realpower:wind_turbine_controller_basic", "realpower:wind_turbine_controller_industrial", "realpower:industrial_light", "realpower:cable_basic", "realpower:cable_industrial"]}
+{
+ "replace": false,
+ "values": [
+  "realpower:turbine_base",
+  "realpower:turbine_casing",
+  "realpower:rotor_fairing",
+  "realpower:turbine_blade",
+  "realpower:wind_turbine_controller_basic",
+  "realpower:wind_turbine_controller_industrial",
+  "realpower:industrial_light",
+  "realpower:cable_basic",
+  "realpower:cable_industrial",
+  "realpower:relay_basic",
+  "realpower:power_pole_basic",
+  "realpower:relay_industrial",
+  "realpower:power_pole_industrial",
+  "realpower:cable_high_voltage",
+  "realpower:relay_high_voltage",
+  "realpower:power_pole_high_voltage",
+  "realpower:transmission_tower_high_voltage",
+  "realpower:cable_advanced",
+  "realpower:relay_advanced",
+  "realpower:transmission_tower_advanced",
+  "realpower:cable_future",
+  "realpower:relay_future",
+  "realpower:transmission_tower_future",
+  "realpower:turbine_post",
+  "realpower:turbine_power_port"
+ ]
+}

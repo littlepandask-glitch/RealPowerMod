@@ -1,1 +1,77 @@
-{"textures": {"all": "realpower:block/cable_basic", "particle": "realpower:block/cable_basic"}, "elements": [{"from": [6, 6, 0], "to": [10, 10, 6], "faces": {"north": {"uv": [0, 0, 16, 16], "texture": "#all"}, "south": {"uv": [0, 0, 16, 16], "texture": "#all"}, "east": {"uv": [0, 0, 16, 16], "texture": "#all"}, "west": {"uv": [0, 0, 16, 16], "texture": "#all"}, "up": {"uv": [0, 0, 16, 16], "texture": "#all"}, "down": {"uv": [0, 0, 16, 16], "texture": "#all"}}}]}
+{
+ "parent": "minecraft:block/block",
+ "textures": {
+  "body": "realpower:block/cable_basic",
+  "cap": "realpower:block/cap_basic",
+  "pole": "realpower:block/pole_basic",
+  "lat": "realpower:block/lattice_basic",
+  "ins": "realpower:block/insulator",
+  "particle": "realpower:block/cap_basic"
+ },
+ "elements": [
+  {
+   "from": [
+    6,
+    6,
+    0
+   ],
+   "to": [
+    10,
+    10,
+    6
+   ],
+   "faces": {
+    "north": {
+     "texture": "#body"
+    },
+    "south": {
+     "texture": "#body"
+    },
+    "east": {
+     "texture": "#body"
+    },
+    "west": {
+     "texture": "#body"
+    },
+    "up": {
+     "texture": "#body"
+    },
+    "down": {
+     "texture": "#body"
+    }
+   }
+  },
+  {
+   "from": [
+    5.5,
+    5.5,
+    0
+   ],
+   "to": [
+    10.5,
+    10.5,
+    1.5
+   ],
+   "faces": {
+    "north": {
+     "texture": "#cap"
+    },
+    "south": {
+     "texture": "#cap"
+    },
+    "east": {
+     "texture": "#cap"
+    },
+    "west": {
+     "texture": "#cap"
+    },
+    "up": {
+     "texture": "#cap"
+    },
+    "down": {
+     "texture": "#cap"
+    }
+   }
+  }
+ ]
+}

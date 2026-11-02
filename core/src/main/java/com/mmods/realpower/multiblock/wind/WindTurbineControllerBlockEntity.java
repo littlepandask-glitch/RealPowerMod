@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.function.Consumer;
 import net.minecraft.core.BlockPos;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.ParticleTypes;
@@ -96,6 +97,12 @@ public class WindTurbineControllerBlockEntity extends AbstractGeneratorBlockEnti
     public void setRemoved() {
         CLIENT_INSTANCES.remove(this);
         super.setRemoved();
+    }
+
+    @Override
+    protected IEnergyStorage extraOutput(Level level) {
+        BlockPos port = TurbineBlueprint.portPos(getBlockPos(), getBlockState().getValue(WindTurbineControllerBlock.FACING));
+        return level.isLoaded(port) && level.getBlockEntity(port) instanceof TurbinePowerPortBlockEntity be ? be.feed() : null;
     }
 
     @Override

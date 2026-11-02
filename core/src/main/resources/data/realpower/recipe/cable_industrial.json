@@ -1,1 +1,21 @@
-{"type": "minecraft:crafting_shaped", "category": "redstone", "pattern": ["SSS", "CBC", "SSS"], "key": {"S": {"item": "realpower:steel_ingot"}, "C": {"tag": "c:ingots/copper"}, "B": {"item": "realpower:cable_basic"}}, "result": {"id": "realpower:cable_industrial", "count": 4}}
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "redstone",
+ "pattern": [
+  "MMM",
+  "MCM",
+  "MMM"
+ ],
+ "key": {
+  "M": {
+   "item": "realpower:steel_ingot"
+  },
+  "C": {
+   "item": "realpower:cable_basic"
+  }
+ },
+ "result": {
+  "id": "realpower:cable_industrial",
+  "count": 4
+ }
+}

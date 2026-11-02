@@ -64,6 +64,8 @@ public class WindTurbineScan implements StructureScan {
             case BASE -> ModBlocks.TURBINE_BASE.get();
             case CASING -> ModBlocks.TURBINE_CASING.get();
             case LIGHT -> ModBlocks.INDUSTRIAL_LIGHT.get();
+            case POST -> ModBlocks.TURBINE_POST.get();
+            case PORT -> ModBlocks.TURBINE_POWER_PORT.get();
             case FAIRING -> ModBlocks.ROTOR_FAIRING.get();
             case BLADE -> ModBlocks.TURBINE_BLADE.get();
         };

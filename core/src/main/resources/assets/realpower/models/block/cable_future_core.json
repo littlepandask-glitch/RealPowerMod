@@ -1,0 +1,45 @@
+{
+ "parent": "minecraft:block/block",
+ "textures": {
+  "body": "realpower:block/cable_future",
+  "cap": "realpower:block/cap_future",
+  "pole": "realpower:block/pole_future",
+  "lat": "realpower:block/lattice_future",
+  "ins": "realpower:block/insulator",
+  "particle": "realpower:block/cap_future"
+ },
+ "elements": [
+  {
+   "from": [
+    6,
+    6,
+    6
+   ],
+   "to": [
+    10,
+    10,
+    10
+   ],
+   "faces": {
+    "north": {
+     "texture": "#body"
+    },
+    "south": {
+     "texture": "#body"
+    },
+    "east": {
+     "texture": "#body"
+    },
+    "west": {
+     "texture": "#body"
+    },
+    "up": {
+     "texture": "#body"
+    },
+    "down": {
+     "texture": "#body"
+    }
+   }
+  }
+ ]
+}

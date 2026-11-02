@@ -1,0 +1,21 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "redstone",
+ "pattern": [
+  "MMM",
+  "MCM",
+  "MMM"
+ ],
+ "key": {
+  "M": {
+   "tag": "c:ingots/netherite"
+  },
+  "C": {
+   "item": "realpower:cable_advanced"
+  }
+ },
+ "result": {
+  "id": "realpower:cable_future",
+  "count": 4
+ }
+}

@@ -37,7 +37,8 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 public class CableBlock extends BaseEntityBlock implements Tiered {
     public static final MapCodec<CableBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             propertiesCodec(),
-            Tier.CODEC.fieldOf("tier").forGetter(CableBlock::tier)
+            Tier.CODEC.fieldOf("tier").forGetter(CableBlock::tier),
+            CableKind.CODEC.fieldOf("kind").forGetter(CableBlock::kind)
     ).apply(instance, CableBlock::new));
 
     public static final Map<Direction, BooleanProperty> PROPERTY_BY_DIRECTION = new EnumMap<>(Map.of(
@@ -48,7 +49,15 @@ public class CableBlock extends BaseEntityBlock implements Tiered {
             Direction.UP, BlockStateProperties.UP,
             Direction.DOWN, BlockStateProperties.DOWN));
 
-    private static final VoxelShape CORE = Block.box(6, 6, 6, 10, 10, 10);
+    private static VoxelShape coreOf(CableKind kind) {
+        return switch (kind) {
+            case CABLE -> Block.box(6, 6, 6, 10, 10, 10);
+            case RELAY -> Block.box(4, 4, 4, 12, 12, 12);
+            case POLE -> Block.box(5.5, 0, 5.5, 10.5, 16, 10.5);
+            case TOWER -> Block.box(3, 0, 3, 13, 16, 13);
+        };
+    }
+
     private static final Map<Direction, VoxelShape> ARMS = new EnumMap<>(Map.of(
             Direction.NORTH, Block.box(6, 6, 0, 10, 10, 6),
             Direction.SOUTH, Block.box(6, 6, 10, 10, 10, 16),
@@ -59,10 +68,12 @@ public class CableBlock extends BaseEntityBlock implements Tiered {
     private final VoxelShape[] shapes = new VoxelShape[64];
 
     private final Tier tier;
+    private final CableKind kind;
 
-    public CableBlock(Properties properties, Tier tier) {
+    public CableBlock(Properties properties, Tier tier, CableKind kind) {
         super(properties);
         this.tier = tier;
+        this.kind = kind;
         BlockState state = stateDefinition.any();
         for (BooleanProperty property : PROPERTY_BY_DIRECTION.values()) {
             state = state.setValue(property, false);
@@ -73,6 +84,10 @@ public class CableBlock extends BaseEntityBlock implements Tiered {
     @Override
     public Tier tier() {
         return tier;
+    }
+
+    public CableKind kind() {
+        return kind;
     }
 
     @Override
@@ -153,7 +168,8 @@ public class CableBlock extends BaseEntityBlock implements Tiered {
         if (network != null) {
             player.displayClientMessage(Component.translatable("message.realpower.cable.info",
                     network.weakestTier().displayName(), network.cableCount(), network.rate(),
-                    String.format("%.1f", network.loss() * 100.0), network.storedEnergy(), network.capacity()), true);
+                    String.format("%.1f", network.loss() * 100.0), network.storedEnergy(), network.capacity(),
+                    String.format("%.0f", network.effectiveLength())), true);
         }
         return InteractionResult.CONSUME;
     }
@@ -168,9 +184,10 @@ public class CableBlock extends BaseEntityBlock implements Tiered {
         }
         VoxelShape shape = shapes[mask];
         if (shape == null) {
-            shape = CORE;
+            shape = coreOf(kind);
             for (Direction direction : Direction.values()) {
-                if ((mask & (1 << direction.ordinal())) != 0) {
+                boolean vertical = direction.getAxis() == Direction.Axis.Y;
+                if ((mask & (1 << direction.ordinal())) != 0 && (kind.verticalArms() || !vertical)) {
                     shape = Shapes.or(shape, ARMS.get(direction));
                 }
             }

@@ -1,0 +1,44 @@
+{
+ "multipart": [
+  {
+   "apply": {
+    "model": "realpower:block/transmission_tower_high_voltage_core"
+   }
+  },
+  {
+   "when": {
+    "north": "true"
+   },
+   "apply": {
+    "model": "realpower:block/transmission_tower_high_voltage_arm"
+   }
+  },
+  {
+   "when": {
+    "south": "true"
+   },
+   "apply": {
+    "model": "realpower:block/transmission_tower_high_voltage_arm",
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "east": "true"
+   },
+   "apply": {
+    "model": "realpower:block/transmission_tower_high_voltage_arm",
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "west": "true"
+   },
+   "apply": {
+    "model": "realpower:block/transmission_tower_high_voltage_arm",
+    "y": 270
+   }
+  }
+ ]
+}

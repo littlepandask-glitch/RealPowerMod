@@ -1,0 +1,21 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "redstone",
+ "pattern": [
+  "C",
+  "M",
+  "M"
+ ],
+ "key": {
+  "M": {
+   "item": "realpower:steel_ingot"
+  },
+  "C": {
+   "item": "realpower:cable_industrial"
+  }
+ },
+ "result": {
+  "id": "realpower:power_pole_industrial",
+  "count": 2
+ }
+}

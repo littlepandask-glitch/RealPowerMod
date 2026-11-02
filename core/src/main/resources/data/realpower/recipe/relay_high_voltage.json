@@ -1,0 +1,24 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "redstone",
+ "pattern": [
+  "MRM",
+  "RCR",
+  "MRM"
+ ],
+ "key": {
+  "M": {
+   "tag": "c:ingots/gold"
+  },
+  "R": {
+   "item": "minecraft:redstone"
+  },
+  "C": {
+   "item": "realpower:cable_high_voltage"
+  }
+ },
+ "result": {
+  "id": "realpower:relay_high_voltage",
+  "count": 1
+ }
+}
