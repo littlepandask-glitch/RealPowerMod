@@ -5,6 +5,8 @@ import com.mmods.realpower.api.tier.Tier;
 import com.mmods.realpower.cable.CableBlock;
 import com.mmods.realpower.cable.CableKind;
 import com.mmods.realpower.cable.PowerStructureBlock;
+import com.mmods.realpower.data.DataCableBlock;
+import com.mmods.realpower.data.DataPortBlock;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import com.mmods.realpower.multiblock.wind.TurbineCasingBlock;
@@ -69,6 +71,12 @@ public final class ModBlocks {
     public static final DeferredBlock<PowerStructureBlock> TRANSFORMER_PORT = BLOCKS.registerBlock("transformer_port",
             properties -> new PowerStructureBlock(properties, PowerStructureBlock.Variant.PORT),
             BlockBehaviour.Properties.of().strength(3.0F, 6.0F).sound(SoundType.METAL).noOcclusion().noLootTable());
+
+    /** Rede de dados: cabo fino e porta de dados que expoe um equipamento a ela. */
+    public static final DeferredBlock<DataCableBlock> DATA_CABLE = BLOCKS.registerBlock("data_cable",
+            DataCableBlock::new, BlockBehaviour.Properties.of().strength(0.8F, 2.0F).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<DataPortBlock> DATA_PORT = BLOCKS.registerBlock("data_port",
+            DataPortBlock::new, BlockBehaviour.Properties.of().strength(1.5F, 3.0F).sound(SoundType.METAL).noOcclusion());
 
     /** Todos os nos da rede eletrica (cabo, rele, poste, torre), por id. */
     public static final Map<String, DeferredBlock<CableBlock>> NODES = new LinkedHashMap<>();

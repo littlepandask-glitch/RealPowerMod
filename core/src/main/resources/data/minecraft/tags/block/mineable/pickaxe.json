@@ -28,6 +28,8 @@
   "realpower:transformer_industrial",
   "realpower:transformer_high_voltage",
   "realpower:transformer_advanced",
-  "realpower:transformer_future"
+  "realpower:transformer_future",
+  "realpower:data_cable",
+  "realpower:data_port"
  ]
 }

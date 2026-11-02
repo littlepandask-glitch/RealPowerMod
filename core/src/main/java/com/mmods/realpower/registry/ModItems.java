@@ -32,6 +32,9 @@ public final class ModItems {
     public static final DeferredItem<BlockItem> WIND_TURBINE_CONTROLLER_INDUSTRIAL =
             ITEMS.registerSimpleBlockItem(ModBlocks.WIND_TURBINE_CONTROLLER_INDUSTRIAL);
 
+    public static final DeferredItem<BlockItem> DATA_CABLE = ITEMS.registerSimpleBlockItem(ModBlocks.DATA_CABLE);
+    public static final DeferredItem<BlockItem> DATA_PORT = ITEMS.registerSimpleBlockItem(ModBlocks.DATA_PORT);
+
     public static final DeferredItem<Item> STEEL_INGOT = ITEMS.registerSimpleItem("steel_ingot");
     public static final DeferredItem<EngineerGogglesItem> ENGINEER_GOGGLES =
             ITEMS.registerItem("engineer_goggles", EngineerGogglesItem::new);

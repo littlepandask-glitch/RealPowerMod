@@ -71,5 +71,7 @@
   "goggles.realpower.formed": "Structure complete",
   "goggles.realpower.unformed": "Structure incomplete",
   "goggles.realpower.wind": "Wind: %s m/s",
-  "goggles.realpower.power": "Output: %s kW"
+  "goggles.realpower.power": "Output: %s kW",
+  "block.realpower.data_cable": "Data Cable",
+  "block.realpower.data_port": "Data Port"
 }

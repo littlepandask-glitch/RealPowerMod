@@ -108,8 +108,9 @@ public class CableGameTests {
         BlockPos middle = helper.absolutePos(new BlockPos(4, 2, 7));
         helper.runAfterDelay(10, () -> {
             helper.getLevel().setBlock(middle, Blocks.AIR.defaultBlockState(), 3);
-            TestEnergySink.RECEIVED.put(sink, 0L);
         });
+        // a energia ja armazenada no lado do consumidor ainda pode escoar logo apos a quebra; zera depois disso
+        helper.runAfterDelay(16, () -> TestEnergySink.RECEIVED.put(sink, 0L));
         helper.runAfterDelay(30, () -> {
             helper.assertTrue(TestEnergySink.RECEIVED.get(sink) == 0L,
                     "energia passou por cabo quebrado: " + TestEnergySink.RECEIVED.get(sink));

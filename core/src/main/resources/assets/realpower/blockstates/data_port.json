@@ -1,0 +1,27 @@
+{
+ "variants": {
+  "facing=north": {
+   "model": "realpower:block/data_port"
+  },
+  "facing=south": {
+   "model": "realpower:block/data_port",
+   "y": 180
+  },
+  "facing=east": {
+   "model": "realpower:block/data_port",
+   "y": 90
+  },
+  "facing=west": {
+   "model": "realpower:block/data_port",
+   "y": 270
+  },
+  "facing=up": {
+   "model": "realpower:block/data_port",
+   "x": 90
+  },
+  "facing=down": {
+   "model": "realpower:block/data_port",
+   "x": 270
+  }
+ }
+}
