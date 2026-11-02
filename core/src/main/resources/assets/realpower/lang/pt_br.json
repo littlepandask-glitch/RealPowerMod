@@ -117,5 +117,12 @@
   "goggles.realpower.redstone": "Saída de redstone: LIGADA",
   "goggles.realpower.control_on": "Controle: LIGADO, limite %s%%",
   "goggles.realpower.control_off": "Controle: DESLIGADO (limite %s%%)",
-  "goggles.realpower.port_empty": "Nenhum equipamento ligado"
+  "goggles.realpower.port_empty": "Nenhum equipamento ligado",
+  "block.realpower.capacitor_bank_basic": "Banco de Capacitores Básico",
+  "block.realpower.capacitor_bank_industrial": "Banco de Capacitores Industrial",
+  "block.realpower.capacitor_bank_high_voltage": "Banco de Capacitores de Alta Tensão",
+  "block.realpower.capacitor_bank_advanced": "Banco de Capacitores Avançado",
+  "block.realpower.capacitor_bank_future": "Banco de Capacitores Futuro",
+  "block.realpower.capacitor_structure": "Estrutura de Banco de Capacitores",
+  "block.realpower.capacitor_port": "Porta de Energia do Banco de Capacitores"
 }

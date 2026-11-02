@@ -35,6 +35,13 @@
   "realpower:computer_industrial",
   "realpower:computer_structure",
   "realpower:computer_port",
-  "realpower:screen"
+  "realpower:screen",
+  "realpower:capacitor_bank_basic",
+  "realpower:capacitor_bank_industrial",
+  "realpower:capacitor_bank_high_voltage",
+  "realpower:capacitor_bank_advanced",
+  "realpower:capacitor_bank_future",
+  "realpower:capacitor_structure",
+  "realpower:capacitor_port"
  ]
 }

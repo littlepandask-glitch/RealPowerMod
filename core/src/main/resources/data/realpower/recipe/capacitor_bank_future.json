@@ -1,0 +1,21 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "redstone",
+ "pattern": [
+  "MMM",
+  "MBM",
+  "MMM"
+ ],
+ "key": {
+  "M": {
+   "tag": "c:ingots/netherite"
+  },
+  "B": {
+   "item": "realpower:capacitor_bank_advanced"
+  }
+ },
+ "result": {
+  "id": "realpower:capacitor_bank_future",
+  "count": 1
+ }
+}

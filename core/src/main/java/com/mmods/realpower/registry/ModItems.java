@@ -1,6 +1,7 @@
 package com.mmods.realpower.registry;
 
 import com.mmods.realpower.RealPower;
+import com.mmods.realpower.api.tier.Tier;
 import com.mmods.realpower.item.EngineerGogglesItem;
 import com.mmods.realpower.item.WrenchItem;
 import java.util.LinkedHashMap;
@@ -34,6 +35,12 @@ public final class ModItems {
 
     public static final DeferredItem<BlockItem> DATA_CABLE = ITEMS.registerSimpleBlockItem(ModBlocks.DATA_CABLE);
     public static final DeferredItem<BlockItem> DATA_PORT = ITEMS.registerSimpleBlockItem(ModBlocks.DATA_PORT);
+
+    public static final Map<Tier, DeferredItem<BlockItem>> CAPACITOR_BANKS = new LinkedHashMap<>();
+
+    static {
+        ModBlocks.CAPACITOR_BANKS.forEach((tier, block) -> CAPACITOR_BANKS.put(tier, ITEMS.registerSimpleBlockItem(block)));
+    }
 
     public static final DeferredItem<BlockItem> COMPUTER_BASIC = ITEMS.registerSimpleBlockItem(ModBlocks.COMPUTER_BASIC);
     public static final DeferredItem<BlockItem> COMPUTER_INDUSTRIAL = ITEMS.registerSimpleBlockItem(ModBlocks.COMPUTER_INDUSTRIAL);

@@ -1,6 +1,7 @@
 package com.mmods.realpower.cable;
 
 import com.mmods.realpower.api.tier.Tier;
+import com.mmods.realpower.storage.BufferStorage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -102,22 +103,63 @@ public final class CableNetwork {
         return accepted;
     }
 
-    /** Entrega a energia guardada aos consumidores; chamado uma vez por tick, depois de todos os geradores. */
+    /**
+     * Uma passada por tick, depois de todos os geradores: reservas (bancos de capacitores) cobrem a demanda que a energia
+     * da rede nao atende, os consumidores recebem e o que sobrar carrega as reservas.
+     */
     void tick() {
         acceptedThisTick = 0;
-        long budget = Math.min(rate, stored);
-        if (budget <= 0L || endpoints.isEmpty()) {
-            return;
-        }
         List<IEnergyStorage> sinks = new ArrayList<>();
+        List<IEnergyStorage> reserves = new ArrayList<>();
         for (BlockCapabilityCache<IEnergyStorage, Direction> endpoint : endpoints) {
             IEnergyStorage storage = endpoint.getCapability();
-            if (storage != null && storage.canReceive()) {
+            if (storage == null) {
+                continue;
+            }
+            if (storage instanceof BufferStorage) {
+                reserves.add(storage);
+            } else if (storage.canReceive()) {
                 sinks.add(storage);
             }
         }
         double keep = 1.0 - loss;
+        if (!sinks.isEmpty() && !reserves.isEmpty()) {
+            drawFromReserves(sinks, reserves, keep);
+        }
+        deliver(sinks, keep);
+        if (!reserves.isEmpty()) {
+            for (IEnergyStorage reserve : reserves) {
+                if (stored <= 0L) {
+                    break;
+                }
+                stored -= reserve.receiveEnergy((int) Math.min(Integer.MAX_VALUE, stored), false);
+            }
+        }
+    }
+
+    /** Puxa das reservas o que falta para os consumidores aceitarem tudo o que a vazao permite. */
+    private void drawFromReserves(List<IEnergyStorage> sinks, List<IEnergyStorage> reserves, double keep) {
+        long demand = 0L;
+        for (IEnergyStorage sink : sinks) {
+            demand += (long) Math.ceil(sink.receiveEnergy((int) Math.min(Integer.MAX_VALUE, rate), true) / keep);
+        }
+        long missing = Math.min(Math.min(demand, rate) - stored, capacity - stored);
+        for (IEnergyStorage reserve : reserves) {
+            if (missing <= 0L) {
+                break;
+            }
+            long drawn = reserve.extractEnergy((int) Math.min(Integer.MAX_VALUE, missing), false);
+            stored += drawn;
+            missing -= drawn;
+        }
+    }
+
+    private void deliver(List<IEnergyStorage> sinks, double keep) {
+        long budget = Math.min(rate, stored);
         int count = sinks.size();
+        if (budget <= 0L || count == 0) {
+            return;
+        }
         for (int i = 0; i < count && budget > 0L; i++) {
             // o ponto de partida gira a cada tick para repartir por igual quando a energia e escassa
             IEnergyStorage sink = sinks.get((i + rotation) % count);

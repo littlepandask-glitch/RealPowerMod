@@ -6,6 +6,7 @@ import com.mmods.realpower.cable.CableBlock;
 import com.mmods.realpower.cable.CableKind;
 import com.mmods.realpower.cable.PowerStructureBlock;
 import com.mmods.realpower.computer.ComputerBlock;
+import com.mmods.realpower.storage.CapacitorBankBlock;
 import com.mmods.realpower.computer.ComputerPortBlock;
 import com.mmods.realpower.data.DataCableBlock;
 import com.mmods.realpower.screen.ScreenBlock;
@@ -89,6 +90,24 @@ public final class ModBlocks {
             BlockBehaviour.Properties.of().strength(3.0F, 6.0F).sound(SoundType.METAL).noOcclusion().noLootTable());
     public static final DeferredBlock<ComputerPortBlock> COMPUTER_PORT = BLOCKS.registerBlock("computer_port",
             ComputerPortBlock::new,
+            BlockBehaviour.Properties.of().strength(3.0F, 6.0F).sound(SoundType.METAL).noOcclusion().noLootTable());
+
+    /** Banco de capacitores (galpao que cresce com o tier) e suas celulas: preenchimento invisivel e portas de energia. */
+    public static final Map<Tier, DeferredBlock<CapacitorBankBlock>> CAPACITOR_BANKS = new LinkedHashMap<>();
+
+    static {
+        for (Tier tier : Tier.values()) {
+            CAPACITOR_BANKS.put(tier, BLOCKS.registerBlock("capacitor_bank_" + tier.getSerializedName(),
+                    properties -> new CapacitorBankBlock(properties, tier),
+                    BlockBehaviour.Properties.of().strength(3.0F, 6.0F).sound(SoundType.METAL).noOcclusion()));
+        }
+    }
+
+    public static final DeferredBlock<PowerStructureBlock> CAPACITOR_STRUCTURE = BLOCKS.registerBlock("capacitor_structure",
+            properties -> new PowerStructureBlock(properties, PowerStructureBlock.Variant.BULK),
+            BlockBehaviour.Properties.of().strength(3.0F, 6.0F).sound(SoundType.METAL).noOcclusion().noLootTable());
+    public static final DeferredBlock<PowerStructureBlock> CAPACITOR_PORT = BLOCKS.registerBlock("capacitor_port",
+            properties -> new PowerStructureBlock(properties, PowerStructureBlock.Variant.PORT),
             BlockBehaviour.Properties.of().strength(3.0F, 6.0F).sound(SoundType.METAL).noOcclusion().noLootTable());
 
     public static final DeferredBlock<ScreenBlock> SCREEN = BLOCKS.registerBlock("screen", ScreenBlock::new,

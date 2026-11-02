@@ -1,0 +1,21 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "redstone",
+ "pattern": [
+  "MMM",
+  "MBM",
+  "MMM"
+ ],
+ "key": {
+  "M": {
+   "tag": "c:ingots/gold"
+  },
+  "B": {
+   "item": "realpower:capacitor_bank_industrial"
+  }
+ },
+ "result": {
+  "id": "realpower:capacitor_bank_high_voltage",
+  "count": 1
+ }
+}

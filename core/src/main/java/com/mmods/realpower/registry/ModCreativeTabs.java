@@ -29,6 +29,7 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.TURBINE_BLADE.get());
                         output.accept(ModItems.INDUSTRIAL_LIGHT.get());
                         output.accept(ModItems.TURBINE_POWER_PORT.get());
+                        ModItems.CAPACITOR_BANKS.values().forEach(item -> output.accept(item.get()));
                         output.accept(ModItems.COMPUTER_BASIC.get());
                         output.accept(ModItems.COMPUTER_INDUSTRIAL.get());
                         output.accept(ModItems.SCREEN.get());

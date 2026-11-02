@@ -1,0 +1,24 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "redstone",
+ "pattern": [
+  "SCS",
+  "CRC",
+  "SSS"
+ ],
+ "key": {
+  "S": {
+   "item": "realpower:steel_ingot"
+  },
+  "C": {
+   "tag": "c:ingots/copper"
+  },
+  "R": {
+   "item": "minecraft:redstone_block"
+  }
+ },
+ "result": {
+  "id": "realpower:capacitor_bank_basic",
+  "count": 1
+ }
+}
