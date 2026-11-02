@@ -7,7 +7,9 @@ import com.mmods.realpower.energy.PowerScale;
 import com.mmods.realpower.multiblock.wind.WindStructureBlock;
 import com.mmods.realpower.multiblock.wind.WindTurbineControllerBlock;
 import com.mmods.realpower.multiblock.wind.WindTurbineControllerBlockEntity;
+import com.mmods.realpower.multiblock.wind.WindTurbineScaffold;
 import com.mmods.realpower.multiblock.wind.WindTurbinePhysics;
+import com.mmods.realpower.multiblock.wind.WindTurbineScan;
 import com.mmods.realpower.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -145,6 +147,26 @@ public class WindTurbineGameTests {
             helper.assertTrue(helper.getBlockState(controller).isAir(), "controlador deveria ter sido removido");
             helper.assertTrue(!helper.getBlockState(base.above(2)).getValue(WindStructureBlock.FORMED), "torre deveria voltar ao normal");
             helper.assertTrue(!helper.getBlockState(controller.north()).getValue(WindStructureBlock.FORMED), "cubo deveria voltar ao normal");
+            helper.succeed();
+        });
+    }
+
+    /** O andaime minimo mostrado pelo overlay fantasma tem que ser aceito pelo validador. */
+    @GameTest(template = "empty", timeoutTicks = 100)
+    public static void minimumScaffoldFormsTurbine(GameTestHelper helper) {
+        BlockPos controller = new BlockPos(10, 1 + WindTurbineScan.MIN_TOWER_HEIGHT + 1, 10);
+        helper.setBlock(controller.below(WindTurbineScan.MIN_TOWER_HEIGHT + 1), Blocks.STONE.defaultBlockState());
+        for (WindTurbineScaffold.Part part : WindTurbineScaffold.minimum(controller, Direction.NORTH)) {
+            Block block = switch (part.kind()) {
+                case CONTROLLER -> ModBlocks.WIND_TURBINE_CONTROLLER_BASIC.get();
+                case TOWER -> ModBlocks.WIND_TOWER.get();
+                case BLADE -> ModBlocks.WIND_BLADE.get();
+            };
+            helper.setBlock(part.pos(), block.defaultBlockState());
+        }
+        helper.runAfterDelay(10, () -> {
+            WindTurbineControllerBlockEntity be = turbine(helper, controller);
+            helper.assertTrue(be.isFormed(), "andaime minimo deveria formar a turbina: " + be.lastResult().problems());
             helper.succeed();
         });
     }

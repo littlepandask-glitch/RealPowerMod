@@ -76,6 +76,13 @@ tambem perdem colisao) e o `WindTurbineRenderer` desenha no lugar um modelo 3D p
   NBT para desfazer corretamente ao quebrar o controlador ou a estrutura.
 - Previas geradas por rasterizador de software em `docs/preview/`.
 
+## Overlay fantasma do andaime
+
+Segurando o controlador, a torre ou a pa, `client/ScaffoldGhostRenderer` desenha o andaime minimo
+(`WindTurbineScaffold.minimum`, o mesmo que o validador aceita, coberto por GameTest):
+mirando um bloco mostra onde ficaria a turbina; mirando um controlador ja colocado mostra so o que
+falta. Azul = torre, branco = pa e cubo, laranja = controlador, vermelho = posicao bloqueada.
+
 ## Unificacao de materiais
 
 As receitas usam tags convencionais `c:` (`c:ingots/iron`, `c:ingots/copper`, `c:ingots/steel`...),
