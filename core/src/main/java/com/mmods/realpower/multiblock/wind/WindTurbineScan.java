@@ -174,6 +174,11 @@ public class WindTurbineScan implements StructureScan {
         return result;
     }
 
+    /** Comprimentos dos 4 bracos de pa: cima, baixo, direita e esquerda (relativos a frente do controlador). */
+    public int[] armLengths() {
+        return armLengths.clone();
+    }
+
     /** Altura da torre em metros (blocos de torre abaixo do controlador). */
     public int towerHeight() {
         return towerHeight;

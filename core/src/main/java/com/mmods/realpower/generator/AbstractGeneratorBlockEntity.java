@@ -12,6 +12,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -80,6 +84,7 @@ public abstract class AbstractGeneratorBlockEntity extends BlockEntity implement
             powerWatts = currentOutputWatts(level, pos);
             fePerTick = PowerScale.toFePerTick(powerWatts);
             setChanged();
+            syncToClient();
         }
 
         if (formed && fePerTick > 0.0) {
@@ -108,6 +113,24 @@ public abstract class AbstractGeneratorBlockEntity extends BlockEntity implement
             fePerTick = 0.0;
         }
         setChanged();
+        syncToClient();
+    }
+
+    /** Envia o estado aos clientes (renderizacao e dashboards). */
+    protected void syncToClient() {
+        if (level != null && !level.isClientSide) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        }
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return saveWithoutMetadata(registries);
+    }
+
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     private void pushEnergy(Level level, BlockPos pos) {

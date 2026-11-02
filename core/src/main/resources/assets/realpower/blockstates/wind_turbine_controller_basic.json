@@ -1,8 +1,12 @@
 {
   "variants": {
-    "facing=north": {"model": "realpower:block/wind_turbine_controller_basic"},
-    "facing=east": {"model": "realpower:block/wind_turbine_controller_basic", "y": 90},
-    "facing=south": {"model": "realpower:block/wind_turbine_controller_basic", "y": 180},
-    "facing=west": {"model": "realpower:block/wind_turbine_controller_basic", "y": 270}
+    "facing=north,formed=false": {"model": "realpower:block/wind_turbine_controller_basic"},
+    "facing=east,formed=false": {"model": "realpower:block/wind_turbine_controller_basic", "y": 90},
+    "facing=south,formed=false": {"model": "realpower:block/wind_turbine_controller_basic", "y": 180},
+    "facing=west,formed=false": {"model": "realpower:block/wind_turbine_controller_basic", "y": 270},
+    "facing=north,formed=true": {"model": "realpower:block/formed_empty"},
+    "facing=east,formed=true": {"model": "realpower:block/formed_empty"},
+    "facing=south,formed=true": {"model": "realpower:block/formed_empty"},
+    "facing=west,formed=true": {"model": "realpower:block/formed_empty"}
   }
 }

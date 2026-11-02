@@ -1,1 +1,1 @@
-{"variants":{"":{"model":"realpower:block/wind_blade"}}}
+{"variants":{"formed=false":{"model":"realpower:block/wind_blade"},"formed=true":{"model":"realpower:block/formed_empty"}}}

@@ -4,6 +4,7 @@ import com.mmods.realpower.RealPower;
 import com.mmods.realpower.api.tier.Tier;
 import com.mmods.realpower.energy.GeneratorBuffer;
 import com.mmods.realpower.energy.PowerScale;
+import com.mmods.realpower.multiblock.wind.WindStructureBlock;
 import com.mmods.realpower.multiblock.wind.WindTurbineControllerBlock;
 import com.mmods.realpower.multiblock.wind.WindTurbineControllerBlockEntity;
 import com.mmods.realpower.multiblock.wind.WindTurbinePhysics;
@@ -99,6 +100,51 @@ public class WindTurbineGameTests {
             long expected = GeneratorBuffer.capacityFor(PowerScale.toFePerTick(ratedWatts), Tier.BASIC.efficiency());
             helper.assertTrue(b.bufferCapacity() == expected,
                     "capacidade basico " + b.bufferCapacity() + " != esperado " + expected);
+            helper.succeed();
+        });
+    }
+
+    /** Ao formar, os blocos de andaime viram "formados" (escondidos); ao desfazer, voltam ao normal. */
+    @GameTest(template = "empty", timeoutTicks = 200)
+    public static void structureMorphsAndReleases(GameTestHelper helper) {
+        BlockPos base = new BlockPos(10, 1, 10);
+        BlockPos controller = build(helper, base, ModBlocks.WIND_TURBINE_CONTROLLER_BASIC.get(), true);
+        BlockPos towerBlock = base.above(5);
+        BlockPos hub = controller.north();
+        BlockPos bladeTip = hub.above(BLADE);
+
+        helper.runAfterDelay(10, () -> {
+            helper.assertTrue(helper.getBlockState(towerBlock).getValue(WindStructureBlock.FORMED), "torre deveria estar formada");
+            helper.assertTrue(helper.getBlockState(hub).getValue(WindStructureBlock.FORMED), "cubo deveria estar formado");
+            helper.assertTrue(helper.getBlockState(bladeTip).getValue(WindStructureBlock.FORMED), "ponta da pa deveria estar formada");
+            helper.assertTrue(helper.getBlockState(controller).getValue(WindTurbineControllerBlock.FORMED), "controlador deveria estar formado");
+
+            // quebra um bloco da torre e revalida: tudo deve voltar ao normal
+            helper.setBlock(base.above(3), Blocks.AIR.defaultBlockState());
+            turbine(helper, controller).requestRevalidation();
+        });
+        helper.runAfterDelay(40, () -> {
+            helper.assertTrue(!turbine(helper, controller).isFormed(), "turbina deveria ter se desfeito");
+            helper.assertTrue(!helper.getBlockState(towerBlock).getValue(WindStructureBlock.FORMED), "torre deveria voltar ao normal");
+            helper.assertTrue(!helper.getBlockState(bladeTip).getValue(WindStructureBlock.FORMED), "pa deveria voltar ao normal");
+            helper.assertTrue(!helper.getBlockState(controller).getValue(WindTurbineControllerBlock.FORMED), "controlador deveria voltar ao normal");
+            helper.succeed();
+        });
+    }
+
+    /** Remover o controlador devolve todos os blocos de andaime ao estado normal. */
+    @GameTest(template = "empty", timeoutTicks = 100)
+    public static void removingControllerReleasesStructure(GameTestHelper helper) {
+        BlockPos base = new BlockPos(10, 1, 10);
+        BlockPos controller = build(helper, base, ModBlocks.WIND_TURBINE_CONTROLLER_BASIC.get(), true);
+        helper.runAfterDelay(10, () -> {
+            helper.assertTrue(helper.getBlockState(base.above(2)).getValue(WindStructureBlock.FORMED), "torre deveria estar formada");
+            helper.destroyBlock(controller);
+        });
+        helper.runAfterDelay(20, () -> {
+            helper.assertTrue(helper.getBlockState(controller).isAir(), "controlador deveria ter sido removido");
+            helper.assertTrue(!helper.getBlockState(base.above(2)).getValue(WindStructureBlock.FORMED), "torre deveria voltar ao normal");
+            helper.assertTrue(!helper.getBlockState(controller.north()).getValue(WindStructureBlock.FORMED), "cubo deveria voltar ao normal");
             helper.succeed();
         });
     }

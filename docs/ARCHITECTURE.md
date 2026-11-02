@@ -62,6 +62,26 @@ Um novo gerador implementa apenas `createScan`, `onStructureScanned`,
   (eficiencia 1) da potencia nominal, entao tiers maiores guardam mais.
 - Para outros mods ele e exposto como `IEnergyStorage` (so extracao, limitado a int).
 
+## Aparencia: andaime que vira modelo 3D
+
+O jogador constroi um **andaime** de blocos (`wind_tower`, `wind_blade`, controlador). Quando
+o controlador reconhece a estrutura, os blocos recebem `formed=true`: ficam invisiveis (as pas
+tambem perdem colisao) e o `WindTurbineRenderer` desenha no lugar um modelo 3D procedural.
+
+- `render/TurbineModel` gera a malha em escala real a partir da altura da torre e do comprimento
+  da pa: torre conica, nacele, cone do cubo e 3 pas com corda, espessura e torcao variaveis, ponta
+  vermelha de sinalizacao. E Java puro (sem Minecraft), entao da para gerar previas fora do jogo.
+- O rotor gira conforme o vento (razao de velocidade de ponta 7), sem recalcular a malha.
+- O estado e sincronizado ao cliente por `getUpdatePacket`. A geometria "morfada" fica salva no
+  NBT para desfazer corretamente ao quebrar o controlador ou a estrutura.
+- Previas geradas por rasterizador de software em `docs/preview/`.
+
+## Unificacao de materiais
+
+As receitas usam tags convencionais `c:` (`c:ingots/iron`, `c:ingots/copper`, `c:ingots/steel`...),
+que e o padrao do NeoForge. Assim uma biblioteca de unificacao de minerios pode ser adicionada
+depois sem reescrever receitas. O aco do mod e registrado em `c:ingots/steel`.
+
 ## Proximos passos sugeridos
 
 1. API de multibloco (`api/multiblock`): controlador, regras, resultado de validacao.

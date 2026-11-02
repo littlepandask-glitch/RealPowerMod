@@ -20,6 +20,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
@@ -30,13 +31,14 @@ public class WindTurbineControllerBlock extends BaseEntityBlock implements Tiere
             Tier.CODEC.fieldOf("tier").forGetter(WindTurbineControllerBlock::tier)
     ).apply(instance, WindTurbineControllerBlock::new));
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final BooleanProperty FORMED = WindStructureBlock.FORMED;
 
     private final Tier tier;
 
     public WindTurbineControllerBlock(Properties properties, Tier tier) {
         super(properties);
         this.tier = tier;
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(FORMED, false));
     }
 
     @Override
@@ -51,7 +53,7 @@ public class WindTurbineControllerBlock extends BaseEntityBlock implements Tiere
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<net.minecraft.world.level.block.Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(FACING, FORMED);
     }
 
     @Override
@@ -73,6 +75,14 @@ public class WindTurbineControllerBlock extends BaseEntityBlock implements Tiere
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return level.isClientSide ? null : createTickerHelper(type, ModBlockEntities.WIND_TURBINE_CONTROLLER.get(),
                 AbstractGeneratorBlockEntity::serverTick);
+    }
+
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof WindTurbineControllerBlockEntity turbine) {
+            turbine.releaseStructure();
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override
