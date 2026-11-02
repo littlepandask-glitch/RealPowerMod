@@ -1,0 +1,17 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+    }
+}
+
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+rootProject.name = 'MMods'
+
+// Mod base (energia, multiblocos em escala real, API publica, dashboards)
+include 'core'
+// Addon: sistema de mineracao / quarry realista
+include 'quarry'
+// Addons de compatibilidade entram como um modulo por mod de terceiros: include 'compat-xxx'

@@ -1,0 +1,17 @@
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+.run/
+run/
+runs/
+.vscode/
+
+*.bbmodel~
+**/src/generated/resources/.cache/

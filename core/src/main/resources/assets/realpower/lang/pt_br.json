@@ -1,0 +1,13 @@
+{
+  "itemGroup.realpower": "Real Power",
+  "block.realpower.wind_tower": "Torre de Turbina Eólica",
+  "block.realpower.wind_blade": "Pá de Turbina Eólica",
+  "block.realpower.wind_turbine_controller": "Controlador de Turbina Eólica",
+  "message.realpower.wind.status": "Turbina formada: torre %1$s m, raio do rotor %2$s m, vento %3$s m/s, potência %4$s kW",
+  "message.realpower.wind.not_formed": "Turbina não formada:",
+  "message.realpower.wind.tower_too_short": "- Torre muito baixa: %1$s m (mínimo %2$s m)",
+  "message.realpower.wind.tower_not_grounded": "- A torre precisa estar apoiada em solo firme",
+  "message.realpower.wind.no_hub": "- Falta o cubo: coloque uma pá na frente do controlador",
+  "message.realpower.wind.blades_missing": "- Apenas %1$s braços de pá são longos o bastante (precisa de %2$s com no mínimo %3$s m)",
+  "message.realpower.wind.blade_hits_ground": "- Uma pá é maior que a altura da torre e bateria no chão"
+}

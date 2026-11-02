@@ -1,0 +1,8 @@
+ext.modId = 'realpower'
+ext.modName = 'Real Power'
+ext.modDescription = 'Estruturas multibloco de geracao de energia em escala real: represas, turbinas eolicas, fissao e fusao nuclear, com sistema de controle e dashboards.'
+
+apply from: rootProject.file('gradle/neoforge-mod.gradle')
+
+dependencies {
+}

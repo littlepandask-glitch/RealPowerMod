@@ -1,0 +1,13 @@
+{
+  "itemGroup.realpower": "Real Power",
+  "block.realpower.wind_tower": "Wind Turbine Tower",
+  "block.realpower.wind_blade": "Wind Turbine Blade",
+  "block.realpower.wind_turbine_controller": "Wind Turbine Controller",
+  "message.realpower.wind.status": "Turbine formed: tower %1$s m, rotor radius %2$s m, wind %3$s m/s, output %4$s kW",
+  "message.realpower.wind.not_formed": "Turbine not formed:",
+  "message.realpower.wind.tower_too_short": "- Tower too short: %1$s m (minimum %2$s m)",
+  "message.realpower.wind.tower_not_grounded": "- The tower must rest on solid ground",
+  "message.realpower.wind.no_hub": "- Missing hub: place a blade block in front of the controller",
+  "message.realpower.wind.blades_missing": "- Only %1$s blade arms are long enough (need %2$s of at least %3$s m)",
+  "message.realpower.wind.blade_hits_ground": "- A blade is longer than the tower height and would hit the ground"
+}

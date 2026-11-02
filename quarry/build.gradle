@@ -1,0 +1,18 @@
+ext.modId = 'realpower_quarry'
+ext.modName = 'Real Power: Quarry'
+ext.modDescription = 'Addon de mineracao em escala real para o Real Power.'
+
+apply from: rootProject.file('gradle/neoforge-mod.gradle')
+
+dependencies {
+    implementation project(':core')
+}
+
+neoForge {
+    mods {
+        // O core precisa ser carregado junto no ambiente de desenvolvimento
+        realpower {
+            sourceSet project(':core').sourceSets.main
+        }
+    }
+}

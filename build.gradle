@@ -1,0 +1,4 @@
+plugins {
+    // Carrega o plugin uma unica vez; cada modulo o aplica via gradle/neoforge-mod.gradle
+    id 'net.neoforged.moddev' version '2.0.148' apply false
+}
