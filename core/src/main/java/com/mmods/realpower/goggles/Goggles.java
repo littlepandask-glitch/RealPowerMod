@@ -15,6 +15,7 @@ import com.mmods.realpower.multiblock.wind.WindTurbineControllerBlockEntity;
 import com.mmods.realpower.registry.ModBlocks;
 import com.mmods.realpower.registry.ModItems;
 import com.mmods.realpower.screen.ScreenBlock;
+import com.mmods.realpower.storage.CapacitorBankBlockEntity;
 import com.mmods.realpower.screen.ScreenGroup;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -149,6 +150,15 @@ public final class Goggles {
         }
         List<Component> lines = new ArrayList<>();
         lines.add(state.getBlock().getName());
+        if (level.getBlockEntity(origin) instanceof CapacitorBankBlockEntity bank) {
+            lines.add(Component.translatable("goggles.realpower.charge", bank.chargePercent()));
+            lines.add(Component.translatable("goggles.realpower.buffer", bank.storedEnergy(), bank.capacity()));
+            long flow = bank.netFlow();
+            lines.add(Component.translatable(flow > 0 ? "goggles.realpower.charging" : flow < 0 ? "goggles.realpower.discharging"
+                    : "goggles.realpower.idle", Math.abs(flow)));
+            lines.add(controlLine(bank));
+            return lines;
+        }
         if (level.getBlockEntity(origin) instanceof ComputerBlockEntity computer) {
             int limit = state.getBlock() instanceof ComputerBlock block ? block.maxDevices() : 0;
             lines.add(Component.translatable("goggles.realpower.computer", computer.devices().size(), limit, computer.networkSize()));

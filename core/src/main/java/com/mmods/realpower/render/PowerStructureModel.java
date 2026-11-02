@@ -76,6 +76,59 @@ public final class PowerStructureModel {
         return b.build();
     }
 
+    // ---------- banco de capacitores ----------
+
+    /**
+     * Galpao de baterias de w x d x h m (centro da base na origem, frente em -z): soleira de concreto, gabinete com
+     * nervuras, barras de LED na frente que acendem {@code lit} de {@code segments} segmentos e uma porta de energia
+     * visivel no chao no centro de cada face lateral.
+     */
+    public static Mesh capacitorBank(int w, int d, int h, int lit, int segments, float[] accent) {
+        Mesh.Builder b = new Mesh.Builder();
+        double bodyH = h - 0.3;
+        double halfW = w / 2.0;
+        double halfD = d / 2.0;
+        b.box(v(0, 0.15, 0), w, 0.3, d, CONCRETE);
+        b.box(v(0, 0.3 + bodyH / 2, 0), w - 0.2, bodyH, d - 0.2, DARK);
+        b.box(v(0, h + 0.04, 0), w - 0.1, 0.08, d - 0.1, STEEL);
+        // nervuras verticais nas quatro faces
+        for (double x = -halfW + 0.7; x < halfW - 0.5; x += 0.8) {
+            b.box(v(x, 0.3 + bodyH / 2, -halfD + 0.06), 0.12, bodyH, 0.08, STEEL);
+            b.box(v(x, 0.3 + bodyH / 2, halfD - 0.06), 0.12, bodyH, 0.08, STEEL);
+        }
+        for (double z = -halfD + 0.7; z < halfD - 0.5; z += 0.8) {
+            b.box(v(-halfW + 0.06, 0.3 + bodyH / 2, z), 0.08, bodyH, 0.12, STEEL);
+            b.box(v(halfW - 0.06, 0.3 + bodyH / 2, z), 0.08, bodyH, 0.12, STEEL);
+        }
+        // respiros no teto
+        for (double x = -halfW + 0.9; x < halfW - 0.8; x += 1.0) {
+            b.box(v(x, h + 0.14, 0), 0.5, 0.12, d - 1.2, DARK);
+        }
+        // barras de LED na frente (-z): fundo escuro e segmentos acesos de baixo para cima
+        double barBottom = 1.2;
+        double barTop = h - 0.3;
+        double segmentH = 0.2;
+        int total = Math.max(1, (int) Math.floor((barTop - barBottom) / segmentH));
+        float[] off = {0.14f, 0.16f, 0.2f};
+        for (double x = -halfW + 1.0; x < halfW - 0.8; x += 1.0) {
+            b.box(v(x, (barBottom + barTop) / 2, -halfD + 0.02), 0.34, barTop - barBottom + 0.1, 0.05, STEEL);
+            for (int i = 0; i < total; i++) {
+                boolean on = i * segments < lit * total;
+                b.box(v(x, barBottom + segmentH * (i + 0.5), -halfD - 0.01), 0.22, segmentH - 0.05, 0.03, on ? accent : off);
+            }
+        }
+        // portas de energia nas quatro faces laterais, no nivel do chao
+        for (int side = -1; side <= 1; side += 2) {
+            b.box(v(side * (halfW - 0.4), 0.5, 0), 0.8, 0.8, 0.8, STEEL);
+            b.box(v(side * (halfW - 0.06), 0.5, 0), 0.12, 0.64, 0.64, CERAMIC);
+            b.box(v(side * halfW, 0.5, 0), 0.06, 0.34, 0.34, accent);
+            b.box(v(0, 0.5, side * (halfD - 0.4)), 0.8, 0.8, 0.8, STEEL);
+            b.box(v(0, 0.5, side * (halfD - 0.06)), 0.64, 0.64, 0.12, CERAMIC);
+            b.box(v(0, 0.5, side * halfD), 0.34, 0.34, 0.06, accent);
+        }
+        return b.build();
+    }
+
     // ---------- torre ----------
 
     private static double halfWidth(double y, double taperTop) {

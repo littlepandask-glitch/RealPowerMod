@@ -121,6 +121,13 @@ depois sem reescrever receitas. O aco do mod e registrado em `c:ingots/steel`.
 - Telas (`ScreenBlock`): blocos coplanares formam retangulo ate 8x6 (`ScreenGroup`, senao 1x1); o mestre (canto superior esquerdo) desenha tudo (`ScreenRenderer`) e trata cliques (`ScreenLayout` e a geometria compartilhada servidor/cliente: abas Geral/Geradores/Graficos/Alarmes, janela 5 min/24 h, liga/desliga e limite por gerador). O servidor envia `ScreenPayload` a jogadores a 48 blocos a cada segundo; o cliente guarda em `ScreenData`.
 - Oculos mostram porta de dados, computador, tela e estado de controle; a chave inglesa sem shift liga/desliga o equipamento. Testes: `DataNetworkGameTests`, `ScreenGameTests`, `WindTurbineGameTests`.
 
+## Banco de capacitores (`storage/`)
+
+- `CapacitorBankBlock` (um por tier, `StructureBase`): galpao que cresce com o tier (`size(tier)`: 3x3x2 basico ate 9x5x4 futuro), base no centro da face inferior; celulas `CAPACITOR_STRUCTURE` (preenchimento) e 4 `CAPACITOR_PORT` no chao, uma no centro de cada face lateral (regra de portas visiveis; capability de energia registrada em `RealPower.registerCapabilities`, resolvendo a base por `findBase`). Capacidade = volume x `density(tier)`.
+- `CapacitorBankBlockEntity`: guarda `long` em `GeneratorBuffer`; a visao `IEnergyStorage` e um `BufferStorage` (marcador). Vazao por tick = `tier.maxTransferPerTick x limite%`, contada por tick de jogo; desligado, nao troca energia. E `DataDevice` controlavel (sem potencia propria: o computador soma o armazenado e deduz o consumo pela variacao).
+- `CableNetwork.tick`: endpoints `BufferStorage` sao reservas, os demais consumidores. Ordem: reservas cobrem o que falta para a demanda (simulada nos consumidores), consumidores recebem, e o que sobrar em `stored` carrega as reservas. Perda de transmissao so na entrega aos consumidores.
+- `CapacitorBankRenderer` + `PowerStructureModel.capacitorBank`: gabinete com nervuras, portas com conector luminoso e barras de LED na frente (passos de 5% da carga, sincronizada por `getUpdateTag`). Testes: `CapacitorGameTests`.
+
 ## Proximos passos sugeridos
 
 1. API de multibloco (`api/multiblock`): controlador, regras, resultado de validacao.

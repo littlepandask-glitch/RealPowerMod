@@ -124,5 +124,9 @@
   "block.realpower.capacitor_bank_advanced": "Advanced Capacitor Bank",
   "block.realpower.capacitor_bank_future": "Future Capacitor Bank",
   "block.realpower.capacitor_structure": "Capacitor Bank Structure",
-  "block.realpower.capacitor_port": "Capacitor Bank Power Port"
+  "block.realpower.capacitor_port": "Capacitor Bank Power Port",
+  "goggles.realpower.charge": "Charge: %s%%",
+  "goggles.realpower.charging": "Charging: %s FE/t",
+  "goggles.realpower.discharging": "Discharging: %s FE/t",
+  "goggles.realpower.idle": "Idle"
 }
