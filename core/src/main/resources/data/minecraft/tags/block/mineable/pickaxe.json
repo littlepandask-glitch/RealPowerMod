@@ -34,6 +34,7 @@
   "realpower:computer_basic",
   "realpower:computer_industrial",
   "realpower:computer_structure",
-  "realpower:computer_port"
+  "realpower:computer_port",
+  "realpower:screen"
  ]
 }

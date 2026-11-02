@@ -20,6 +20,7 @@ public final class ClientSetup {
                 context -> new WindTurbineRenderer());
         event.registerBlockEntityRenderer(ModBlockEntities.CABLE.get(), context -> new PowerLineRenderer());
         event.registerBlockEntityRenderer(ModBlockEntities.COMPUTER.get(), context -> new ComputerRenderer());
+        event.registerBlockEntityRenderer(ModBlockEntities.SCREEN.get(), context -> new ScreenRenderer());
     }
 
     @SubscribeEvent

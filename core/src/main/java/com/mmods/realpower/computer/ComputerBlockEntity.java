@@ -111,6 +111,19 @@ public class ComputerBlockEntity extends BlockEntity {
         return stored;
     }
 
+    /** Retrato atual para enviar as telas. */
+    public ComputerSnapshot snapshot() {
+        List<ComputerSnapshot.Device> list = new ArrayList<>();
+        for (DeviceView view : devices) {
+            DataDevice.Telemetry t = view.telemetry();
+            list.add(new ComputerSnapshot.Device(view.port(), view.name(), t.online(), t.powerWatts(), t.stored(), t.capacity(),
+                    view.controllable(), view.enabled(), view.limit()));
+        }
+        int limit = getBlockState().getBlock() instanceof ComputerBlock block ? block.maxDevices() : 0;
+        return new ComputerSnapshot(networkSize, limit, list, generation.fine(), generation.coarse(),
+                delivered.fine(), delivered.coarse(), stored.fine(), stored.coarse());
+    }
+
     public Tier tier() {
         return getBlockState().getBlock() instanceof ComputerBlock block ? block.tier() : Tier.BASIC;
     }

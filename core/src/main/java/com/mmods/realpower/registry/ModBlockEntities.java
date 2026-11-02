@@ -3,6 +3,7 @@ package com.mmods.realpower.registry;
 import com.mmods.realpower.RealPower;
 import com.mmods.realpower.cable.CableBlockEntity;
 import com.mmods.realpower.computer.ComputerBlockEntity;
+import com.mmods.realpower.screen.ScreenBlockEntity;
 import com.mmods.realpower.multiblock.wind.TurbinePowerPortBlockEntity;
 import com.mmods.realpower.multiblock.wind.WindTurbineControllerBlockEntity;
 import net.minecraft.core.registries.Registries;
@@ -35,6 +36,10 @@ public final class ModBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ComputerBlockEntity>> COMPUTER =
             BLOCK_ENTITIES.register("computer", () -> BlockEntityType.Builder.of(ComputerBlockEntity::new,
                     ModBlocks.COMPUTER_BASIC.get(), ModBlocks.COMPUTER_INDUSTRIAL.get()).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ScreenBlockEntity>> SCREEN =
+            BLOCK_ENTITIES.register("screen", () -> BlockEntityType.Builder.of(ScreenBlockEntity::new,
+                    ModBlocks.SCREEN.get()).build(null));
 
     private ModBlockEntities() {
     }

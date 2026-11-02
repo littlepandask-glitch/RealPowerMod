@@ -38,6 +38,8 @@ public final class ModItems {
     public static final DeferredItem<BlockItem> COMPUTER_BASIC = ITEMS.registerSimpleBlockItem(ModBlocks.COMPUTER_BASIC);
     public static final DeferredItem<BlockItem> COMPUTER_INDUSTRIAL = ITEMS.registerSimpleBlockItem(ModBlocks.COMPUTER_INDUSTRIAL);
 
+    public static final DeferredItem<BlockItem> SCREEN = ITEMS.registerSimpleBlockItem(ModBlocks.SCREEN);
+
     public static final DeferredItem<Item> STEEL_INGOT = ITEMS.registerSimpleItem("steel_ingot");
     public static final DeferredItem<EngineerGogglesItem> ENGINEER_GOGGLES =
             ITEMS.registerItem("engineer_goggles", EngineerGogglesItem::new);

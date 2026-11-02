@@ -1,0 +1,43 @@
+{
+ "parent": "minecraft:block/block",
+ "textures": {
+  "particle": "realpower:block/screen_case",
+  "front": "realpower:block/screen_front",
+  "case": "realpower:block/screen_case",
+  "bottom": "realpower:block/screen_bottom"
+ },
+ "elements": [
+  {
+   "from": [
+    0,
+    0,
+    0
+   ],
+   "to": [
+    16,
+    16,
+    3
+   ],
+   "faces": {
+    "south": {
+     "texture": "#front"
+    },
+    "north": {
+     "texture": "#case"
+    },
+    "east": {
+     "texture": "#case"
+    },
+    "west": {
+     "texture": "#case"
+    },
+    "up": {
+     "texture": "#case"
+    },
+    "down": {
+     "texture": "#bottom"
+    }
+   }
+  }
+ ]
+}

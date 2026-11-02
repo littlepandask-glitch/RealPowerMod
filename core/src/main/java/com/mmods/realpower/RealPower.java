@@ -10,6 +10,8 @@ import com.mmods.realpower.registry.ModBlocks;
 import com.mmods.realpower.registry.ModCreativeTabs;
 import com.mmods.realpower.registry.ModItems;
 import com.mmods.realpower.registry.ModMenus;
+import com.mmods.realpower.screen.ScreenData;
+import com.mmods.realpower.screen.ScreenPayload;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.neoforged.bus.api.IEventBus;
@@ -39,6 +41,8 @@ public class RealPower {
     private static void registerPayloads(RegisterPayloadHandlersEvent event) {
         event.registrar("1").playToClient(GogglesPayload.TYPE, GogglesPayload.CODEC,
                 (payload, context) -> GogglesState.set(payload.lines(), context.player().level().getGameTime()));
+        event.registrar("1").playToClient(ScreenPayload.TYPE, ScreenPayload.CODEC,
+                (payload, context) -> ScreenData.put(payload.screen(), payload.snapshot(), context.player().level().getGameTime()));
     }
 
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {

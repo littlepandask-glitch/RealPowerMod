@@ -8,6 +8,7 @@ import com.mmods.realpower.cable.PowerStructureBlock;
 import com.mmods.realpower.computer.ComputerBlock;
 import com.mmods.realpower.computer.ComputerPortBlock;
 import com.mmods.realpower.data.DataCableBlock;
+import com.mmods.realpower.screen.ScreenBlock;
 import com.mmods.realpower.data.DataPortBlock;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -89,6 +90,9 @@ public final class ModBlocks {
     public static final DeferredBlock<ComputerPortBlock> COMPUTER_PORT = BLOCKS.registerBlock("computer_port",
             ComputerPortBlock::new,
             BlockBehaviour.Properties.of().strength(3.0F, 6.0F).sound(SoundType.METAL).noOcclusion().noLootTable());
+
+    public static final DeferredBlock<ScreenBlock> SCREEN = BLOCKS.registerBlock("screen", ScreenBlock::new,
+            BlockBehaviour.Properties.of().strength(1.5F, 3.0F).sound(SoundType.METAL).noOcclusion());
 
     private static DeferredBlock<ComputerBlock> computer(Tier tier) {
         return BLOCKS.registerBlock("computer_" + tier.getSerializedName(), properties -> new ComputerBlock(properties, tier),
