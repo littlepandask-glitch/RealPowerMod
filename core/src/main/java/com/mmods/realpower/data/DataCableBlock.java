@@ -21,7 +21,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 public class DataCableBlock extends Block implements DataNode {
     public static final MapCodec<DataCableBlock> CODEC = simpleCodec(DataCableBlock::new);
 
-    private static final VoxelShape CORE = Block.box(6.5, 6.5, 6.5, 9.5, 9.5, 9.5);
+    private static final VoxelShape CORE = Block.box(5.5, 5.5, 5.5, 10.5, 10.5, 10.5);
     private static final Map<Direction, VoxelShape> ARMS = new EnumMap<>(Map.of(
             Direction.NORTH, Block.box(6.5, 6.5, 0, 9.5, 9.5, 6.5),
             Direction.SOUTH, Block.box(6.5, 6.5, 9.5, 9.5, 9.5, 16),

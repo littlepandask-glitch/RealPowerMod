@@ -1,8 +1,11 @@
 {
  "parent": "minecraft:block/block",
  "textures": {
-  "particle": "realpower:block/data_cable",
+  "particle": "realpower:block/data_node",
   "body": "realpower:block/data_cable",
+  "cap": "realpower:block/data_cable_cap",
+  "node": "realpower:block/data_node",
+  "collar": "realpower:block/data_collar",
   "plate": "realpower:block/data_port"
  },
  "display": {
@@ -65,97 +68,165 @@
  "elements": [
   {
    "from": [
-    0,
+    2,
     6.5,
     6.5
    ],
    "to": [
-    16,
+    14,
     9.5,
     9.5
    ],
    "faces": {
     "north": {
-     "texture": "#body"
+     "texture": "#body",
+     "rotation": 90
     },
     "south": {
-     "texture": "#body"
+     "texture": "#body",
+     "rotation": 90
     },
     "east": {
-     "texture": "#body"
+     "texture": "#cap"
     },
     "west": {
-     "texture": "#body"
+     "texture": "#cap"
     },
     "up": {
-     "texture": "#body"
+     "texture": "#body",
+     "rotation": 90
     },
     "down": {
-     "texture": "#body"
+     "texture": "#body",
+     "rotation": 90
     }
    }
   },
   {
    "from": [
     0,
-    6,
-    6
+    5.5,
+    5.5
    ],
    "to": [
-    1,
-    10,
-    10
+    2,
+    10.5,
+    10.5
    ],
    "faces": {
     "north": {
-     "texture": "#plate"
+     "texture": "#node"
     },
     "south": {
-     "texture": "#plate"
+     "texture": "#node"
     },
     "east": {
-     "texture": "#plate"
+     "texture": "#node"
     },
     "west": {
-     "texture": "#plate"
+     "texture": "#node"
     },
     "up": {
-     "texture": "#plate"
+     "texture": "#node"
     },
     "down": {
-     "texture": "#plate"
+     "texture": "#node"
     }
    }
   },
   {
    "from": [
-    15,
+    14,
+    5.5,
+    5.5
+   ],
+   "to": [
+    16,
+    10.5,
+    10.5
+   ],
+   "faces": {
+    "north": {
+     "texture": "#node"
+    },
+    "south": {
+     "texture": "#node"
+    },
+    "east": {
+     "texture": "#node"
+    },
+    "west": {
+     "texture": "#node"
+    },
+    "up": {
+     "texture": "#node"
+    },
+    "down": {
+     "texture": "#node"
+    }
+   }
+  },
+  {
+   "from": [
+    2,
     6,
     6
    ],
    "to": [
-    16,
+    3,
     10,
     10
    ],
    "faces": {
     "north": {
-     "texture": "#plate"
+     "texture": "#collar"
     },
     "south": {
-     "texture": "#plate"
+     "texture": "#collar"
     },
     "east": {
-     "texture": "#plate"
+     "texture": "#collar"
     },
     "west": {
-     "texture": "#plate"
+     "texture": "#collar"
     },
     "up": {
-     "texture": "#plate"
+     "texture": "#collar"
     },
     "down": {
-     "texture": "#plate"
+     "texture": "#collar"
+    }
+   }
+  },
+  {
+   "from": [
+    13,
+    6,
+    6
+   ],
+   "to": [
+    14,
+    10,
+    10
+   ],
+   "faces": {
+    "north": {
+     "texture": "#collar"
+    },
+    "south": {
+     "texture": "#collar"
+    },
+    "east": {
+     "texture": "#collar"
+    },
+    "west": {
+     "texture": "#collar"
+    },
+    "up": {
+     "texture": "#collar"
+    },
+    "down": {
+     "texture": "#collar"
     }
    }
   }

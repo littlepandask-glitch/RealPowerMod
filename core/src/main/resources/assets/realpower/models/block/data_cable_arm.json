@@ -1,8 +1,11 @@
 {
  "parent": "minecraft:block/block",
  "textures": {
-  "particle": "realpower:block/data_cable",
+  "particle": "realpower:block/data_node",
   "body": "realpower:block/data_cable",
+  "cap": "realpower:block/data_cable_cap",
+  "node": "realpower:block/data_node",
+  "collar": "realpower:block/data_collar",
   "plate": "realpower:block/data_port"
  },
  "elements": [
@@ -15,20 +18,22 @@
    "to": [
     9.5,
     9.5,
-    6.5
+    5.5
    ],
    "faces": {
     "north": {
-     "texture": "#body"
+     "texture": "#cap"
     },
     "south": {
-     "texture": "#body"
+     "texture": "#cap"
     },
     "east": {
-     "texture": "#body"
+     "texture": "#body",
+     "rotation": 90
     },
     "west": {
-     "texture": "#body"
+     "texture": "#body",
+     "rotation": 90
     },
     "up": {
      "texture": "#body"
@@ -51,22 +56,54 @@
    ],
    "faces": {
     "north": {
-     "texture": "#plate"
+     "texture": "#collar"
     },
     "south": {
-     "texture": "#plate"
+     "texture": "#collar"
     },
     "east": {
-     "texture": "#plate"
+     "texture": "#collar"
     },
     "west": {
-     "texture": "#plate"
+     "texture": "#collar"
     },
     "up": {
-     "texture": "#plate"
+     "texture": "#collar"
     },
     "down": {
-     "texture": "#plate"
+     "texture": "#collar"
+    }
+   }
+  },
+  {
+   "from": [
+    6,
+    6,
+    4.5
+   ],
+   "to": [
+    10,
+    10,
+    5.5
+   ],
+   "faces": {
+    "north": {
+     "texture": "#collar"
+    },
+    "south": {
+     "texture": "#collar"
+    },
+    "east": {
+     "texture": "#collar"
+    },
+    "west": {
+     "texture": "#collar"
+    },
+    "up": {
+     "texture": "#collar"
+    },
+    "down": {
+     "texture": "#collar"
     }
    }
   }
