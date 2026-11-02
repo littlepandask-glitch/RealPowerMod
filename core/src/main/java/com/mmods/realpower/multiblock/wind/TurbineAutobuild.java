@@ -19,7 +19,8 @@ import net.neoforged.neoforge.items.wrapper.PlayerMainInvWrapper;
 /**
  * Construcao automatica: coloca os blocos que faltam no projeto, tirando-os do inventario do
  * jogador e de baus proximos ao controlador (no criativo nao consome nada). So ocupa posicoes
- * substituiveis (ar, plantas...); blocos errados no caminho continuam la e aparecem como faltando.
+ * substituiveis ou de terreno comum (a laje fica enterrada); blocos indestrutiveis ou com dados
+ * (baus, maquinas) no caminho continuam la e aparecem como faltando.
  */
 public final class TurbineAutobuild {
     /** Raio (em blocos) em torno do controlador onde inventarios contam. */
@@ -36,11 +37,19 @@ public final class TurbineAutobuild {
                 continue;
             }
             var state = level.getBlockState(part.pos());
-            if (!state.is(WindTurbineScan.blockFor(part.kind())) && state.canBeReplaced()) {
+            if (!state.is(WindTurbineScan.blockFor(part.kind())) && overwritable(level, part.pos(), state)) {
                 list.add(part);
             }
         }
         return list;
+    }
+
+    /**
+     * Ar, plantas e terreno (a laje fica enterrada) podem ser trocados; blocos indestrutiveis e
+     * blocos com inventario/dados (baus, maquinas) nunca sao apagados.
+     */
+    private static boolean overwritable(Level level, BlockPos pos, net.minecraft.world.level.block.state.BlockState state) {
+        return state.canBeReplaced() || (state.getDestroySpeed(level, pos) >= 0.0F && level.getBlockEntity(pos) == null);
     }
 
     private static EnumMap<TurbineBlueprint.Kind, Integer> countByKind(List<TurbineBlueprint.Part> parts) {
