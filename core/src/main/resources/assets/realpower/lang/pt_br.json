@@ -60,5 +60,16 @@
   "block.realpower.transformer_advanced": "Transformador Elevador Avançado",
   "block.realpower.transformer_future": "Transformador Elevador Futuro",
   "block.realpower.transformer_structure": "Estrutura de Transformador",
-  "block.realpower.transformer_port": "Porta de Energia do Transformador"
+  "block.realpower.transformer_port": "Porta de Energia do Transformador",
+  "item.realpower.engineer_goggles": "Óculos de Engenheiro",
+  "item.realpower.wrench": "Chave Inglesa",
+  "goggles.realpower.network": "Rede: nível %s, %s nós",
+  "goggles.realpower.rate": "Vazão máxima: %s FE/t",
+  "goggles.realpower.loss": "Perda: %s%% (%s m de linha equivalente)",
+  "goggles.realpower.buffer": "Buffer: %s / %s FE",
+  "goggles.realpower.links": "Ligações de linha: %s",
+  "goggles.realpower.formed": "Estrutura completa",
+  "goggles.realpower.unformed": "Estrutura incompleta",
+  "goggles.realpower.wind": "Vento: %s m/s",
+  "goggles.realpower.power": "Potência: %s kW"
 }

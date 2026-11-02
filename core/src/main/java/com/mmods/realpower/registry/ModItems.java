@@ -1,6 +1,8 @@
 package com.mmods.realpower.registry;
 
 import com.mmods.realpower.RealPower;
+import com.mmods.realpower.item.EngineerGogglesItem;
+import com.mmods.realpower.item.WrenchItem;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import net.minecraft.world.item.BlockItem;
@@ -31,6 +33,9 @@ public final class ModItems {
             ITEMS.registerSimpleBlockItem(ModBlocks.WIND_TURBINE_CONTROLLER_INDUSTRIAL);
 
     public static final DeferredItem<Item> STEEL_INGOT = ITEMS.registerSimpleItem("steel_ingot");
+    public static final DeferredItem<EngineerGogglesItem> ENGINEER_GOGGLES =
+            ITEMS.registerItem("engineer_goggles", EngineerGogglesItem::new);
+    public static final DeferredItem<WrenchItem> WRENCH = ITEMS.registerItem("wrench", WrenchItem::new);
 
     private ModItems() {
     }

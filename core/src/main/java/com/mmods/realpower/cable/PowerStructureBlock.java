@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -14,8 +15,8 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
- * Bloco de preenchimento da coluna de um poste ou torre: invisivel (a estrutura 3D e desenhada pelo bloco base) e
- * ligado a ele; quebrar qualquer parte quebra o conjunto. O poste e solido e fino; a torre so mantem a selecao.
+ * Bloco de preenchimento de um poste, torre ou transformador: invisivel (a estrutura 3D e desenhada pelo bloco base)
+ * e ligado a ele; quebrar qualquer parte quebra o conjunto. O poste e solido e fino; a torre so mantem a selecao.
  */
 public class PowerStructureBlock extends Block {
     public static final MapCodec<PowerStructureBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
@@ -26,11 +27,11 @@ public class PowerStructureBlock extends Block {
     private static final VoxelShape POLE = Block.box(5.5, 0, 5.5, 10.5, 16, 10.5);
     private static final VoxelShape TOWER = Block.box(4, 0, 4, 12, 16, 12);
 
-    /** Forma do preenchimento: poste (fino e solido), torre (so selecao) ou volume cheio (transformador). */
-    public enum Variant implements net.minecraft.util.StringRepresentable {
+    /** Forma do preenchimento: poste (fino e solido), torre (so selecao), volume cheio ou porta de energia. */
+    public enum Variant implements StringRepresentable {
         POLE("pole"), TOWER("tower"), BULK("bulk"), PORT("port");
 
-        public static final Codec<Variant> CODEC = net.minecraft.util.StringRepresentable.fromEnum(Variant::values);
+        public static final Codec<Variant> CODEC = StringRepresentable.fromEnum(Variant::values);
         private final String id;
 
         Variant(String id) {
@@ -85,7 +86,14 @@ public class PowerStructureBlock extends Block {
         if (state.is(newState.getBlock()) || level.isClientSide) {
             return;
         }
-        // procura o bloco base cujo conjunto contem esta celula e o quebra (ele remove o resto)
+        BlockPos base = findBase(level, pos);
+        if (base != null) {
+            level.destroyBlock(base, true);
+        }
+    }
+
+    /** Bloco base cujo conjunto multibloco contem a celula {@code pos}, ou null. */
+    public static BlockPos findBase(Level level, BlockPos pos) {
         for (int dy = 0; dy < 40; dy++) {
             for (int dx = -5; dx <= 5; dx++) {
                 for (int dz = -5; dz <= 5; dz++) {
@@ -93,11 +101,11 @@ public class PowerStructureBlock extends Block {
                     BlockState candidateState = level.getBlockState(candidate);
                     if (candidateState.getBlock() instanceof CableBlock cable && cable.kind().overhead()
                             && cable.structureCells(candidate, candidateState).contains(pos)) {
-                        level.destroyBlock(candidate, true);
-                        return;
+                        return candidate;
                     }
                 }
             }
         }
+        return null;
     }
 }

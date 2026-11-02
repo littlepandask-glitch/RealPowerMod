@@ -118,6 +118,10 @@ public class CableBlock extends BaseEntityBlock implements Tiered {
 
     /** Conectado quando o vizinho tem capability de energia voltada para este cabo. */
     private static boolean connectsTo(Level level, BlockPos pos, Direction direction) {
+        Block neighbor = level.getBlockState(pos.relative(direction)).getBlock();
+        if (neighbor == ModBlocks.TRANSFORMER_PORT.get() || neighbor == ModBlocks.TURBINE_POWER_PORT.get()) {
+            return true;
+        }
         return level.getCapability(Capabilities.EnergyStorage.BLOCK, pos.relative(direction), direction.getOpposite()) != null;
     }
 
@@ -256,21 +260,6 @@ public class CableBlock extends BaseEntityBlock implements Tiered {
             level.setBlock(pos, updated, Block.UPDATE_ALL);
             CableNetworks.markDirty(level);
         }
-    }
-
-    @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (level.isClientSide) {
-            return InteractionResult.SUCCESS;
-        }
-        CableNetwork network = CableNetworks.networkAt(level, pos);
-        if (network != null) {
-            player.displayClientMessage(Component.translatable("message.realpower.cable.info",
-                    network.weakestTier().displayName(), network.cableCount(), network.rate(),
-                    String.format("%.1f", network.loss() * 100.0), network.storedEnergy(), network.capacity(),
-                    String.format("%.0f", network.effectiveLength())), true);
-        }
-        return InteractionResult.CONSUME;
     }
 
     @Override

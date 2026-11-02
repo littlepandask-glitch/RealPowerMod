@@ -60,5 +60,16 @@
   "block.realpower.transformer_advanced": "Advanced Step-up Transformer",
   "block.realpower.transformer_future": "Future Step-up Transformer",
   "block.realpower.transformer_structure": "Transformer Structure",
-  "block.realpower.transformer_port": "Transformer Power Port"
+  "block.realpower.transformer_port": "Transformer Power Port",
+  "item.realpower.engineer_goggles": "Engineer Goggles",
+  "item.realpower.wrench": "Wrench",
+  "goggles.realpower.network": "Network: %s tier, %s nodes",
+  "goggles.realpower.rate": "Max throughput: %s FE/t",
+  "goggles.realpower.loss": "Loss: %s%% (%s m equivalent line)",
+  "goggles.realpower.buffer": "Buffer: %s / %s FE",
+  "goggles.realpower.links": "Line links: %s",
+  "goggles.realpower.formed": "Structure complete",
+  "goggles.realpower.unformed": "Structure incomplete",
+  "goggles.realpower.wind": "Wind: %s m/s",
+  "goggles.realpower.power": "Output: %s kW"
 }

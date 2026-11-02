@@ -18,6 +18,8 @@ public final class ModCreativeTabs {
                     .icon(() -> ModItems.WIND_TURBINE_CONTROLLER_BASIC.get().getDefaultInstance())
                     .displayItems((params, output) -> {
                         output.accept(ModItems.STEEL_INGOT.get());
+                        output.accept(ModItems.ENGINEER_GOGGLES.get());
+                        output.accept(ModItems.WRENCH.get());
                         output.accept(ModItems.WIND_TURBINE_CONTROLLER_BASIC.get());
                         output.accept(ModItems.WIND_TURBINE_CONTROLLER_INDUSTRIAL.get());
                         ModItems.NODES.values().forEach(item -> output.accept(item.get()));

@@ -111,7 +111,7 @@ depois sem reescrever receitas. O aco do mod e registrado em `c:ingots/steel`.
 - Ligacao aerea: postes e torres so ligam ao longo do eixo das travessas (ate 30 graus; `CableNetworks.alongAxis`), nunca de lado. Entre os que podem, grafo de vizinhanca relativa (`CableNetworks.computeLinks`) - dois nos so se ligam se nenhum terceiro alcancavel estiver mais perto de ambos, entao a linha nunca atravessa um vizinho. Alcance: poste 48, torre 160.
 - Perda: comprimento equivalente = soma das corridas de cabo (vao da corrida / (1 + reles)) + linhas aereas (comprimento x fator: poste 0,25, torre 0,08). Reles e linhas aereas mitigam a perda por distancia.
 - Turbina: a porta de energia e um bloco unico (`TurbinePowerPortBlock`) sobre a laje, em qualquer um dos 4 cantos; recebe a energia do controlador (`extraOutput`) e a passa aos cabos encostados.
-- Clique direito num cabo mostra tier, cabos, vazao, perda e buffer. Testes: `CableGameTests` (consumidor de teste `TestEnergySink` so existe com gametest ativo).
+- Oculos de engenheiro (`goggles/`, `EngineerGogglesItem`): equipados na cabeca ou no slot `head` do Curios (reflexao, tag `curios:head`), o servidor descreve o bloco observado a cada 5 ticks (`Goggles.describe`) e envia `GogglesPayload`; `client/GogglesHud` desenha o balao no canto superior esquerdo. Chave inglesa (`WrenchItem`): shift + clique direito remove blocos do mod; sem shift reservado a configuracoes futuras. Testes: `CableGameTests` (consumidor de teste `TestEnergySink` so existe com gametest ativo).
 
 ## Proximos passos sugeridos
 

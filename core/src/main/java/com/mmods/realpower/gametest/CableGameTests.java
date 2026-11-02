@@ -250,6 +250,65 @@ public class CableGameTests {
     }
 
     @GameTest(template = "empty", timeoutTicks = 200, batch = "cable")
+    public static void cablesConnectToTransformerPortsInEveryFacing(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        Block transformer = ModBlocks.node(CableKind.TRANSFORMER, Tier.INDUSTRIAL).get();
+        Block cable = ModBlocks.node(CableKind.CABLE, Tier.INDUSTRIAL).get();
+        BlockPos base = helper.absolutePos(new BlockPos(8, 2, 31));
+        java.util.List<Direction> facings = java.util.List.of(Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST);
+        for (int i = 0; i < facings.size(); i++) {
+            Direction facing = facings.get(i);
+            int step = i;
+            helper.runAfterDelay(step * 10L, () -> {
+                BlockPos where = base.offset(0, 0, 0);
+                level.setBlock(where, transformer.defaultBlockState().setValue(CableBlock.FACING, facing), 3);
+            });
+            helper.runAfterDelay(step * 10L + 3, () -> {
+                BlockState state = level.getBlockState(base);
+                for (BlockPos port : ((CableBlock) state.getBlock()).portCells(base, state)) {
+                    helper.assertTrue(level.getBlockState(port).is(ModBlocks.TRANSFORMER_PORT.get()),
+                            "celula de porta ausente " + facing + " " + port);
+                    Direction out = port.getX() != base.getX() ? (port.getX() > base.getX() ? Direction.EAST : Direction.WEST)
+                            : (port.getZ() > base.getZ() ? Direction.SOUTH : Direction.NORTH);
+                    BlockPos at = port.relative(out);
+                    level.setBlock(at, cable.defaultBlockState(), 3);
+                }
+            });
+            helper.runAfterDelay(step * 10L + 8, () -> {
+                BlockState state = level.getBlockState(base);
+                for (BlockPos port : ((CableBlock) state.getBlock()).portCells(base, state)) {
+                    Direction out = port.getX() != base.getX() ? (port.getX() > base.getX() ? Direction.EAST : Direction.WEST)
+                            : (port.getZ() > base.getZ() ? Direction.SOUTH : Direction.NORTH);
+                    BlockState cableState = level.getBlockState(port.relative(out));
+                    helper.assertTrue(cableState.getValue(CableBlock.PROPERTY_BY_DIRECTION.get(out.getOpposite())),
+                            "cabo nao conectou na porta (" + facing + ")");
+                    level.setBlock(port.relative(out), Blocks.AIR.defaultBlockState(), 3);
+                }
+                level.destroyBlock(base, false);
+                if (step == 3) {
+                    helper.succeed();
+                }
+            });
+        }
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 200, batch = "cable")
+    public static void gogglesDescribeNetworkParts(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos cable = helper.absolutePos(new BlockPos(2, 2, 33));
+        BlockPos base = helper.absolutePos(new BlockPos(6, 2, 33));
+        level.setBlock(cable, ModBlocks.node(CableKind.CABLE, Tier.INDUSTRIAL).get().defaultBlockState(), 3);
+        level.setBlock(base, ModBlocks.node(CableKind.TRANSFORMER, Tier.INDUSTRIAL).get().defaultBlockState(), 3);
+        helper.runAfterDelay(10, () -> {
+            helper.assertTrue(com.mmods.realpower.goggles.Goggles.describe(level, cable).size() >= 4, "balao do cabo sem dados");
+            helper.assertTrue(com.mmods.realpower.goggles.Goggles.describe(level, base.offset(1, 1, 1)).size() >= 4,
+                    "balao de uma celula do transformador deveria descrever o conjunto");
+            helper.assertTrue(com.mmods.realpower.goggles.Goggles.describe(level, base.offset(5, 0, 0)).isEmpty(), "ar nao tem balao");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 200, batch = "cable")
     public static void turbinePortFeedsAdjacentCable(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         BlockPos port = helper.absolutePos(new BlockPos(2, 2, 15));

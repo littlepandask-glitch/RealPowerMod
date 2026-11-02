@@ -1,0 +1,18 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "redstone",
+ "pattern": [
+  "S S",
+  " S ",
+  " S "
+ ],
+ "key": {
+  "S": {
+   "item": "realpower:steel_ingot"
+  }
+ },
+ "result": {
+  "id": "realpower:wrench",
+  "count": 1
+ }
+}

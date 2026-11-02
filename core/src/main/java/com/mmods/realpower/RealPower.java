@@ -3,6 +3,8 @@ package com.mmods.realpower;
 import com.mmods.realpower.cable.CableBlock;
 import com.mmods.realpower.cable.CableBlockEntity;
 import com.mmods.realpower.gametest.TestEnergySink;
+import com.mmods.realpower.goggles.GogglesPayload;
+import com.mmods.realpower.goggles.GogglesState;
 import com.mmods.realpower.registry.ModBlockEntities;
 import com.mmods.realpower.registry.ModBlocks;
 import com.mmods.realpower.registry.ModCreativeTabs;
@@ -15,6 +17,7 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.gametest.GameTestHooks;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import org.slf4j.Logger;
 
 @Mod(RealPower.MOD_ID)
@@ -29,7 +32,13 @@ public class RealPower {
         ModMenus.register(modEventBus);
         ModCreativeTabs.register(modEventBus);
         modEventBus.addListener(RealPower::registerCapabilities);
+        modEventBus.addListener(RealPower::registerPayloads);
         LOGGER.info("Real Power carregado");
+    }
+
+    private static void registerPayloads(RegisterPayloadHandlersEvent event) {
+        event.registrar("1").playToClient(GogglesPayload.TYPE, GogglesPayload.CODEC,
+                (payload, context) -> GogglesState.set(payload.lines(), context.player().level().getGameTime()));
     }
 
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {
