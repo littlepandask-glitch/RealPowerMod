@@ -20,7 +20,6 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
@@ -31,14 +30,13 @@ public class WindTurbineControllerBlock extends BaseEntityBlock implements Tiere
             Tier.CODEC.fieldOf("tier").forGetter(WindTurbineControllerBlock::tier)
     ).apply(instance, WindTurbineControllerBlock::new));
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
-    public static final BooleanProperty FORMED = WindStructureBlock.FORMED;
 
     private final Tier tier;
 
     public WindTurbineControllerBlock(Properties properties, Tier tier) {
         super(properties);
         this.tier = tier;
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(FORMED, false));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
 
     @Override
@@ -53,12 +51,13 @@ public class WindTurbineControllerBlock extends BaseEntityBlock implements Tiere
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<net.minecraft.world.level.block.Block, BlockState> builder) {
-        builder.add(FACING, FORMED);
+        builder.add(FACING);
     }
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+        // o rotor aponta para onde o jogador olha; a porta da torre fica as suas costas
+        return defaultBlockState().setValue(FACING, context.getHorizontalDirection());
     }
 
     @Override
@@ -89,7 +88,7 @@ public class WindTurbineControllerBlock extends BaseEntityBlock implements Tiere
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof WindTurbineControllerBlockEntity turbine) {
             turbine.requestRevalidation();
-            turbine.sendStatus(player);
+            player.openMenu(turbine, pos);
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
     }

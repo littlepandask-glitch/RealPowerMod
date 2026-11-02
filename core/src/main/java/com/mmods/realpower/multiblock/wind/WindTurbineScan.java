@@ -4,164 +4,80 @@ import com.mmods.realpower.api.multiblock.StructureScan;
 import com.mmods.realpower.api.multiblock.ValidationResult;
 import com.mmods.realpower.registry.ModBlocks;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * Varredura parametrica de uma turbina eolica:
- * <ul>
- *   <li>torre: coluna de {@code wind_tower} abaixo do controlador, apoiada em solo solido;</li>
- *   <li>cubo: um {@code wind_blade} a frente do controlador;</li>
- *   <li>pas: bracos de {@code wind_blade} saindo do cubo (cima, baixo, esquerda, direita).</li>
- * </ul>
- * O raio do rotor e a altura da torre vem do que o jogador construiu, sem planta fixa.
+ * Varredura incremental que compara o mundo com o {@link TurbineBlueprint}. Cada tick le no
+ * maximo o orcamento de blocos; o resultado lista quantos blocos faltam de cada tipo.
  */
 public class WindTurbineScan implements StructureScan {
-    public static final int MIN_TOWER_HEIGHT = 10;
-    public static final int MIN_BLADE_LENGTH = 5;
-    public static final int MIN_BLADES = 3;
-    public static final int MAX_TOWER_HEIGHT = 320;
-    public static final int MAX_BLADE_LENGTH = 128;
-
-    private enum Phase { TOWER, HUB, ARMS, DONE }
-
     private final Level level;
-    private final BlockPos origin;
-    private final Direction[] armDirections;
-
-    private Phase phase = Phase.TOWER;
-    private BlockPos cursor;
-    private BlockPos hubPos;
-    private int armIndex;
+    private final List<TurbineBlueprint.Part> parts;
+    private final EnumMap<TurbineBlueprint.Kind, Integer> missing = new EnumMap<>(TurbineBlueprint.Kind.class);
+    private int cursor;
     private boolean unloaded;
-
-    private int towerHeight;
-    private boolean grounded;
-    private boolean hasHub;
-    private final int[] armLengths = new int[4];
-
     private ValidationResult result = ValidationResult.invalid(List.of());
-    private double bladeRadius;
 
-    public WindTurbineScan(Level level, BlockPos origin, Direction facing) {
+    public WindTurbineScan(Level level, BlockPos controller, Direction facing) {
         this.level = level;
-        this.origin = origin;
-        this.armDirections = new Direction[] {
-                Direction.UP, Direction.DOWN, facing.getClockWise(), facing.getCounterClockWise()
-        };
-        this.hubPos = origin.relative(facing);
+        this.parts = TurbineBlueprint.parts(controller, facing);
+        for (TurbineBlueprint.Kind kind : TurbineBlueprint.Kind.values()) {
+            missing.put(kind, 0);
+        }
     }
 
     @Override
     public boolean advance(int blockBudget) {
-        for (int i = 0; i < blockBudget && phase != Phase.DONE; i++) {
-            step();
+        for (int i = 0; i < blockBudget && cursor < parts.size() && !unloaded; i++) {
+            TurbineBlueprint.Part part = parts.get(cursor++);
+            if (!level.isLoaded(part.pos())) {
+                unloaded = true;
+                break;
+            }
+            if (!matches(level.getBlockState(part.pos()), part.kind())) {
+                missing.merge(part.kind(), 1, Integer::sum);
+            }
         }
-        return phase == Phase.DONE;
+        if (unloaded) {
+            return true;
+        }
+        if (cursor < parts.size()) {
+            return false;
+        }
+        finish();
+        return true;
     }
 
-    private void step() {
-        switch (phase) {
-            case TOWER -> stepTower();
-            case HUB -> stepHub();
-            case ARMS -> stepArms();
-            case DONE -> { }
-        }
+    private static boolean matches(BlockState state, TurbineBlueprint.Kind kind) {
+        return state.is(blockFor(kind));
     }
 
-    private void stepTower() {
-        if (cursor == null) {
-            cursor = origin.below();
-        }
-        if (!level.isLoaded(cursor)) {
-            abortUnloaded();
-            return;
-        }
-        BlockState state = level.getBlockState(cursor);
-        if (state.is(ModBlocks.WIND_TOWER.get()) && towerHeight < MAX_TOWER_HEIGHT) {
-            towerHeight++;
-            cursor = cursor.below();
-        } else {
-            grounded = state.isFaceSturdy(level, cursor, Direction.UP);
-            phase = Phase.HUB;
-        }
-    }
-
-    private void stepHub() {
-        if (!level.isLoaded(hubPos)) {
-            abortUnloaded();
-            return;
-        }
-        hasHub = level.getBlockState(hubPos).is(ModBlocks.WIND_BLADE.get());
-        if (!hasHub) {
-            finish();
-            return;
-        }
-        phase = Phase.ARMS;
-        armIndex = 0;
-        cursor = hubPos.relative(armDirections[0]);
-    }
-
-    private void stepArms() {
-        if (!level.isLoaded(cursor)) {
-            abortUnloaded();
-            return;
-        }
-        if (level.getBlockState(cursor).is(ModBlocks.WIND_BLADE.get()) && armLengths[armIndex] < MAX_BLADE_LENGTH) {
-            armLengths[armIndex]++;
-            cursor = cursor.relative(armDirections[armIndex]);
-            return;
-        }
-        armIndex++;
-        if (armIndex == armLengths.length) {
-            finish();
-        } else {
-            cursor = hubPos.relative(armDirections[armIndex]);
-        }
-    }
-
-    private void abortUnloaded() {
-        unloaded = true;
-        phase = Phase.DONE;
+    public static Block blockFor(TurbineBlueprint.Kind kind) {
+        return switch (kind) {
+            case BASE -> ModBlocks.TURBINE_BASE.get();
+            case CASING -> ModBlocks.TURBINE_CASING.get();
+            case FAIRING -> ModBlocks.ROTOR_FAIRING.get();
+            case BLADE -> ModBlocks.TURBINE_BLADE.get();
+        };
     }
 
     private void finish() {
         List<Component> problems = new ArrayList<>();
-        if (towerHeight < MIN_TOWER_HEIGHT) {
-            problems.add(Component.translatable("message.realpower.wind.tower_too_short", towerHeight, MIN_TOWER_HEIGHT));
-        }
-        if (!grounded) {
-            problems.add(Component.translatable("message.realpower.wind.tower_not_grounded"));
-        }
-        if (!hasHub) {
-            problems.add(Component.translatable("message.realpower.wind.no_hub"));
-        } else {
-            int usable = 0;
-            int sum = 0;
-            int longest = 0;
-            for (int length : armLengths) {
-                if (length >= MIN_BLADE_LENGTH) {
-                    usable++;
-                    sum += length;
-                }
-                longest = Math.max(longest, length);
-            }
-            if (usable < MIN_BLADES) {
-                problems.add(Component.translatable("message.realpower.wind.blades_missing",
-                        usable, MIN_BLADES, MIN_BLADE_LENGTH));
-            } else {
-                bladeRadius = (double) sum / usable;
-            }
-            if (longest > towerHeight) {
-                problems.add(Component.translatable("message.realpower.wind.blade_hits_ground"));
+        for (TurbineBlueprint.Kind kind : TurbineBlueprint.Kind.values()) {
+            int count = missing.get(kind);
+            if (count > 0) {
+                problems.add(Component.translatable("message.realpower.wind.missing", count,
+                        Component.translatable("kind.realpower." + kind.name().toLowerCase())));
             }
         }
         result = problems.isEmpty() ? ValidationResult.ok() : ValidationResult.invalid(problems);
-        phase = Phase.DONE;
     }
 
     @Override
@@ -174,18 +90,8 @@ public class WindTurbineScan implements StructureScan {
         return result;
     }
 
-    /** Comprimentos dos 4 bracos de pa: cima, baixo, direita e esquerda (relativos a frente do controlador). */
-    public int[] armLengths() {
-        return armLengths.clone();
-    }
-
-    /** Altura da torre em metros (blocos de torre abaixo do controlador). */
-    public int towerHeight() {
-        return towerHeight;
-    }
-
-    /** Raio medio do rotor em metros; 0 se a estrutura for invalida. */
-    public double bladeRadius() {
-        return result.valid() ? bladeRadius : 0.0;
+    /** Total de blocos que faltam (ou estao errados) no projeto. */
+    public int missingTotal() {
+        return missing.values().stream().mapToInt(Integer::intValue).sum();
     }
 }

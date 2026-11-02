@@ -12,6 +12,10 @@ public final class WindTurbinePhysics {
     public static final double RATED_SPEED = 12.0;       // m/s: potencia nominal; acima disso e limitada
     public static final double CUT_OUT_SPEED = 25.0;     // m/s: acima disso freia por seguranca
 
+    /** Altura do cubo acima do solo: o controlador fica 1 bloco acima do chao. */
+    public static final double HUB_HEIGHT = TurbineBlueprint.HUB_Y + 1.0;
+    public static final double ROTOR_RADIUS = TurbineBlueprint.BLADE_LENGTH;
+
     private WindTurbinePhysics() {
     }
 

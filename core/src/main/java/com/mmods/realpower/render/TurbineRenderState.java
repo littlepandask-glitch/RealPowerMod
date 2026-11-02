@@ -1,36 +1,25 @@
 package com.mmods.realpower.render;
 
 /**
- * Estado de renderizacao de uma turbina no cliente: malhas em cache (so reconstruidas quando as
- * dimensoes mudam) e angulo do rotor, que avanca de acordo com a velocidade do vento.
+ * Estado de renderizacao de uma turbina no cliente: malha em cache e angulo do rotor, que avanca
+ * de acordo com a velocidade do vento.
  */
 public final class TurbineRenderState {
     /** Razao entre a velocidade da ponta da pa e a do vento (tipico de turbinas de 3 pas). */
     private static final double TIP_SPEED_RATIO = 7.0;
     private static final double MAX_ANGULAR_SPEED = 2.4; // rad/s, limite por seguranca visual
 
-    private TurbineModel.Dims dims;
-    private Mesh staticMesh;
+    private TurbineModel.RotorSpec spec;
     private Mesh rotorMesh;
     private double angle;
     private double lastTime = Double.NaN;
 
-    public Mesh staticMesh(TurbineModel.Dims wanted) {
-        refresh(wanted);
-        return staticMesh;
-    }
-
-    public Mesh rotorMesh(TurbineModel.Dims wanted) {
-        refresh(wanted);
-        return rotorMesh;
-    }
-
-    private void refresh(TurbineModel.Dims wanted) {
-        if (!wanted.equals(dims)) {
-            dims = wanted;
-            staticMesh = TurbineModel.buildStatic(wanted);
+    public Mesh rotorMesh(TurbineModel.RotorSpec wanted) {
+        if (!wanted.equals(spec)) {
+            spec = wanted;
             rotorMesh = TurbineModel.buildRotor(wanted);
         }
+        return rotorMesh;
     }
 
     /**

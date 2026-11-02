@@ -10,8 +10,10 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 public final class ModItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(RealPower.MOD_ID);
 
-    public static final DeferredItem<BlockItem> WIND_TOWER = ITEMS.registerSimpleBlockItem(ModBlocks.WIND_TOWER);
-    public static final DeferredItem<BlockItem> WIND_BLADE = ITEMS.registerSimpleBlockItem(ModBlocks.WIND_BLADE);
+    public static final DeferredItem<BlockItem> TURBINE_BASE = ITEMS.registerSimpleBlockItem(ModBlocks.TURBINE_BASE);
+    public static final DeferredItem<BlockItem> TURBINE_CASING = ITEMS.registerSimpleBlockItem(ModBlocks.TURBINE_CASING);
+    public static final DeferredItem<BlockItem> ROTOR_FAIRING = ITEMS.registerSimpleBlockItem(ModBlocks.ROTOR_FAIRING);
+    public static final DeferredItem<BlockItem> TURBINE_BLADE = ITEMS.registerSimpleBlockItem(ModBlocks.TURBINE_BLADE);
     public static final DeferredItem<BlockItem> WIND_TURBINE_CONTROLLER_BASIC =
             ITEMS.registerSimpleBlockItem(ModBlocks.WIND_TURBINE_CONTROLLER_BASIC);
     public static final DeferredItem<BlockItem> WIND_TURBINE_CONTROLLER_INDUSTRIAL =

@@ -62,26 +62,31 @@ Um novo gerador implementa apenas `createScan`, `onStructureScanned`,
   (eficiencia 1) da potencia nominal, entao tiers maiores guardam mais.
 - Para outros mods ele e exposto como `IEnergyStorage` (so extracao, limitado a int).
 
-## Aparencia: andaime que vira modelo 3D
+## Turbina eolica: modelo padrao em escala real
 
-O jogador constroi um **andaime** de blocos (`wind_tower`, `wind_blade`, controlador). Quando
-o controlador reconhece a estrutura, os blocos recebem `formed=true`: ficam invisiveis (as pas
-tambem perdem colisao) e o `WindTurbineRenderer` desenha no lugar um modelo 3D procedural.
+A turbina e uma planta fixa (`multiblock/wind/TurbineBlueprint`, ~4900 blocos) orientada pelo
+controlador. O controlador fica no topo da laje, dentro da torre; o rotor aponta para onde o
+jogador olhava ao colocar e a porta fica atras (u negativo).
 
-- `render/TurbineModel` gera a malha em escala real a partir da altura da torre e do comprimento
-  da pa: torre conica, nacele, cone do cubo e 3 pas com corda, espessura e torcao variaveis, ponta
-  vermelha de sinalizacao. E Java puro (sem Minecraft), entao da para gerar previas fora do jogo.
-- O rotor gira conforme o vento (razao de velocidade de ponta 7), sem recalcular a malha.
-- O estado e sincronizado ao cliente por `getUpdatePacket`. A geometria "morfada" fica salva no
-  NBT para desfazer corretamente ao quebrar o controlador ou a estrutura.
-- Previas geradas por rasterizador de software em `docs/preview/`.
+| Parte | Bloco | Medidas |
+|---|---|---|
+| Base | `turbine_base` | laje 21x21x3 (2 camadas abaixo do controlador) |
+| Corpo | `turbine_casing` | 80 m, casca oca de raio 5,5 a 3,5 m, porta 3x3 |
+| Nacele | `turbine_casing` | 15x9x7, escotilha no piso sobre o interior da torre |
+| Carenagem | `rotor_fairing` | elipsoide oco, raio 3,8 m |
+| Helices | `turbine_blade` | 3 pas de 47 m com corda variavel |
 
-## Overlay fantasma do andaime
+O interior da torre e vazio: o jogador entra pela porta, sobe (escada/elevador) e chega a
+nacele pela escotilha. `WindTurbineScan` valida incrementalmente (256 blocos/tick) e conta o que
+falta por tipo. Ao formar, carenagem e helices recebem `formed=true` (invisiveis, sem colisao) e o
+`WindTurbineRenderer` desenha o rotor 3D giratorio (`render/TurbineModel`, Java puro).
 
-Segurando o controlador, a torre ou a pa, `client/ScaffoldGhostRenderer` desenha o andaime minimo
-(`WindTurbineScaffold.minimum`, o mesmo que o validador aceita, coberto por GameTest):
-mirando um bloco mostra onde ficaria a turbina; mirando um controlador ja colocado mostra so o que
-falta. Azul = torre, branco = pa e cubo, laranja = controlador, vermelho = posicao bloqueada.
+## Overlay de construcao
+
+Cada controlador colocado desenha o projeto faltante (`client/ScaffoldGhostRenderer`) ate a
+estrutura formar. Liga/desliga na tela do controlador (`TurbineMenu`/`TurbineScreen`, provisoria).
+Cinza = base, azul = corpo/nacele, ciano = carenagem, branco = helice, vermelho = posicao
+ocupada por outro bloco. So desenha blocos a ate 72 m da camera (max. 2500 caixas).
 
 ## Unificacao de materiais
 

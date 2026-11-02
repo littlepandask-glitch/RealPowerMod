@@ -4,6 +4,7 @@ import com.mmods.realpower.registry.ModBlockEntities;
 import com.mmods.realpower.registry.ModBlocks;
 import com.mmods.realpower.registry.ModCreativeTabs;
 import com.mmods.realpower.registry.ModItems;
+import com.mmods.realpower.registry.ModMenus;
 import com.mojang.logging.LogUtils;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
@@ -20,6 +21,7 @@ public class RealPower {
         ModBlocks.register(modEventBus);
         ModItems.register(modEventBus);
         ModBlockEntities.register(modEventBus);
+        ModMenus.register(modEventBus);
         ModCreativeTabs.register(modEventBus);
         modEventBus.addListener(RealPower::registerCapabilities);
         LOGGER.info("Real Power carregado");

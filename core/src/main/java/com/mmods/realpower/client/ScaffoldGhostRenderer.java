@@ -1,10 +1,10 @@
 package com.mmods.realpower.client;
 
 import com.mmods.realpower.RealPower;
-import com.mmods.realpower.multiblock.wind.WindStructureBlock;
+import com.mmods.realpower.multiblock.wind.TurbineBlueprint;
 import com.mmods.realpower.multiblock.wind.WindTurbineControllerBlock;
-import com.mmods.realpower.multiblock.wind.WindTurbineScaffold;
-import com.mmods.realpower.registry.ModBlocks;
+import com.mmods.realpower.multiblock.wind.WindTurbineControllerBlockEntity;
+import com.mmods.realpower.multiblock.wind.WindTurbineScan;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import java.util.ArrayList;
@@ -16,14 +16,8 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -32,22 +26,31 @@ import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import org.joml.Matrix4f;
 
 /**
- * Overlay fantasma do andaime da turbina. Segurando o controlador, a torre ou a pa:
- * <ul>
- *   <li>mirando um bloco: mostra onde ficaria o andaime minimo com o controlador no ponto de colocacao;</li>
- *   <li>mirando um controlador ja colocado: mostra so os blocos que ainda faltam.</li>
- * </ul>
- * Azul = torre, branco = pa e cubo, laranja = controlador, vermelho = posicao bloqueada por outro bloco.
+ * Overlay fantasma fixo do projeto da turbina. Cada controlador colocado desenha, enquanto o
+ * overlay estiver ligado no menu e a estrutura nao estiver formada, os blocos que ainda faltam
+ * (ou estao errados) perto do jogador.
+ *
+ * <p>Cores: cinza = base, azul = corpo e nacele, ciano = carenagem, branco = helice,
+ * vermelho = posicao ocupada por outro bloco (precisa ser removido ou escavado).
  */
 @EventBusSubscriber(modid = RealPower.MOD_ID, value = Dist.CLIENT)
 public final class ScaffoldGhostRenderer {
-    private static final float[] TOWER = {0.30f, 0.60f, 1.00f};
+    private static final float[] BASE = {0.75f, 0.65f, 0.45f};
+    private static final float[] CASING = {0.30f, 0.60f, 1.00f};
+    private static final float[] FAIRING = {0.25f, 0.95f, 0.90f};
     private static final float[] BLADE = {0.95f, 0.95f, 0.95f};
-    private static final float[] CONTROLLER = {1.00f, 0.60f, 0.15f};
     private static final float[] BLOCKED = {1.00f, 0.15f, 0.15f};
+
     private static final double INSET = 0.04;
+    private static final double VIEW_DISTANCE = 72.0;
+    private static final int MAX_BOXES = 2500;
+    /** Recalcula os blocos faltantes uma vez por segundo. */
+    private static final int REFRESH_TICKS = 20;
 
     private ScaffoldGhostRenderer() {
+    }
+
+    private record Ghost(AABB box, float[] color) {
     }
 
     @SubscribeEvent
@@ -56,97 +59,83 @@ public final class ScaffoldGhostRenderer {
             return;
         }
         Minecraft mc = Minecraft.getInstance();
-        Player player = mc.player;
         ClientLevel level = mc.level;
-        if (player == null || level == null || !(mc.hitResult instanceof BlockHitResult hit)
-                || hit.getType() != HitResult.Type.BLOCK) {
+        if (level == null || WindTurbineControllerBlockEntity.CLIENT_INSTANCES.isEmpty()) {
             return;
         }
-        Block held = heldRelevantBlock(player);
-        if (held == null) {
-            return;
-        }
-
-        BlockPos anchor;
-        Direction facing;
-        boolean existingController;
-        BlockState target = level.getBlockState(hit.getBlockPos());
-        if (target.getBlock() instanceof WindTurbineControllerBlock) {
-            anchor = hit.getBlockPos();
-            facing = target.getValue(WindTurbineControllerBlock.FACING);
-            existingController = true;
-        } else if (held instanceof WindTurbineControllerBlock) {
-            anchor = target.canBeReplaced() ? hit.getBlockPos() : hit.getBlockPos().relative(hit.getDirection());
-            facing = player.getDirection().getOpposite();
-            existingController = false;
-        } else {
-            return;
-        }
+        Vec3 camera = event.getCamera().getPosition();
+        double maxSq = VIEW_DISTANCE * VIEW_DISTANCE;
 
         List<Ghost> ghosts = new ArrayList<>();
-        for (WindTurbineScaffold.Part part : WindTurbineScaffold.minimum(anchor, facing)) {
-            if (existingController && part.kind() == WindTurbineScaffold.Kind.CONTROLLER) {
+        for (WindTurbineControllerBlockEntity turbine : List.copyOf(WindTurbineControllerBlockEntity.CLIENT_INSTANCES)) {
+            if (turbine.isRemoved() || !turbine.overlayEnabled() || turbine.isFormed()
+                    || !(turbine.getBlockState().getBlock() instanceof WindTurbineControllerBlock)) {
                 continue;
             }
-            BlockState state = level.getBlockState(part.pos());
-            if (isCorrect(state, part.kind())) {
-                continue;
+            BlockPos origin = turbine.getBlockPos();
+            if (origin.distToCenterSqr(camera) > (VIEW_DISTANCE + 130.0) * (VIEW_DISTANCE + 130.0)) {
+                continue; // o projeto tem ate ~130 blocos de altura
             }
-            float[] color = state.canBeReplaced() ? colorOf(part.kind()) : BLOCKED;
-            ghosts.add(new Ghost(new AABB(part.pos()).deflate(INSET), color));
+            refreshCache(level, turbine);
+            for (TurbineBlueprint.Part part : turbine.ghostMissing()) {
+                if (ghosts.size() >= MAX_BOXES) {
+                    break;
+                }
+                BlockPos pos = part.pos();
+                if (pos.distToCenterSqr(camera) > maxSq) {
+                    continue;
+                }
+                BlockState state = level.getBlockState(pos);
+                float[] color = state.canBeReplaced() ? colorOf(part.kind()) : BLOCKED;
+                ghosts.add(new Ghost(new AABB(pos).deflate(INSET), color));
+            }
         }
         if (ghosts.isEmpty()) {
             return;
         }
 
         PoseStack poseStack = event.getPoseStack();
-        Vec3 camera = event.getCamera().getPosition();
         MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
-
         poseStack.pushPose();
         poseStack.translate(-camera.x, -camera.y, -camera.z);
 
         // Um tipo de render por vez: pedir outro buffer ao BufferSource encerra o anterior.
         VertexConsumer fill = buffers.getBuffer(RenderType.debugQuads());
         for (Ghost ghost : ghosts) {
-            filledBox(poseStack.last().pose(), fill, ghost.box(), ghost.color()[0], ghost.color()[1], ghost.color()[2], 0.30f);
+            filledBox(poseStack.last().pose(), fill, ghost.box(), ghost.color()[0], ghost.color()[1], ghost.color()[2], 0.28f);
         }
         buffers.endBatch(RenderType.debugQuads());
 
         VertexConsumer lines = buffers.getBuffer(RenderType.lines());
         for (Ghost ghost : ghosts) {
-            LevelRenderer.renderLineBox(poseStack, lines, ghost.box(), ghost.color()[0], ghost.color()[1], ghost.color()[2], 0.9f);
+            LevelRenderer.renderLineBox(poseStack, lines, ghost.box(), ghost.color()[0], ghost.color()[1], ghost.color()[2], 0.85f);
         }
         buffers.endBatch(RenderType.lines());
 
         poseStack.popPose();
     }
 
-    private record Ghost(AABB box, float[] color) {
-    }
-
-    private static Block heldRelevantBlock(Player player) {
-        for (ItemStack stack : new ItemStack[] {player.getMainHandItem(), player.getOffhandItem()}) {
-            if (stack.getItem() instanceof BlockItem item
-                    && (item.getBlock() instanceof WindTurbineControllerBlock || item.getBlock() instanceof WindStructureBlock)) {
-                return item.getBlock();
+    /** Lista as posicoes do projeto que ainda nao tem o bloco certo; refeita a cada {@link #REFRESH_TICKS}. */
+    private static void refreshCache(ClientLevel level, WindTurbineControllerBlockEntity turbine) {
+        long now = level.getGameTime();
+        if (now - turbine.ghostCacheTime() < REFRESH_TICKS && now >= turbine.ghostCacheTime()) {
+            return;
+        }
+        Direction facing = turbine.getBlockState().getValue(WindTurbineControllerBlock.FACING);
+        List<TurbineBlueprint.Part> missing = new ArrayList<>();
+        for (TurbineBlueprint.Part part : TurbineBlueprint.parts(turbine.getBlockPos(), facing)) {
+            if (level.isLoaded(part.pos()) && !level.getBlockState(part.pos()).is(WindTurbineScan.blockFor(part.kind()))) {
+                missing.add(part);
             }
         }
-        return null;
+        turbine.updateGhostCache(now, missing);
     }
 
-    private static boolean isCorrect(BlockState state, WindTurbineScaffold.Kind kind) {
+    private static float[] colorOf(TurbineBlueprint.Kind kind) {
         return switch (kind) {
-            case CONTROLLER -> state.getBlock() instanceof WindTurbineControllerBlock;
-            case TOWER -> state.is(ModBlocks.WIND_TOWER.get());
-            case BLADE -> state.is(ModBlocks.WIND_BLADE.get());
-        };
-    }
-
-    private static float[] colorOf(WindTurbineScaffold.Kind kind) {
-        return switch (kind) {
-            case CONTROLLER -> CONTROLLER;
-            case TOWER -> TOWER;
+            case BASE -> BASE;
+            case CASING -> CASING;
+            case FAIRING -> FAIRING;
             case BLADE -> BLADE;
         };
     }

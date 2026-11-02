@@ -4,112 +4,55 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Gerador procedural do modelo 3D da turbina eolica, em escala real (1 unidade = 1 metro).
- * O modelo se ajusta as dimensoes que o jogador construiu: torre cônica, nacele arredondada,
- * cubo com cone e tres pas aerodinamicas (corda, espessura e torcao variando ao longo do vao).
+ * Gerador procedural do rotor 3D da turbina eolica, em escala real (1 unidade = 1 metro):
+ * carenagem elipsoidal e tres pas aerodinamicas (corda, espessura e torcao variando ao longo do
+ * vao), com faixa vermelha de sinalizacao na ponta.
  *
- * <p>Sistema de coordenadas local, com origem no centro do bloco controlador: +Y para cima e a
- * frente do rotor aponta para -Z. O rotor e gerado em um sistema proprio (origem no centro do
- * cubo, eixo de rotacao em Z) para poder girar sem recalcular a malha.
+ * <p>Sistema de coordenadas do rotor: origem no centro do cubo, eixo de rotacao em Z e a frente
+ * apontando para -Z; as pas ficam no plano XY (+Y para cima).
  */
 public final class TurbineModel {
-    /** Posicao do centro do cubo em relacao ao controlador (um bloco a frente). */
-    public static final double HUB_Z = -1.0;
-
-    private static final int RING_SEGMENTS = 20;
-    private static final int BLADE_STATIONS = 22;
+    private static final int RING_SEGMENTS = 24;
+    private static final int BLADE_STATIONS = 26;
     private static final int BLADE_SECTION_POINTS = 12;
 
     private static final float[] WHITE = {0.93f, 0.94f, 0.95f};
-    private static final float[] NACELLE = {0.88f, 0.89f, 0.91f};
-    private static final float[] DARK = {0.14f, 0.15f, 0.17f};
     private static final float[] RED = {0.80f, 0.08f, 0.07f};
 
-    /** Dimensoes da estrutura em metros: altura da torre e comprimento da pa a partir do centro do cubo. */
-    public record Dims(double towerHeight, double bladeLength) {
+    /**
+     * Dimensoes do rotor em metros.
+     *
+     * @param spinnerRadius     raio maximo da carenagem (no plano do rotor)
+     * @param spinnerHalfLength semi-eixo axial do elipsoide centrado no plano do rotor
+     * @param spinnerBack       quanto a carenagem se estende atras do plano do rotor (cortada pela nacele)
+     * @param spinnerFront      quanto a carenagem se estende a frente do plano do rotor
+     * @param rootRadius    distancia do eixo onde a pa comeca
+     * @param tipRadius     distancia do eixo ate a ponta da pa
+     */
+    public record RotorSpec(double spinnerRadius, double spinnerHalfLength, double spinnerBack, double spinnerFront,
+                            double rootRadius, double tipRadius) {
     }
 
     private TurbineModel() {
     }
 
-    public static double nacelleWidth(Dims d) {
-        return clamp(0.9 + d.bladeLength() * 0.045, 1.0, 3.2);
-    }
-
-    /** Torre, nacele e detalhes fixos. */
-    public static Mesh buildStatic(Dims d) {
+    public static Mesh buildRotor(RotorSpec spec) {
         Mesh.Builder b = new Mesh.Builder();
-        double w = nacelleWidth(d);
-        double h = 1.05 * w;
-        double length = 1.5 + 0.8 * w;
-        double zFront = -0.5;
 
-        // nacele: secao superelipse (cantos arredondados) com leve afunilamento para tras
-        double[] stationZ = {zFront, zFront + length * 0.25, zFront + length * 0.7, zFront + length};
-        double[] stationScale = {0.94, 1.0, 1.0, 0.78};
-        List<Vec[]> rings = new ArrayList<>();
-        for (int i = 0; i < stationZ.length; i++) {
-            rings.add(roundedRect(stationZ[i], w * stationScale[i], h * stationScale[i]));
-        }
-        b.strip(rings, NACELLE);
-        Vec center = new Vec(0, 0, zFront + length * 0.5);
-        b.cap(rings.get(0), new Vec(0, 0, zFront), center, NACELLE);
-        b.cap(rings.get(rings.size() - 1), new Vec(0, 0, zFront + length), center, NACELLE);
-
-        // luzes de aviso e mastro de sensores no topo da nacele
-        double top = h / 2;
-        double rear = zFront + length - 0.45;
-        b.box(new Vec(-0.32 * w, top + 0.12, rear), 0.16, 0.24, 0.16, RED);
-        b.box(new Vec(0.32 * w, top + 0.12, rear), 0.16, 0.24, 0.16, RED);
-        b.box(new Vec(0, top + 0.35, zFront + length * 0.6), 0.06, 0.7, 0.06, DARK);
-        b.box(new Vec(0, top + 0.72, zFront + length * 0.6), 0.5, 0.05, 0.12, WHITE);
-
-        // torre cônica com flange na base e porta
-        double rt = clamp(0.3 + 0.1 * w, 0.35, 0.75);
-        double rb = rt * 1.55;
-        double yTop = -h / 2 + 0.15;
-        double yBase = -d.towerHeight() - 0.5;
-        List<Vec[]> tower = new ArrayList<>();
-        int steps = Math.max(2, (int) Math.ceil(d.towerHeight() / 8.0));
-        for (int i = 0; i <= steps; i++) {
-            double t = (double) i / steps;
-            tower.add(circle(new Vec(0, yTop + (yBase - yTop) * t, 0), rt + (rb - rt) * t, RING_SEGMENTS));
-        }
-        b.strip(tower, WHITE);
-        Vec axisMid = new Vec(0, (yTop + yBase) / 2, 0);
-        b.cap(tower.get(0), new Vec(0, yTop, 0), axisMid, WHITE);
-        List<Vec[]> flange = List.of(
-                circle(new Vec(0, yBase + 0.4, 0), rb * 1.0, RING_SEGMENTS),
-                circle(new Vec(0, yBase + 0.4, 0), rb * 1.14, RING_SEGMENTS),
-                circle(new Vec(0, yBase, 0), rb * 1.14, RING_SEGMENTS));
-        b.strip(flange, WHITE);
-        b.cap(flange.get(2), new Vec(0, yBase, 0), axisMid, WHITE);
-        b.box(new Vec(0, yBase + 1.1, rb + 0.02), Math.min(1.0, rb), 1.9, 0.08, DARK);
-
-        return b.build();
-    }
-
-    /** Cubo com cone e tres pas, com o cubo na origem e o rotor girando em torno de Z. */
-    public static Mesh buildRotor(Dims d) {
-        Mesh.Builder b = new Mesh.Builder();
-        double spinnerRadius = nacelleWidth(d) * 0.55;
-
-        // cone do cubo: perfil (posicao axial para a frente, raio)
-        double[][] profile = {
-                {-0.5, 0.9}, {0.0, 1.0}, {0.45, 1.0}, {1.0, 0.88}, {1.6, 0.62}, {2.1, 0.30}, {2.4, 0.0}
-        };
+        // carenagem: elipsoide centrado no plano do rotor, cortado atras pela nacele
+        int rings = 14;
         List<Vec[]> spinner = new ArrayList<>();
-        for (double[] p : profile) {
-            double r = p[1] * spinnerRadius;
-            spinner.add(circleZ(-p[0] * spinnerRadius, Math.max(r, 1e-3), RING_SEGMENTS));
+        for (int i = 0; i <= rings; i++) {
+            double a = -spec.spinnerBack() + (spec.spinnerBack() + spec.spinnerFront()) * i / rings;
+            double t = a / spec.spinnerHalfLength();
+            double r = spec.spinnerRadius() * Math.sqrt(Math.max(0.0, 1.0 - t * t));
+            spinner.add(circleZ(-a, Math.max(r, 1e-3)));
         }
         b.strip(spinner, WHITE);
-        b.cap(spinner.get(0), new Vec(0, 0, 0.5 * spinnerRadius), new Vec(0, 0, -spinnerRadius), WHITE);
+        b.cap(spinner.get(0), new Vec(0, 0, spec.spinnerBack()), new Vec(0, 0, -spec.spinnerFront() / 2.0), WHITE);
 
-        double root = spinnerRadius * 0.9;
-        double tip = Math.max(root + 1.0, d.bladeLength());
         for (int i = 0; i < 3; i++) {
-            addBlade(b, Math.toRadians(i * 120.0), root, tip);
+            addBlade(b, Math.toRadians(i * 120.0), spec.rootRadius(), spec.tipRadius());
         }
         return b.build();
     }
@@ -123,7 +66,6 @@ public final class TurbineModel {
 
         List<Vec[]> stations = new ArrayList<>();
         List<Vec> centers = new ArrayList<>();
-        List<Float> tipMark = new ArrayList<>();
         for (int s = 0; s < BLADE_STATIONS; s++) {
             double f = (double) s / (BLADE_STATIONS - 1);
             double chord = chordMax * (f < 0.18 ? 0.6 + 0.4 * (f / 0.18) : 1.0 - 0.8 * ((f - 0.18) / 0.82));
@@ -154,8 +96,7 @@ public final class TurbineModel {
         for (int s = 0; s + 1 < BLADE_STATIONS; s++) {
             b.strip(List.of(stations.get(s), stations.get(s + 1)), s >= redFrom ? RED : WHITE);
         }
-        Vec[] last = stations.get(BLADE_STATIONS - 1);
-        b.cap(last, centers.get(BLADE_STATIONS - 1), centers.get(BLADE_STATIONS - 2), RED);
+        b.cap(stations.get(BLADE_STATIONS - 1), centers.get(BLADE_STATIONS - 1), centers.get(BLADE_STATIONS - 2), RED);
     }
 
     /**
@@ -181,34 +122,11 @@ public final class TurbineModel {
         return new double[] {(0.25 - x) * chord, (sign * yt + camber) * chord};
     }
 
-    private static Vec[] circle(Vec center, double radius, int segments) {
-        Vec[] ring = new Vec[segments];
-        for (int i = 0; i < segments; i++) {
-            double a = 2.0 * Math.PI * i / segments;
-            ring[i] = center.add(new Vec(Math.cos(a) * radius, 0, Math.sin(a) * radius));
-        }
-        return ring;
-    }
-
-    private static Vec[] circleZ(double z, double radius, int segments) {
-        Vec[] ring = new Vec[segments];
-        for (int i = 0; i < segments; i++) {
-            double a = 2.0 * Math.PI * i / segments;
+    private static Vec[] circleZ(double z, double radius) {
+        Vec[] ring = new Vec[RING_SEGMENTS];
+        for (int i = 0; i < RING_SEGMENTS; i++) {
+            double a = 2.0 * Math.PI * i / RING_SEGMENTS;
             ring[i] = new Vec(Math.cos(a) * radius, Math.sin(a) * radius, z);
-        }
-        return ring;
-    }
-
-    private static Vec[] roundedRect(double z, double width, double height) {
-        int n = 16;
-        double exponent = 2.0 / 4.0; // superelipse de expoente 4
-        Vec[] ring = new Vec[n];
-        for (int i = 0; i < n; i++) {
-            double a = 2.0 * Math.PI * i / n;
-            double c = Math.cos(a);
-            double s = Math.sin(a);
-            ring[i] = new Vec(Math.signum(c) * Math.pow(Math.abs(c), exponent) * width / 2,
-                    Math.signum(s) * Math.pow(Math.abs(s), exponent) * height / 2, z);
         }
         return ring;
     }

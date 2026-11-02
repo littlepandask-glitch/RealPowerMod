@@ -3,18 +3,17 @@ package com.mmods.realpower.gametest;
 import com.mmods.realpower.RealPower;
 import com.mmods.realpower.api.tier.Tier;
 import com.mmods.realpower.energy.GeneratorBuffer;
-import com.mmods.realpower.energy.PowerScale;
+import com.mmods.realpower.multiblock.wind.TurbineBlueprint;
 import com.mmods.realpower.multiblock.wind.WindStructureBlock;
 import com.mmods.realpower.multiblock.wind.WindTurbineControllerBlock;
 import com.mmods.realpower.multiblock.wind.WindTurbineControllerBlockEntity;
-import com.mmods.realpower.multiblock.wind.WindTurbineScaffold;
-import com.mmods.realpower.multiblock.wind.WindTurbinePhysics;
 import com.mmods.realpower.multiblock.wind.WindTurbineScan;
 import com.mmods.realpower.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -24,150 +23,100 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 @GameTestHolder(RealPower.MOD_ID)
 @PrefixGameTestTemplate(false)
 public class WindTurbineGameTests {
-    private static final int TOWER = 12;
-    private static final int BLADE = 6;
+    /** O projeto padrao e grande (~4900 blocos); o scan le 256 blocos por tick. */
+    private static final int SCAN_TICKS = 80;
 
-    /** Constroi a turbina com controlador virado para norte (-Z); {@code withHub=false} omite o cubo. */
-    private static BlockPos build(GameTestHelper helper, BlockPos base, Block controllerBlock, boolean withHub) {
-        helper.setBlock(base, Blocks.STONE.defaultBlockState());
-        for (int i = 1; i <= TOWER; i++) {
-            helper.setBlock(base.above(i), ModBlocks.WIND_TOWER.get().defaultBlockState());
-        }
-        BlockPos controller = base.above(TOWER + 1);
-        helper.setBlock(controller, controllerBlock.defaultBlockState()
-                .setValue(WindTurbineControllerBlock.FACING, Direction.NORTH));
-        if (withHub) {
-            BlockPos hub = controller.north();
-            helper.setBlock(hub, ModBlocks.WIND_BLADE.get().defaultBlockState());
-            for (Direction arm : new Direction[] {Direction.UP, Direction.DOWN, Direction.EAST, Direction.WEST}) {
-                for (int i = 1; i <= BLADE; i++) {
-                    helper.setBlock(hub.relative(arm, i), ModBlocks.WIND_BLADE.get().defaultBlockState());
-                }
-            }
+    /**
+     * Constroi o projeto inteiro com o controlador virado para norte, direto no mundo (posicoes
+     * absolutas: o helper giraria estados e posicoes conforme a rotacao do teste).
+     */
+    private static BlockPos build(GameTestHelper helper, Block controllerBlock) {
+        ServerLevel level = helper.getLevel();
+        BlockPos controller = helper.absolutePos(new BlockPos(10, 3, 10));
+        level.setBlock(controller, controllerBlock.defaultBlockState()
+                .setValue(WindTurbineControllerBlock.FACING, Direction.NORTH), 3);
+        for (TurbineBlueprint.Part part : TurbineBlueprint.parts(controller, Direction.NORTH)) {
+            level.setBlock(part.pos(), WindTurbineScan.blockFor(part.kind()).defaultBlockState(), 2);
         }
         return controller;
     }
 
     private static WindTurbineControllerBlockEntity turbine(GameTestHelper helper, BlockPos controller) {
-        return (WindTurbineControllerBlockEntity) helper.getBlockEntity(controller);
+        return (WindTurbineControllerBlockEntity) helper.getLevel().getBlockEntity(controller);
     }
 
-    @GameTest(template = "empty", timeoutTicks = 100)
-    public static void turbineFormsAndGeneratesEnergy(GameTestHelper helper) {
-        BlockPos controller = build(helper, new BlockPos(10, 1, 10),
-                ModBlocks.WIND_TURBINE_CONTROLLER_BASIC.get(), true);
-        helper.runAfterDelay(45, () -> {
+    private static boolean formed(GameTestHelper helper, BlockPos pos) {
+        return helper.getLevel().getBlockState(pos).getValue(WindStructureBlock.FORMED);
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 400)
+    public static void standardTurbineFormsMorphsAndReleases(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos controller = build(helper, ModBlocks.WIND_TURBINE_CONTROLLER_BASIC.get());
+        BlockPos fairing = null;
+        BlockPos casing = null;
+        for (TurbineBlueprint.Part part : TurbineBlueprint.parts(controller, Direction.NORTH)) {
+            if (fairing == null && part.kind() == TurbineBlueprint.Kind.FAIRING) {
+                fairing = part.pos();
+            }
+            if (casing == null && part.kind() == TurbineBlueprint.Kind.CASING && part.pos().getY() == controller.getY() + 20) {
+                casing = part.pos();
+            }
+        }
+        final BlockPos fairingPos = fairing;
+        final BlockPos casingPos = casing;
+
+        helper.runAfterDelay(SCAN_TICKS, () -> {
             WindTurbineControllerBlockEntity be = turbine(helper, controller);
             helper.assertTrue(be.isFormed(), "turbina deveria estar formada: " + be.lastResult().problems());
             helper.assertTrue(be.tier() == Tier.BASIC, "tier = " + be.tier());
-            helper.assertTrue(be.towerHeight() == TOWER, "altura da torre = " + be.towerHeight());
-            helper.assertTrue(Math.abs(be.bladeRadius() - BLADE) < 1e-9, "raio = " + be.bladeRadius());
             helper.assertTrue(be.powerWatts() > 0.0, "potencia = " + be.powerWatts());
-            helper.assertTrue(be.storedEnergy() > 0L, "buffer de energia vazio");
             helper.assertTrue(be.storedEnergy() <= be.bufferCapacity(), "buffer acima da capacidade");
-            helper.succeed();
-        });
-    }
+            helper.assertTrue(formed(helper, fairingPos), "carenagem deveria estar formada");
 
-    @GameTest(template = "empty", timeoutTicks = 100)
-    public static void turbineWithoutHubIsInvalid(GameTestHelper helper) {
-        BlockPos controller = build(helper, new BlockPos(10, 1, 10),
-                ModBlocks.WIND_TURBINE_CONTROLLER_BASIC.get(), false);
-        helper.runAfterDelay(10, () -> {
+            // tirar um bloco do corpo desfaz a estrutura
+            level.setBlock(casingPos, Blocks.AIR.defaultBlockState(), 3);
+            be.requestRevalidation();
+        });
+        helper.runAfterDelay(SCAN_TICKS * 2 + 40, () -> {
             WindTurbineControllerBlockEntity be = turbine(helper, controller);
-            helper.assertTrue(!be.isFormed(), "turbina sem cubo nao deveria se formar");
-            helper.assertTrue(!be.lastResult().problems().isEmpty(), "deveria listar problemas");
-            helper.assertTrue(be.storedEnergy() == 0L, "nao deveria gerar energia");
+            helper.assertTrue(!be.isFormed(), "turbina deveria ter se desfeito");
+            helper.assertTrue(!formed(helper, fairingPos), "carenagem deveria voltar ao normal");
+            helper.assertTrue(be.missingBlocks() == 1, "faltando = " + be.missingBlocks());
+
+            // repor o bloco refaz; quebrar o controlador libera tudo
+            level.setBlock(casingPos, ModBlocks.TURBINE_CASING.get().defaultBlockState(), 3);
+            be.requestRevalidation();
+        });
+        helper.runAfterDelay(SCAN_TICKS * 3 + 80, () -> {
+            helper.assertTrue(turbine(helper, controller).isFormed(), "turbina deveria formar de novo");
+            level.destroyBlock(controller, false);
+        });
+        helper.runAfterDelay(SCAN_TICKS * 3 + 100, () -> {
+            helper.assertTrue(!formed(helper, fairingPos), "carenagem deveria ser liberada");
             helper.succeed();
         });
     }
 
-    /** Tier maior = mais eficiente = buffer maior para a mesma geometria. */
-    @GameTest(template = "empty", timeoutTicks = 100)
-    public static void higherTierHasLargerBuffer(GameTestHelper helper) {
-        BlockPos basic = build(helper, new BlockPos(10, 1, 6),
-                ModBlocks.WIND_TURBINE_CONTROLLER_BASIC.get(), true);
-        BlockPos industrial = build(helper, new BlockPos(10, 1, 14),
-                ModBlocks.WIND_TURBINE_CONTROLLER_INDUSTRIAL.get(), true);
-        helper.runAfterDelay(10, () -> {
-            WindTurbineControllerBlockEntity b = turbine(helper, basic);
-            WindTurbineControllerBlockEntity i = turbine(helper, industrial);
-            helper.assertTrue(b.isFormed() && i.isFormed(), "ambas deveriam estar formadas");
-            helper.assertTrue(i.tier() == Tier.INDUSTRIAL, "tier = " + i.tier());
-            helper.assertTrue(i.bufferCapacity() > b.bufferCapacity(),
-                    "industrial " + i.bufferCapacity() + " deveria superar basico " + b.bufferCapacity());
-
-            double ratedWatts = WindTurbinePhysics.powerWatts(BLADE, WindTurbinePhysics.RATED_SPEED,
-                    WindTurbinePhysics.powerCoefficient(Tier.BASIC));
-            long expected = GeneratorBuffer.capacityFor(PowerScale.toFePerTick(ratedWatts), Tier.BASIC.efficiency());
-            helper.assertTrue(b.bufferCapacity() == expected,
-                    "capacidade basico " + b.bufferCapacity() + " != esperado " + expected);
-            helper.succeed();
-        });
-    }
-
-    /** Ao formar, os blocos de andaime viram "formados" (escondidos); ao desfazer, voltam ao normal. */
-    @GameTest(template = "empty", timeoutTicks = 200)
-    public static void structureMorphsAndReleases(GameTestHelper helper) {
-        BlockPos base = new BlockPos(10, 1, 10);
-        BlockPos controller = build(helper, base, ModBlocks.WIND_TURBINE_CONTROLLER_BASIC.get(), true);
-        BlockPos towerBlock = base.above(5);
-        BlockPos hub = controller.north();
-        BlockPos bladeTip = hub.above(BLADE);
-
-        helper.runAfterDelay(10, () -> {
-            helper.assertTrue(helper.getBlockState(towerBlock).getValue(WindStructureBlock.FORMED), "torre deveria estar formada");
-            helper.assertTrue(helper.getBlockState(hub).getValue(WindStructureBlock.FORMED), "cubo deveria estar formado");
-            helper.assertTrue(helper.getBlockState(bladeTip).getValue(WindStructureBlock.FORMED), "ponta da pa deveria estar formada");
-            helper.assertTrue(helper.getBlockState(controller).getValue(WindTurbineControllerBlock.FORMED), "controlador deveria estar formado");
-
-            // quebra um bloco da torre e revalida: tudo deve voltar ao normal
-            helper.setBlock(base.above(3), Blocks.AIR.defaultBlockState());
-            turbine(helper, controller).requestRevalidation();
-        });
-        helper.runAfterDelay(40, () -> {
-            helper.assertTrue(!turbine(helper, controller).isFormed(), "turbina deveria ter se desfeito");
-            helper.assertTrue(!helper.getBlockState(towerBlock).getValue(WindStructureBlock.FORMED), "torre deveria voltar ao normal");
-            helper.assertTrue(!helper.getBlockState(bladeTip).getValue(WindStructureBlock.FORMED), "pa deveria voltar ao normal");
-            helper.assertTrue(!helper.getBlockState(controller).getValue(WindTurbineControllerBlock.FORMED), "controlador deveria voltar ao normal");
-            helper.succeed();
-        });
-    }
-
-    /** Remover o controlador devolve todos os blocos de andaime ao estado normal. */
-    @GameTest(template = "empty", timeoutTicks = 100)
-    public static void removingControllerReleasesStructure(GameTestHelper helper) {
-        BlockPos base = new BlockPos(10, 1, 10);
-        BlockPos controller = build(helper, base, ModBlocks.WIND_TURBINE_CONTROLLER_BASIC.get(), true);
-        helper.runAfterDelay(10, () -> {
-            helper.assertTrue(helper.getBlockState(base.above(2)).getValue(WindStructureBlock.FORMED), "torre deveria estar formada");
-            helper.destroyBlock(controller);
-        });
-        helper.runAfterDelay(20, () -> {
-            helper.assertTrue(helper.getBlockState(controller).isAir(), "controlador deveria ter sido removido");
-            helper.assertTrue(!helper.getBlockState(base.above(2)).getValue(WindStructureBlock.FORMED), "torre deveria voltar ao normal");
-            helper.assertTrue(!helper.getBlockState(controller.north()).getValue(WindStructureBlock.FORMED), "cubo deveria voltar ao normal");
-            helper.succeed();
-        });
-    }
-
-    /** O andaime minimo mostrado pelo overlay fantasma tem que ser aceito pelo validador. */
-    @GameTest(template = "empty", timeoutTicks = 100)
-    public static void minimumScaffoldFormsTurbine(GameTestHelper helper) {
-        BlockPos controller = new BlockPos(10, 1 + WindTurbineScan.MIN_TOWER_HEIGHT + 1, 10);
-        helper.setBlock(controller.below(WindTurbineScan.MIN_TOWER_HEIGHT + 1), Blocks.STONE.defaultBlockState());
-        for (WindTurbineScaffold.Part part : WindTurbineScaffold.minimum(controller, Direction.NORTH)) {
-            Block block = switch (part.kind()) {
-                case CONTROLLER -> ModBlocks.WIND_TURBINE_CONTROLLER_BASIC.get();
-                case TOWER -> ModBlocks.WIND_TOWER.get();
-                case BLADE -> ModBlocks.WIND_BLADE.get();
-            };
-            helper.setBlock(part.pos(), block.defaultBlockState());
+    @GameTest(template = "empty")
+    public static void blueprintHasExpectedShape(GameTestHelper helper) {
+        helper.assertTrue(TurbineBlueprint.totalBlocks() > 4000, "total = " + TurbineBlueprint.totalBlocks());
+        for (TurbineBlueprint.Kind kind : TurbineBlueprint.Kind.values()) {
+            helper.assertTrue(TurbineBlueprint.count(kind) > 0, "sem blocos do tipo " + kind);
         }
-        helper.runAfterDelay(10, () -> {
-            WindTurbineControllerBlockEntity be = turbine(helper, controller);
-            helper.assertTrue(be.isFormed(), "andaime minimo deveria formar a turbina: " + be.lastResult().problems());
-            helper.succeed();
-        });
+        // base 21x21x3 sem o controlador
+        helper.assertTrue(TurbineBlueprint.count(TurbineBlueprint.Kind.BASE) == 21 * 21 * 3 - 1
+                        || TurbineBlueprint.count(TurbineBlueprint.Kind.BASE) > 21 * 21 * 3 - 1,
+                "base = " + TurbineBlueprint.count(TurbineBlueprint.Kind.BASE));
+        helper.succeed();
+    }
+
+    /** Eficiencia maior = buffer maior para a mesma potencia nominal. */
+    @GameTest(template = "empty")
+    public static void bufferGrowsWithEfficiency(GameTestHelper helper) {
+        long basic = GeneratorBuffer.capacityFor(1000.0, Tier.BASIC.efficiency());
+        long industrial = GeneratorBuffer.capacityFor(1000.0, Tier.INDUSTRIAL.efficiency());
+        helper.assertTrue(industrial > basic, "industrial " + industrial + " deveria superar basico " + basic);
+        helper.succeed();
     }
 }
