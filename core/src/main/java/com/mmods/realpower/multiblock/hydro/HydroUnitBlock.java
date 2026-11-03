@@ -205,7 +205,7 @@ public class HydroUnitBlock extends BaseEntityBlock implements Tiered, Structure
             int halfW = (size[0] - 1) / 2;
             for (int lx = -halfW; lx <= halfW; lx++) {
                 for (int lz = -halfD; lz <= halfD; lz++) {
-                    for (int y = 1; y <= 2; y++) {
+                    for (int y = 1; y < size[1]; y++) {
                         if (!HydroLayout.conduit(size[0], size[1], size[2], lx, lz, y)) {
                             continue;
                         }

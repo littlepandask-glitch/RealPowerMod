@@ -29,20 +29,27 @@ public final class HydroLayout {
     }
 
     /**
-     * Celulas do conduto: viram agua quando a comporta abre e levam a agua da tomada (y=2, na parede de montante) por baixo do
-     * salao ate o canal de fuga do patio (y=1), de onde ela cai no terreno a jusante. Fechadas, sao solidas ou ocas como o resto.
+     * Celulas do conduto: viram agua quando a comporta abre. A agua entra pela tomada (parede de montante), segue pelo tubo forcado
+     * no eixo da turbina e sai pela abertura da fachada do salao (a janela), caindo no patio de jusante, que se alaga em toda a
+     * largura. Fechadas, sao solidas ou ocas como o resto.
      */
     public static boolean conduit(int width, int height, int depth, int lx, int lz, int y) {
         int halfD = (depth - 1) / 2;
         int hall = -halfD + APRON;
+        int axis = height * 3 / 10;
+        int top = Math.min(axis + 1, hallHeight(height) - 2);
+        int halfO = (openingCells(width) - 1) / 2;
         if (Math.abs(lx) > (width - 1) / 2 || lz < -halfD || lz > halfD) {
             return false;
         }
+        boolean window = Math.abs(lx) <= halfO;
         if (lz < hall) {
-            // patio de jusante: a agua sai por toda a area livre, na largura inteira da unidade
-            return y == 1 || lx == 0 && lz == hall - 1 && y == 2;
+            return y == 1 || window && lz == hall - 1 && y <= top;
         }
-        return lx == 0 && y == 2;
+        if (lz == hall) {
+            return window && y >= axis && y <= top;
+        }
+        return lx == 0 && (y == axis && lz < halfD || lz == halfD && y >= 2 && y <= axis);
     }
 
     public static boolean solid(int width, int height, int depth, int lx, int lz, int y) {
