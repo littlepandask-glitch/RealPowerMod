@@ -9,8 +9,11 @@ import com.mmods.realpower.api.tier.Tier;
 public final class HydroPhysics {
     public static final double WATER_DENSITY = 1000.0;
     public static final double GRAVITY = 9.81;
-    /** Vazao (m3/s) que cada bloco de superficie do lago fornece. */
-    public static final double FLOW_PER_SURFACE_BLOCK = 0.02;
+    /**
+     * Vazao (m3/s) que cada bloco de superficie do lago fornece. Calibrada para que o tanque maximo por casa de forca
+     * (64 x 64 = 4096 blocos, ver {@link TankPlan#MAX_SIDE}) sustente a vazao nominal do tier avancado (700 m3/s).
+     */
+    public static final double FLOW_PER_SURFACE_BLOCK = 0.175;
 
     /** Dados de projeto de uma turbina: vazao nominal (m3/s) e faixa de queda util (m). */
     public record Spec(double ratedFlow, double minHead, double maxHead) {

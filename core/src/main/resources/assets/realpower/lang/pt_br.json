@@ -173,5 +173,6 @@
   "menu.realpower.hydro.building": "Construindo tanque... %s%%",
   "message.realpower.tank.started": "Obra do tanque iniciada",
   "message.realpower.tank.running": "Já há um tanque sendo construído aqui",
-  "message.realpower.tank.done": "Tanque concluído"
+  "message.realpower.tank.done": "Tanque concluído",
+  "menu.realpower.hydro.gate": "Abertura da comporta: %s%%"
 }

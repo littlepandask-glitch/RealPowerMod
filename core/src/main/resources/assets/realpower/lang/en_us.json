@@ -173,5 +173,6 @@
   "menu.realpower.hydro.building": "Building tank... %s%%",
   "message.realpower.tank.started": "Tank construction started",
   "message.realpower.tank.running": "A tank is already being built here",
-  "message.realpower.tank.done": "Tank finished"
+  "message.realpower.tank.done": "Tank finished",
+  "menu.realpower.hydro.gate": "Gate opening: %s%%"
 }

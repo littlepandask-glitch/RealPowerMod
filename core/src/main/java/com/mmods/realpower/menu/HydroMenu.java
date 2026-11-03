@@ -18,6 +18,8 @@ import net.minecraft.world.item.ItemStack;
 /** Menu da casa de forca: estado da usina e a obra do tanque (lago) do tamanho que a barragem precisa. */
 public class HydroMenu extends AbstractContainerMenu {
     public static final int BUTTON_BUILD_TANK = 0;
+    /** Botoes 1..101 definem a abertura da comporta em 0..100 %. */
+    public static final int BUTTON_GATE_BASE = 1;
     private static final int REFRESH_TICKS = 20;
 
     private final ContainerLevelAccess access;
@@ -55,6 +57,15 @@ public class HydroMenu extends AbstractContainerMenu {
 
     @Override
     public boolean clickMenuButton(Player player, int id) {
+        if (id >= BUTTON_GATE_BASE && id <= BUTTON_GATE_BASE + 100) {
+            access.execute((level, pos) -> {
+                if (level.getBlockEntity(pos) instanceof HydroUnitBlockEntity unit) {
+                    unit.setGate(id - BUTTON_GATE_BASE);
+                    countdown = 0;
+                }
+            });
+            return true;
+        }
         if (id != BUTTON_BUILD_TANK) {
             return false;
         }

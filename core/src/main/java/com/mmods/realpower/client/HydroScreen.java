@@ -2,6 +2,7 @@ package com.mmods.realpower.client;
 
 import com.mmods.realpower.menu.HydroMenu;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -10,6 +11,7 @@ import net.minecraft.world.entity.player.Inventory;
 /** Tela da casa de forca: queda, vazao, area do lago contra a necessaria e o botao de construir o tanque. */
 public class HydroScreen extends AbstractContainerScreen<HydroMenu> {
     private Button tankButton;
+    private GateSlider gateSlider;
     /** Primeiro clique arma, o segundo confirma. */
     private boolean armed;
 
@@ -23,6 +25,7 @@ public class HydroScreen extends AbstractContainerScreen<HydroMenu> {
     @Override
     protected void init() {
         super.init();
+        gateSlider = addRenderableWidget(new GateSlider(leftPos + 10, topPos + imageHeight - 56, imageWidth - 20, 20, menu.value(13)));
         tankButton = addRenderableWidget(Button.builder(Component.empty(), button -> {
             if (armed) {
                 armed = false;
@@ -35,6 +38,7 @@ public class HydroScreen extends AbstractContainerScreen<HydroMenu> {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        gateSlider.follow(menu.value(13));
         boolean building = menu.value(10) >= 0;
         tankButton.active = !building;
         if (building) {
@@ -68,6 +72,63 @@ public class HydroScreen extends AbstractContainerScreen<HydroMenu> {
         line(graphics, 4, Component.translatable("menu.realpower.hydro.power", menu.value(5)), 0xE0E0E0);
         line(graphics, 5, Component.translatable("menu.realpower.hydro.units", menu.value(6)), 0xE0E0E0);
         line(graphics, 6, Component.translatable("menu.realpower.hydro.tank", menu.value(7), menu.value(8), menu.value(9)), 0x9EC8FF);
+    }
+
+    /** Abertura da comporta em %: o valor vai ao servidor ao soltar o controle (ou ao usar o teclado). */
+    private class GateSlider extends AbstractSliderButton {
+        private boolean dragging;
+
+        GateSlider(int x, int y, int width, int height, int percent) {
+            super(x, y, width, height, Component.empty(), percent / 100.0);
+            updateMessage();
+        }
+
+        int percent() {
+            return (int) Math.round(value * 100.0);
+        }
+
+        /** Acompanha o valor do servidor enquanto o jogador nao esta mexendo no controle. */
+        void follow(int percent) {
+            if (!dragging && !isFocused() && percent() != percent) {
+                value = percent / 100.0;
+                updateMessage();
+            }
+        }
+
+        @Override
+        protected void updateMessage() {
+            setMessage(Component.translatable("menu.realpower.hydro.gate", percent()));
+        }
+
+        @Override
+        protected void applyValue() {
+        }
+
+        @Override
+        public void onClick(double mouseX, double mouseY) {
+            dragging = true;
+            super.onClick(mouseX, mouseY);
+        }
+
+        @Override
+        public void onRelease(double mouseX, double mouseY) {
+            super.onRelease(mouseX, mouseY);
+            dragging = false;
+            send();
+        }
+
+        @Override
+        public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+            boolean handled = super.keyPressed(keyCode, scanCode, modifiers);
+            if (handled) {
+                send();
+            }
+            return handled;
+        }
+
+        private void send() {
+            minecraft.gameMode.handleInventoryButtonClick(menu.containerId, HydroMenu.BUTTON_GATE_BASE + percent());
+        }
     }
 
     private void line(GuiGraphics graphics, int row, Component text, int color) {

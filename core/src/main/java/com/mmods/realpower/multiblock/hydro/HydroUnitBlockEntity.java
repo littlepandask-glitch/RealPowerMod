@@ -25,7 +25,7 @@ import net.neoforged.neoforge.energy.IEnergyStorage;
 /** Gerador da casa de forca: potencia pela queda e vazao medidas pela varredura da barragem ({@link DamScan}). */
 public class HydroUnitBlockEntity extends AbstractGeneratorBlockEntity implements MenuProvider {
     /** Campos do menu (cada um em 2 slots de 16 bits, pois o canal de dados do menu leva apenas shorts). */
-    public static final int INFO_COUNT = 13;
+    public static final int INFO_COUNT = 14;
     private final int[] info = new int[INFO_COUNT];
     private double lakeSurfaceY;
     private int lakeArea;
@@ -87,9 +87,15 @@ public class HydroUnitBlockEntity extends AbstractGeneratorBlockEntity implement
         block().setConduit(level, pos, getBlockState(), generating());
     }
 
-    /** Abertura da comporta (0..1): fechada se nao gera, aberta no limite escolhido se gera. */
+    /** Abertura da comporta (0..1): o percentual escolhido no menu (ou pelo computador), fechada se a usina esta desligada ou desfeita. */
     public double gateOpening() {
-        return generating() ? Math.max(0.15, limit() / 100.0) : 0.0;
+        return isFormed() && enabled() ? limit() / 100.0 : 0.0;
+    }
+
+    /** Define a abertura da comporta (0..100 %) e avisa os clientes na hora, para a animacao acompanhar. */
+    public void setGate(int percent) {
+        setLimit(percent);
+        syncToClient();
     }
 
     /** Fracao da vazao do lago que cabe a esta unidade entre as da mesma barragem (proporcional a vazao nominal). */
@@ -192,6 +198,7 @@ public class HydroUnitBlockEntity extends AbstractGeneratorBlockEntity implement
         info[10] = TankJob.percent(server, pos);
         info[11] = (int) Math.round(HydroPhysics.flow(tier(), lakeArea * share) * 10.0);
         info[12] = enabled() ? 1 : 0;
+        info[13] = limit();
     }
 
     private final ContainerData menuData = new ContainerData() {

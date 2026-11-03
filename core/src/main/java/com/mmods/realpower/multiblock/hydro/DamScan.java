@@ -180,7 +180,8 @@ public class DamScan implements StructureScan {
         for (Direction dir : Direction.Plane.HORIZONTAL) {
             BlockPos next = current.relative(dir);
             reads++;
-            if (!visited.contains(next.asLong()) && load(next) && isWater(next)) {
+            // chunk descarregado na borda do lago: conta so o que esta carregado, em vez de abortar a varredura para sempre
+            if (!visited.contains(next.asLong()) && level.isLoaded(next) && isWater(next)) {
                 visited.add(next.asLong());
                 queue.add(next);
                 area++;

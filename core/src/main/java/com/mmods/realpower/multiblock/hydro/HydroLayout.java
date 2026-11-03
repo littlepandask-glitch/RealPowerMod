@@ -33,18 +33,16 @@ public final class HydroLayout {
      * salao ate o canal de fuga do patio (y=1), de onde ela cai no terreno a jusante. Fechadas, sao solidas ou ocas como o resto.
      */
     public static boolean conduit(int width, int height, int depth, int lx, int lz, int y) {
-        if (lx != 0) {
-            return false;
-        }
         int halfD = (depth - 1) / 2;
         int hall = -halfD + APRON;
-        if (lz >= hall) {
-            return y == 2 && lz <= halfD;
+        if (Math.abs(lx) > (width - 1) / 2 || lz < -halfD || lz > halfD) {
+            return false;
         }
-        if (lz == hall - 1) {
-            return y == 1 || y == 2;
+        if (lz < hall) {
+            // patio de jusante: a agua sai por toda a area livre, na largura inteira da unidade
+            return y == 1 || lx == 0 && lz == hall - 1 && y == 2;
         }
-        return lz >= -halfD && y == 1;
+        return lx == 0 && y == 2;
     }
 
     public static boolean solid(int width, int height, int depth, int lx, int lz, int y) {

@@ -75,7 +75,9 @@ public final class HydroGameTests {
         helper.assertTrue(HydroPhysics.watts(Tier.ADVANCED, 10.0, 1_000_000.0) == 0.0, "queda abaixo do minimo nao gera");
         helper.assertTrue(HydroPhysics.watts(Tier.ADVANCED, 500.0, 1_000_000.0) == HydroPhysics.watts(Tier.ADVANCED, 120.0, 1_000_000.0),
                 "queda e limitada ao maximo de projeto");
-        helper.assertTrue(HydroPhysics.flow(Tier.HIGH_VOLTAGE, 1000.0) == 20.0, "lago pequeno limita a vazao: " + HydroPhysics.flow(Tier.HIGH_VOLTAGE, 1000.0));
+        helper.assertTrue(Math.abs(HydroPhysics.flow(Tier.HIGH_VOLTAGE, 400.0) - 400.0 * HydroPhysics.FLOW_PER_SURFACE_BLOCK) < 1e-9,
+                "lago pequeno limita a vazao: " + HydroPhysics.flow(Tier.HIGH_VOLTAGE, 400.0));
+        helper.assertTrue(HydroPhysics.flow(Tier.ADVANCED, 64 * 64) >= 700.0 - 1e-9, "um tanque 64x64 sustenta a vazao do tier avancado");
         helper.succeed();
     }
 
@@ -369,13 +371,41 @@ public final class HydroGameTests {
             }
             level.setBlock(at, state, 3);
         }
+        int secondLx = com.mmods.realpower.cable.CableBlock.unrotate(base, Direction.NORTH, second)[0];
+        int halfW = (HydroUnitBlock.size(Tier.INDUSTRIAL)[0] - 1) / 2;
+        int halfD = (HydroUnitBlock.size(Tier.INDUSTRIAL)[2] - 1) / 2;
+        for (int lx : new int[]{Math.min(0, secondLx) - halfW - 1, Math.max(0, secondLx) + halfW + 1}) {
+            for (int y = 0; y <= 11; y++) {
+                level.setBlock(com.mmods.realpower.cable.CableBlock.rotate(base, Direction.NORTH, lx, halfD, y), ModBlocks.DAM_CONCRETE.get().defaultBlockState(), 2);
+            }
+        }
         var single = com.mmods.realpower.multiblock.hydro.TankPlan.of(level, base, state);
+        helper.assertTrue(single.depth() == 10, "profundidade pedida cabe na barragem: " + single.depth());
         helper.assertTrue(single.units() == 2, "unidades na barragem = " + single.units());
         HydroPhysics.Spec spec = HydroPhysics.spec(Tier.INDUSTRIAL);
         helper.assertTrue(single.neededArea() == (int) Math.ceil(2 * spec.ratedFlow() / HydroPhysics.FLOW_PER_SURFACE_BLOCK), "area necessaria = " + single.neededArea());
         helper.assertTrue((long) single.width() * single.length() >= single.neededArea(), "tanque menor que a area necessaria");
         helper.assertTrue(single.depth() - HydroUnitBlock.turbineHeight(Tier.INDUSTRIAL) >= spec.minHead(), "tanque raso demais para a queda minima");
         helper.assertTrue(single.lxMin() <= -HydroUnitBlock.size(Tier.INDUSTRIAL)[0] / 2 && single.lxMax() >= HydroUnitBlock.size(Tier.INDUSTRIAL)[0] * 3 / 2 - 1, "tanque nao cobre as duas unidades");
+        helper.succeed();
+    }
+
+    /** O tanque nunca passa de 64 x 64 por casa de forca nem da altura da barragem. */
+    @GameTest(template = "empty", timeoutTicks = 100, batch = "hydro")
+    public static void tankPlanIsCappedBySizeAndDamHeight(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos base = helper.absolutePos(new BlockPos(8, 2, 8));
+        BlockState state = unit(Tier.ADVANCED, Direction.NORTH);
+        HydroUnitBlock block = (HydroUnitBlock) state.getBlock();
+        for (BlockPos cell : block.structureCells(base, state)) {
+            level.setBlock(cell, Blocks.AIR.defaultBlockState(), 2);
+        }
+        level.setBlock(base, state, 3);
+        var plan = com.mmods.realpower.multiblock.hydro.TankPlan.of(level, base, state);
+        int max = com.mmods.realpower.multiblock.hydro.TankPlan.MAX_SIDE;
+        helper.assertTrue(plan.width() <= max && plan.length() <= max, "tanque maior que 64x64: " + plan.width() + "x" + plan.length());
+        helper.assertTrue((long) plan.width() * plan.length() >= plan.neededArea(), "tanque menor que a vazao nominal");
+        helper.assertTrue(plan.depth() < HydroUnitBlock.size(Tier.ADVANCED)[1], "tanque mais alto que a barragem: " + plan.depth());
         helper.succeed();
     }
 
@@ -422,7 +452,12 @@ public final class HydroGameTests {
         block.setConduit(level, base, state, true);
         helper.assertTrue(level.getBlockState(wallCell).is(Blocks.WATER), "falta agua na tomada");
         helper.assertTrue(level.getBlockState(outlet).is(Blocks.WATER), "falta agua na saida");
-        helper.assertTrue(level.getBlockState(beside).getBlock() instanceof PowerStructureBlock, "o conduto nao devia alargar");
+        helper.assertTrue(level.getBlockState(beside).getBlock() instanceof PowerStructureBlock, "a tomada nao devia alargar");
+        int halfW = (size[0] - 1) / 2;
+        for (int lx = -halfW; lx <= halfW; lx++) {
+            helper.assertTrue(level.getBlockState(com.mmods.realpower.cable.CableBlock.rotate(base, Direction.NORTH, lx, -halfD, 1)).is(Blocks.WATER),
+                    "a agua devia sair por toda a largura do patio (lx=" + lx + ")");
+        }
         helper.assertTrue(level.getBlockState(base).getBlock() == state.getBlock(), "unidade quebrou ao abrir");
         block.ensureStructure(level, base, state);
         helper.assertTrue(level.getBlockState(wallCell).is(Blocks.WATER), "o reparo devia respeitar o conduto aberto");

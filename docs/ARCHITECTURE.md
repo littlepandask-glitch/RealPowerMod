@@ -159,3 +159,9 @@ depois sem reescrever receitas. O aco do mod e registrado em `c:ingots/steel`.
 - Comportas: a tomada tem uma comporta de aco (`HydroModel.gate`) que sobe conforme `gateOpening()` (desligado = fechada, ligado = limite %), com guias e cabrestante no topo.
 - Sala de comando (`computer/ControlRoomBlock extends ComputerBlock`, 9x5x7, tier Alta tensao = 128 equipamentos): predio em que se entra (porta na frente, mesa ao fundo); usar a mesa abre o menu do computador. Portas de dados no piso, no meio das paredes laterais. Modelo: `ControlRoomModel`.
 
+### Represa: tanque, saida e comporta (ajuste)
+- `TankPlan`: tanque limitado a 64 x 64 (`MAX_SIDE`) por casa de forca e a altura da barragem (colunas de `DamBlock` emendadas as unidades, no minimo a altura da unidade); `FLOW_PER_SURFACE_BLOCK` = 0,175 m3/s por bloco, calibrado para que 64 x 64 sustente os 700 m3/s do tier avancado. Se a barragem for baixa, a queda fica abaixo do minimo e a tela mostra isso.
+- `DamScan`: a contagem da area do lago ignora chunks descarregados na borda (nao aborta mais a varredura).
+- `HydroLayout.conduit`: a agua sai por todo o patio de jusante (largura inteira, y=1); a tomada continua um conduto central.
+- Comporta: slider no menu (botoes 1..101 do `HydroMenu` -> `HydroUnitBlockEntity.setGate` = `limit`); `gateOpening()` = limite quando formada e ligada, e o renderer sobe a comporta proporcionalmente.
+

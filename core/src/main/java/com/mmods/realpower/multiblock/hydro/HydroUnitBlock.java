@@ -179,7 +179,7 @@ public class HydroUnitBlock extends BaseEntityBlock implements Tiered, Structure
                                 : HydroLayout.solid(size[0], size[1], size[2], lx, lz, y) ? ModBlocks.HYDRO_STRUCTURE.get()
                                 : ModBlocks.STRUCTURE_HOLLOW.get();
                         BlockState current = level.getBlockState(cell);
-                        if (current.is(net.minecraft.world.level.block.Blocks.WATER) && lx == 0
+                        if (current.is(net.minecraft.world.level.block.Blocks.WATER)
                                 && HydroLayout.conduit(size[0], size[1], size[2], lx, lz, y)) {
                             continue; // conduto aberto: agua passando
                         }
@@ -202,25 +202,28 @@ public class HydroUnitBlock extends BaseEntityBlock implements Tiered, Structure
         Direction facing = state.getValue(FACING);
         PowerStructureBlock.healing = true;
         try {
-            for (int lz = -halfD; lz <= halfD; lz++) {
-                for (int y = 1; y <= 2; y++) {
-                    if (!HydroLayout.conduit(size[0], size[1], size[2], 0, lz, y)) {
-                        continue;
-                    }
-                    BlockPos cell = CableBlock.rotate(base, facing, 0, lz, y);
-                    if (!level.isLoaded(cell)) {
-                        continue;
-                    }
-                    BlockState current = level.getBlockState(cell);
-                    if (open) {
-                        if (current.getBlock() instanceof PowerStructureBlock || current.canBeReplaced()
-                                || current.is(net.minecraft.world.level.block.Blocks.WATER) && !current.getFluidState().isSource()) {
-                            level.setBlock(cell, net.minecraft.world.level.block.Blocks.WATER.defaultBlockState(), Block.UPDATE_ALL);
+            int halfW = (size[0] - 1) / 2;
+            for (int lx = -halfW; lx <= halfW; lx++) {
+                for (int lz = -halfD; lz <= halfD; lz++) {
+                    for (int y = 1; y <= 2; y++) {
+                        if (!HydroLayout.conduit(size[0], size[1], size[2], lx, lz, y)) {
+                            continue;
                         }
-                    } else if (current.is(net.minecraft.world.level.block.Blocks.WATER)) {
-                        Block closed = HydroLayout.solid(size[0], size[1], size[2], 0, lz, y) ? ModBlocks.HYDRO_STRUCTURE.get()
-                                : ModBlocks.STRUCTURE_HOLLOW.get();
-                        level.setBlock(cell, closed.defaultBlockState(), Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
+                        BlockPos cell = CableBlock.rotate(base, facing, lx, lz, y);
+                        if (!level.isLoaded(cell)) {
+                            continue;
+                        }
+                        BlockState current = level.getBlockState(cell);
+                        if (open) {
+                            if (current.getBlock() instanceof PowerStructureBlock || current.canBeReplaced()
+                                    || current.is(net.minecraft.world.level.block.Blocks.WATER) && !current.getFluidState().isSource()) {
+                                level.setBlock(cell, net.minecraft.world.level.block.Blocks.WATER.defaultBlockState(), Block.UPDATE_ALL);
+                            }
+                        } else if (current.is(net.minecraft.world.level.block.Blocks.WATER)) {
+                            Block closed = HydroLayout.solid(size[0], size[1], size[2], lx, lz, y) ? ModBlocks.HYDRO_STRUCTURE.get()
+                                    : ModBlocks.STRUCTURE_HOLLOW.get();
+                            level.setBlock(cell, closed.defaultBlockState(), Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
+                        }
                     }
                 }
             }
