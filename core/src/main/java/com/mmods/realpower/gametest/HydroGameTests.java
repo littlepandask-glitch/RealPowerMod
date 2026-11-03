@@ -11,6 +11,7 @@ import com.mmods.realpower.cable.PowerStructureBlock;
 import com.mmods.realpower.multiblock.hydro.HydroPhysics;
 import com.mmods.realpower.multiblock.hydro.HydroUnitBlock;
 import com.mmods.realpower.multiblock.hydro.HydroUnitBlockEntity;
+import com.mmods.realpower.multiblock.hydro.TankJob;
 import com.mmods.realpower.multiblock.hydro.TerraformJob;
 import com.mmods.realpower.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
@@ -348,6 +349,56 @@ public final class HydroGameTests {
                 helper.assertTrue(box.getXSpan() * box.getZSpan() == size[0] * size[2], what + ": area");
             }
         }
+        helper.succeed();
+    }
+
+    /** O tanque cobre a vazao nominal de todas as unidades da barragem e a queda minima. */
+    @GameTest(template = "empty", timeoutTicks = 100, batch = "hydro")
+    public static void tankPlanCoversEveryUnitOnTheDam(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos base = helper.absolutePos(new BlockPos(8, 2, 8));
+        BlockState state = unit(Tier.INDUSTRIAL, Direction.NORTH);
+        HydroUnitBlock block = (HydroUnitBlock) state.getBlock();
+        for (int dx = -16; dx <= 16; dx += 16) {
+            level.getChunk(base.offset(dx, 0, 0));
+        }
+        BlockPos second = base.relative(Direction.NORTH.getClockWise(), HydroUnitBlock.size(Tier.INDUSTRIAL)[0]);
+        for (BlockPos at : new BlockPos[]{base, second}) {
+            for (BlockPos cell : block.structureCells(at, state)) {
+                level.setBlock(cell, Blocks.AIR.defaultBlockState(), 2);
+            }
+            level.setBlock(at, state, 3);
+        }
+        var single = com.mmods.realpower.multiblock.hydro.TankPlan.of(level, base, state);
+        helper.assertTrue(single.units() == 2, "unidades na barragem = " + single.units());
+        HydroPhysics.Spec spec = HydroPhysics.spec(Tier.INDUSTRIAL);
+        helper.assertTrue(single.neededArea() == (int) Math.ceil(2 * spec.ratedFlow() / HydroPhysics.FLOW_PER_SURFACE_BLOCK), "area necessaria = " + single.neededArea());
+        helper.assertTrue((long) single.width() * single.length() >= single.neededArea(), "tanque menor que a area necessaria");
+        helper.assertTrue(single.depth() - HydroUnitBlock.turbineHeight(Tier.INDUSTRIAL) >= spec.minHead(), "tanque raso demais para a queda minima");
+        helper.assertTrue(single.lxMin() <= -HydroUnitBlock.size(Tier.INDUSTRIAL)[0] / 2 && single.lxMax() >= HydroUnitBlock.size(Tier.INDUSTRIAL)[0] * 3 / 2 - 1, "tanque nao cobre as duas unidades");
+        helper.succeed();
+    }
+
+    /** A obra poe laje de concreto, paredes cinzas e agua sem derrubar a casa de forca. */
+    @GameTest(template = "empty", timeoutTicks = 100, batch = "hydro")
+    public static void tankJobBuildsTheBasin(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos base = helper.absolutePos(new BlockPos(8, 2, 8));
+        BlockState state = unit(Tier.INDUSTRIAL, Direction.NORTH);
+        HydroUnitBlock block = (HydroUnitBlock) state.getBlock();
+        for (BlockPos cell : block.structureCells(base, state)) {
+            level.setBlock(cell, Blocks.AIR.defaultBlockState(), 2);
+        }
+        level.setBlock(base, state, 3);
+        var plan = new com.mmods.realpower.multiblock.hydro.TankPlan(base, Direction.NORTH, 1, 100, -5, 5, 5, 8, 2, 3);
+        var job = TankJob.of(level, plan);
+        helper.assertTrue(job.advance(Integer.MAX_VALUE), "obra nao terminou");
+        helper.assertTrue(level.getBlockState(plan.world(0, 6, 0)).is(Blocks.WATER), "falta agua no tanque");
+        helper.assertTrue(level.getBlockState(plan.world(0, 6, 2)).is(Blocks.WATER) && level.getBlockState(plan.world(0, 6, 3)).isAir(), "profundidade errada");
+        helper.assertTrue(level.getBlockState(plan.world(-6, 6, 1)).is(Blocks.GRAY_CONCRETE), "falta parede lateral");
+        helper.assertTrue(level.getBlockState(plan.world(0, 10, 1)).is(Blocks.GRAY_CONCRETE), "falta parede de fundo");
+        helper.assertTrue(level.getBlockState(plan.world(5, 3, 1)).is(ModBlocks.DAM_CONCRETE.get()), "falta laje da barragem");
+        helper.assertTrue(level.getBlockState(base).getBlock() == state.getBlock(), "casa de forca nao devia ser tocada");
         helper.succeed();
     }
 

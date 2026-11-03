@@ -160,5 +160,18 @@
   "item.realpower.dam_crest_high_voltage": "Dam Crest Module (High Voltage)",
   "item.realpower.dam_wall_advanced": "Dam Wall Module (Advanced)",
   "item.realpower.dam_crest_advanced": "Dam Crest Module (Advanced)",
-  "message.realpower.dam_module.blocked": "Something is in the way of the module"
+  "message.realpower.dam_module.blocked": "Something is in the way of the module",
+  "menu.realpower.hydro.idle": "Not generating",
+  "menu.realpower.hydro.head": "Head: %1$s m (minimum %2$s m)",
+  "menu.realpower.hydro.lake": "Lake: %1$s m2 (needed %2$s m2)",
+  "menu.realpower.hydro.flow": "Flow: %s m3/s",
+  "menu.realpower.hydro.power": "Output: %s kW",
+  "menu.realpower.hydro.units": "Powerhouses on this dam: %s",
+  "menu.realpower.hydro.tank": "Tank: %1$s x %2$s m, %3$s m deep",
+  "menu.realpower.hydro.build": "Build tank",
+  "menu.realpower.hydro.build_confirm": "Click again: build tank",
+  "menu.realpower.hydro.building": "Building tank... %s%%",
+  "message.realpower.tank.started": "Tank construction started",
+  "message.realpower.tank.running": "A tank is already being built here",
+  "message.realpower.tank.done": "Tank finished"
 }

@@ -160,5 +160,18 @@
   "item.realpower.dam_crest_high_voltage": "Módulo de Crista (Alta Tensão)",
   "item.realpower.dam_wall_advanced": "Módulo de Muro (Avançado)",
   "item.realpower.dam_crest_advanced": "Módulo de Crista (Avançado)",
-  "message.realpower.dam_module.blocked": "Há algo no caminho do módulo"
+  "message.realpower.dam_module.blocked": "Há algo no caminho do módulo",
+  "menu.realpower.hydro.idle": "Sem gerar",
+  "menu.realpower.hydro.head": "Queda: %1$s m (mínimo %2$s m)",
+  "menu.realpower.hydro.lake": "Lago: %1$s m2 (necessário %2$s m2)",
+  "menu.realpower.hydro.flow": "Vazão: %s m3/s",
+  "menu.realpower.hydro.power": "Saída: %s kW",
+  "menu.realpower.hydro.units": "Casas de força nesta represa: %s",
+  "menu.realpower.hydro.tank": "Tanque: %1$s x %2$s m, %3$s m de profundidade",
+  "menu.realpower.hydro.build": "Construir tanque",
+  "menu.realpower.hydro.build_confirm": "Clique de novo: construir tanque",
+  "menu.realpower.hydro.building": "Construindo tanque... %s%%",
+  "message.realpower.tank.started": "Obra do tanque iniciada",
+  "message.realpower.tank.running": "Já há um tanque sendo construído aqui",
+  "message.realpower.tank.done": "Tanque concluído"
 }

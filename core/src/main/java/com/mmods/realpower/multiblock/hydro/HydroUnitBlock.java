@@ -227,6 +227,16 @@ public class HydroUnitBlock extends BaseEntityBlock implements Tiered, Structure
     }
 
     @Override
+    protected net.minecraft.world.InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
+                                                                  net.minecraft.world.entity.player.Player player,
+                                                                  net.minecraft.world.phys.BlockHitResult hit) {
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof HydroUnitBlockEntity unit) {
+            player.openMenu(unit, pos);
+        }
+        return net.minecraft.world.InteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new HydroUnitBlockEntity(pos, state);
     }

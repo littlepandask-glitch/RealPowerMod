@@ -6,7 +6,16 @@ import com.mmods.realpower.generator.AbstractGeneratorBlockEntity;
 import com.mmods.realpower.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import com.mmods.realpower.menu.HydroMenu;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -14,7 +23,10 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 
 /** Gerador da casa de forca: potencia pela queda e vazao medidas pela varredura da barragem ({@link DamScan}). */
-public class HydroUnitBlockEntity extends AbstractGeneratorBlockEntity {
+public class HydroUnitBlockEntity extends AbstractGeneratorBlockEntity implements MenuProvider {
+    /** Campos do menu (cada um em 2 slots de 16 bits, pois o canal de dados do menu leva apenas shorts). */
+    public static final int INFO_COUNT = 13;
+    private final int[] info = new int[INFO_COUNT];
     private double lakeSurfaceY;
     private int lakeArea;
 
@@ -52,17 +64,28 @@ public class HydroUnitBlockEntity extends AbstractGeneratorBlockEntity {
         return lakeArea <= 0 ? 0.0 : Math.max(0.0, lakeSurfaceY - (getBlockPos().getY() + HydroUnitBlock.turbineHeight(tier())));
     }
 
-    /** Carga da turbina (0..1) para a animacao: potencia entregue em relacao a nominal. */
-    public double runFraction() {
-        if (!isFormed() || !enabled()) {
-            return 0.0;
-        }
-        return Math.min(1.0, powerWatts() * limit() / 100.0 / Math.max(1.0, ratedOutputWatts()));
+    /** A usina esta gerando: formada, ligada, comporta aberta e ha queda e agua. */
+    public boolean generating() {
+        return isFormed() && enabled() && limit() > 0 && powerWatts() > 0.0;
     }
 
-    /** Abertura da comporta (0..1): fechada desligada, aberta no limite escolhido. */
+    /** Rotacao da turbina (0..1) para a animacao: parada sem geracao; girando sempre, mais rapido com mais carga. */
+    public double runFraction() {
+        if (!generating()) {
+            return 0.0;
+        }
+        return 0.45 + 0.55 * Math.min(1.0, powerWatts() * limit() / 100.0 / Math.max(1.0, ratedOutputWatts()));
+    }
+
+    /** Abertura da comporta (0..1): fechada se nao gera, aberta no limite escolhido se gera. */
     public double gateOpening() {
-        return enabled() ? limit() / 100.0 : 0.0;
+        return generating() ? Math.max(0.15, limit() / 100.0) : 0.0;
+    }
+
+    /** Fracao da vazao do lago que cabe a esta unidade entre as da mesma barragem (proporcional a vazao nominal). */
+    private double flowShare(Level level, BlockPos pos) {
+        double own = HydroPhysics.spec(tier()).ratedFlow();
+        return own / Math.max(own, DamUnits.ratedFlow(level, pos, getBlockState()));
     }
 
     public int lakeArea() {
@@ -71,7 +94,7 @@ public class HydroUnitBlockEntity extends AbstractGeneratorBlockEntity {
 
     @Override
     protected double currentOutputWatts(Level level, BlockPos pos) {
-        return HydroPhysics.watts(tier(), grossHead(), lakeArea);
+        return HydroPhysics.watts(tier(), grossHead(), lakeArea * flowShare(level, pos));
     }
 
     @Override
@@ -134,6 +157,57 @@ public class HydroUnitBlockEntity extends AbstractGeneratorBlockEntity {
     @Override
     protected IEnergyStorage extraOutput(Level level) {
         return ports;
+    }
+
+    /** Recalcula (no servidor) os dados mostrados no menu. */
+    public void refreshInfo() {
+        if (!(level instanceof ServerLevel server)) {
+            return;
+        }
+        BlockPos pos = getBlockPos();
+        TankPlan plan = TankPlan.of(server, pos, getBlockState());
+        double share = flowShare(server, pos);
+        info[0] = isFormed() ? 1 : 0;
+        info[1] = lakeArea;
+        info[2] = plan.neededArea();
+        info[3] = (int) Math.round(grossHead() * 10.0);
+        info[4] = (int) Math.round(HydroPhysics.spec(tier()).minHead() * 10.0);
+        info[5] = (int) Math.round(powerWatts() * limit() / 100.0 / 1000.0);
+        info[6] = plan.units();
+        info[7] = plan.width();
+        info[8] = plan.length();
+        info[9] = plan.depth();
+        info[10] = TankJob.percent(server, pos);
+        info[11] = (int) Math.round(HydroPhysics.flow(tier(), lakeArea * share) * 10.0);
+        info[12] = enabled() ? 1 : 0;
+    }
+
+    private final ContainerData menuData = new ContainerData() {
+        @Override
+        public int get(int index) {
+            int value = info[index / 2];
+            return index % 2 == 0 ? value & 0xFFFF : value >> 16;
+        }
+
+        @Override
+        public void set(int index, int value) {
+        }
+
+        @Override
+        public int getCount() {
+            return INFO_COUNT * 2;
+        }
+    };
+
+    @Override
+    public Component getDisplayName() {
+        return Component.translatable(getBlockState().getBlock().getDescriptionId());
+    }
+
+    @Override
+    public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
+        refreshInfo();
+        return new HydroMenu(containerId, inventory, ContainerLevelAccess.create(level, worldPosition), menuData);
     }
 
     @Override

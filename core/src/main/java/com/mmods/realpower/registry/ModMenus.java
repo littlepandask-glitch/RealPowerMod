@@ -2,6 +2,7 @@ package com.mmods.realpower.registry;
 
 import com.mmods.realpower.RealPower;
 import com.mmods.realpower.computer.ComputerMenu;
+import com.mmods.realpower.menu.HydroMenu;
 import com.mmods.realpower.menu.TurbineMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
@@ -15,6 +16,9 @@ public final class ModMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<TurbineMenu>> WIND_TURBINE =
             MENUS.register("wind_turbine", () -> IMenuTypeExtension.create(TurbineMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<HydroMenu>> HYDRO_UNIT =
+            MENUS.register("hydro_unit", () -> IMenuTypeExtension.create(HydroMenu::new));
 
     public static final DeferredHolder<MenuType<?>, MenuType<ComputerMenu>> COMPUTER =
             MENUS.register("computer", () -> IMenuTypeExtension.create(ComputerMenu::new));

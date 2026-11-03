@@ -23,7 +23,7 @@ import net.minecraft.world.level.block.state.BlockState;
 public class DamScan implements StructureScan {
     public static final int MAX_ROWS = 150;
     public static final int MAX_HALF_WIDTH = 200;
-    public static final int AREA_CAP = 50_000;
+    public static final int AREA_CAP = 120_000;
 
     private enum Phase { WATER, WALL, AREA, DONE }
 
