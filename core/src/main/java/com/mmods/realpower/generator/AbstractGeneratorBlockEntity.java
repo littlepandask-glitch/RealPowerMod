@@ -67,6 +67,10 @@ public abstract class AbstractGeneratorBlockEntity extends BlockEntity implement
     /** Potencia nominal (W) da estrutura formada; base do tamanho do buffer. */
     protected abstract double ratedOutputWatts();
 
+    /** Chamado a cada intervalo de fisica (formado ou nao), depois de atualizar a potencia. */
+    protected void afterPhysics(Level level, BlockPos pos) {
+    }
+
     /** Saida extra alem dos vizinhos diretos (ex.: porta de energia da turbina), ou {@code null}. */
     protected IEnergyStorage extraOutput(Level level) {
         return null;
@@ -94,6 +98,9 @@ public abstract class AbstractGeneratorBlockEntity extends BlockEntity implement
             fePerTick = PowerScale.toFePerTick(powerWatts);
             setChanged();
             syncToClient();
+        }
+        if (age % PHYSICS_INTERVAL == 0) {
+            afterPhysics(level, pos);
         }
 
         if (formed && enabled && fePerTick > 0.0) {

@@ -19,10 +19,6 @@ public final class HydroModel {
     private static final float[] STEEL_DARK = {0.22f, 0.24f, 0.27f};
     private static final float[] RACK = {0.07f, 0.08f, 0.10f};
     private static final float[] WATER = {0.12f, 0.24f, 0.34f};
-    private static final float[] RIVER = {0.16f, 0.36f, 0.50f};
-    private static final float[] FOAM = {0.82f, 0.90f, 0.94f};
-    /** Comprimento (m) do rio de saida que a casa de forca despeja a jusante. */
-    public static final double OUTFLOW_LENGTH = 9.0;
     private static final float[] YELLOW = {0.82f, 0.66f, 0.12f};
     private static final float[] GENERATOR = {0.20f, 0.37f, 0.47f};
 
@@ -223,47 +219,6 @@ public final class HydroModel {
             b.box(v(sx * (iw / 2 + 0.02), (y0 + y1) / 2, z), 0.2, y1 - y0, 0.3, STEEL_DARK);
         }
         b.box(v(0, y1 + 0.1, z), 0.4, 0.3, 0.3, YELLOW);
-        return b.build();
-    }
-
-    /**
-     * Agua saindo da turbina: lamina que cai da borda do canal de fuga, rio que se abre sobre o chao a jusante e faixas de espuma
-     * que correm no sentido do fluxo ({@code phase} 0..1 avanca com o tempo). Referencial da unidade; so se desenha com a usina gerando.
-     */
-    public static Mesh outflow(int w, int d, double phase, double strength) {
-        Mesh.Builder b = new Mesh.Builder();
-        double hw = w / 2.0;
-        double hd = d / 2.0;
-        double tail = Math.max(1.0, hw - 1.6);
-        double len = OUTFLOW_LENGTH * (0.6 + 0.4 * strength);
-        double drop = 1.03;
-        // lamina vertical da borda do canal ate o chao
-        b.box(v(0, drop / 2, -hd - 0.04), tail * 2, drop, 0.08, RIVER);
-        for (int i = 0; i < 4; i++) {
-            double y = drop - ((i + phase * 3) % 4) / 4.0 * drop;
-            b.box(v(0, y, -hd - 0.09), tail * 2 - 0.2, 0.14, 0.04, FOAM);
-        }
-        // rio sobre o chao: alarga com a distancia
-        double spread = 4.0;
-        for (int i = 0; i < 6; i++) {
-            double s0 = i / 6.0;
-            double s1 = (i + 1) / 6.0;
-            double wm = tail * 2 + spread * (s0 + s1) / 2;
-            b.box(v(0, 0.04, -hd - 0.1 - len * (s0 + s1) / 2), wm, 0.04, len / 6 + 0.02, RIVER);
-        }
-        // faixas de espuma que correm e somem
-        int stripes = 7;
-        for (int i = 0; i < stripes; i++) {
-            double s = ((i + phase) % stripes) / stripes;
-            double thick = 0.08 + 0.45 * Math.sin(Math.PI * s);
-            double width = (tail * 2 + spread * s) * 0.85 * (0.4 + 0.6 * Math.sin(Math.PI * s));
-            b.box(v(0, 0.075, -hd - 0.1 - len * s), width, 0.03, thick, FOAM);
-        }
-        // faixas no proprio canal de fuga
-        for (int i = 0; i < 3; i++) {
-            double s = ((i + phase) % 3) / 3.0;
-            b.box(v(0, 1.07, -hd + APRON - APRON * s), tail * 2 - 0.4, 0.03, 0.12 + 0.3 * Math.sin(Math.PI * s), FOAM);
-        }
         return b.build();
     }
 

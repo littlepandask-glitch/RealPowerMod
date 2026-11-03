@@ -29,6 +29,8 @@ public class HydroUnitBlockEntity extends AbstractGeneratorBlockEntity implement
     private final int[] info = new int[INFO_COUNT];
     private double lakeSurfaceY;
     private int lakeArea;
+    /** Vazao turbinada em relacao a nominal (0..1), medida pela fisica e enviada ao cliente para a animacao. */
+    private double flowFraction;
 
     public HydroUnitBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.HYDRO_UNIT.get(), pos, state, ((Tiered) state.getBlock()).tier());
@@ -69,12 +71,20 @@ public class HydroUnitBlockEntity extends AbstractGeneratorBlockEntity implement
         return isFormed() && enabled() && limit() > 0 && powerWatts() > 0.0;
     }
 
-    /** Rotacao da turbina (0..1) para a animacao: parada sem geracao; girando sempre, mais rapido com mais carga. */
+    /** Rotacao da turbina (0..1) para a animacao: acompanha a vazao de agua que passa (e a comporta), parada sem geracao. */
     public double runFraction() {
         if (!generating()) {
             return 0.0;
         }
-        return 0.45 + 0.55 * Math.min(1.0, powerWatts() * limit() / 100.0 / Math.max(1.0, ratedOutputWatts()));
+        return 0.12 + 0.88 * Math.min(1.0, flowFraction * limit() / 100.0);
+    }
+
+    @Override
+    protected void afterPhysics(Level level, BlockPos pos) {
+        if (level.isClientSide) {
+            return;
+        }
+        block().setConduit(level, pos, getBlockState(), generating());
     }
 
     /** Abertura da comporta (0..1): fechada se nao gera, aberta no limite escolhido se gera. */
@@ -94,7 +104,9 @@ public class HydroUnitBlockEntity extends AbstractGeneratorBlockEntity implement
 
     @Override
     protected double currentOutputWatts(Level level, BlockPos pos) {
-        return HydroPhysics.watts(tier(), grossHead(), lakeArea * flowShare(level, pos));
+        double area = lakeArea * flowShare(level, pos);
+        flowFraction = HydroPhysics.flow(tier(), area) / HydroPhysics.spec(tier()).ratedFlow();
+        return HydroPhysics.watts(tier(), grossHead(), area);
     }
 
     @Override
@@ -215,6 +227,7 @@ public class HydroUnitBlockEntity extends AbstractGeneratorBlockEntity implement
         super.saveAdditional(tag, registries);
         tag.putDouble("LakeSurface", lakeSurfaceY);
         tag.putInt("LakeArea", lakeArea);
+        tag.putDouble("FlowFraction", flowFraction);
     }
 
     @Override
@@ -222,5 +235,6 @@ public class HydroUnitBlockEntity extends AbstractGeneratorBlockEntity implement
         super.loadAdditional(tag, registries);
         lakeSurfaceY = tag.getDouble("LakeSurface");
         lakeArea = tag.getInt("LakeArea");
+        flowFraction = tag.getDouble("FlowFraction");
     }
 }

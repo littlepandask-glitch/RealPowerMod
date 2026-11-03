@@ -179,6 +179,10 @@ public class HydroUnitBlock extends BaseEntityBlock implements Tiered, Structure
                                 : HydroLayout.solid(size[0], size[1], size[2], lx, lz, y) ? ModBlocks.HYDRO_STRUCTURE.get()
                                 : ModBlocks.STRUCTURE_HOLLOW.get();
                         BlockState current = level.getBlockState(cell);
+                        if (current.is(net.minecraft.world.level.block.Blocks.WATER) && lx == 0
+                                && HydroLayout.conduit(size[0], size[1], size[2], lx, lz, y)) {
+                            continue; // conduto aberto: agua passando
+                        }
                         if (current.getBlock() != wanted && (current.canBeReplaced() || current.getBlock() instanceof PowerStructureBlock)) {
                             level.setBlock(cell, wanted.defaultBlockState(),
                                     port ? Block.UPDATE_ALL : Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
@@ -189,6 +193,49 @@ public class HydroUnitBlock extends BaseEntityBlock implements Tiered, Structure
         } finally {
             PowerStructureBlock.healing = false;
         }
+    }
+
+    /** Abre (agua passando da tomada ao canal de fuga) ou fecha (de volta a parede e ao patio) o conduto da unidade. */
+    public void setConduit(Level level, BlockPos base, BlockState state, boolean open) {
+        int[] size = size(tier);
+        int halfD = (size[2] - 1) / 2;
+        Direction facing = state.getValue(FACING);
+        PowerStructureBlock.healing = true;
+        try {
+            for (int lz = -halfD; lz <= halfD; lz++) {
+                for (int y = 1; y <= 2; y++) {
+                    if (!HydroLayout.conduit(size[0], size[1], size[2], 0, lz, y)) {
+                        continue;
+                    }
+                    BlockPos cell = CableBlock.rotate(base, facing, 0, lz, y);
+                    if (!level.isLoaded(cell)) {
+                        continue;
+                    }
+                    BlockState current = level.getBlockState(cell);
+                    if (open) {
+                        if (current.getBlock() instanceof PowerStructureBlock || current.canBeReplaced()
+                                || current.is(net.minecraft.world.level.block.Blocks.WATER) && !current.getFluidState().isSource()) {
+                            level.setBlock(cell, net.minecraft.world.level.block.Blocks.WATER.defaultBlockState(), Block.UPDATE_ALL);
+                        }
+                    } else if (current.is(net.minecraft.world.level.block.Blocks.WATER)) {
+                        Block closed = HydroLayout.solid(size[0], size[1], size[2], 0, lz, y) ? ModBlocks.HYDRO_STRUCTURE.get()
+                                : ModBlocks.STRUCTURE_HOLLOW.get();
+                        level.setBlock(cell, closed.defaultBlockState(), Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
+                    }
+                }
+            }
+        } finally {
+            PowerStructureBlock.healing = false;
+        }
+    }
+
+    private boolean isConduitWater(Level level, BlockPos base, BlockState state, BlockPos cell) {
+        if (!level.getBlockState(cell).is(net.minecraft.world.level.block.Blocks.WATER)) {
+            return false;
+        }
+        int[] size = size(tier);
+        int[] l = CableBlock.unrotate(base, state.getValue(FACING), cell);
+        return HydroLayout.conduit(size[0], size[1], size[2], l[0], l[1], l[2]);
     }
 
     /** Onde o jogador e posto se ficar preso ao posicionar: no patio de jusante, sobre o piso. */
@@ -214,7 +261,7 @@ public class HydroUnitBlock extends BaseEntityBlock implements Tiered, Structure
             PowerStructureBlock.healing = true;
             try {
                 for (BlockPos cell : structureCells(pos, state)) {
-                    if (level.getBlockState(cell).getBlock() instanceof PowerStructureBlock) {
+                    if (isConduitWater(level, pos, state, cell) || level.getBlockState(cell).getBlock() instanceof PowerStructureBlock) {
                         level.setBlock(cell, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(),
                                 Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
                     }

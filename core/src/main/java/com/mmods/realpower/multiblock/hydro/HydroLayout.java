@@ -28,6 +28,25 @@ public final class HydroLayout {
         return n % 2 == 0 ? n + 1 : n;
     }
 
+    /**
+     * Celulas do conduto: viram agua quando a comporta abre e levam a agua da tomada (y=2, na parede de montante) por baixo do
+     * salao ate o canal de fuga do patio (y=1), de onde ela cai no terreno a jusante. Fechadas, sao solidas ou ocas como o resto.
+     */
+    public static boolean conduit(int width, int height, int depth, int lx, int lz, int y) {
+        if (lx != 0) {
+            return false;
+        }
+        int halfD = (depth - 1) / 2;
+        int hall = -halfD + APRON;
+        if (lz >= hall) {
+            return y == 2 && lz <= halfD;
+        }
+        if (lz == hall - 1) {
+            return y == 1 || y == 2;
+        }
+        return lz >= -halfD && y == 1;
+    }
+
     public static boolean solid(int width, int height, int depth, int lx, int lz, int y) {
         int halfD = (depth - 1) / 2;
         if (y == 0 || lz > halfD - wallCells(depth)) {

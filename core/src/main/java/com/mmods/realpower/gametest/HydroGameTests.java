@@ -402,6 +402,36 @@ public final class HydroGameTests {
         helper.succeed();
     }
 
+    /** Comporta aberta: a agua passa da tomada ao canal de fuga por um conduto real; fechada, volta a parede. */
+    @GameTest(template = "empty", timeoutTicks = 100, batch = "hydro")
+    public static void conduitCarriesWaterFromIntakeToOutlet(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos base = helper.absolutePos(new BlockPos(8, 2, 8));
+        BlockState state = unit(Tier.INDUSTRIAL, Direction.NORTH);
+        HydroUnitBlock block = (HydroUnitBlock) state.getBlock();
+        for (BlockPos cell : block.structureCells(base, state)) {
+            level.setBlock(cell, Blocks.AIR.defaultBlockState(), 2);
+        }
+        level.setBlock(base, state, 3);
+        int[] size = HydroUnitBlock.size(Tier.INDUSTRIAL);
+        int halfD = (size[2] - 1) / 2;
+        BlockPos wallCell = com.mmods.realpower.cable.CableBlock.rotate(base, Direction.NORTH, 0, halfD, 2);
+        BlockPos outlet = com.mmods.realpower.cable.CableBlock.rotate(base, Direction.NORTH, 0, -halfD, 1);
+        BlockPos beside = com.mmods.realpower.cable.CableBlock.rotate(base, Direction.NORTH, 1, halfD, 2);
+        helper.assertTrue(level.getBlockState(wallCell).getBlock() instanceof PowerStructureBlock, "parede devia estar fechada");
+        block.setConduit(level, base, state, true);
+        helper.assertTrue(level.getBlockState(wallCell).is(Blocks.WATER), "falta agua na tomada");
+        helper.assertTrue(level.getBlockState(outlet).is(Blocks.WATER), "falta agua na saida");
+        helper.assertTrue(level.getBlockState(beside).getBlock() instanceof PowerStructureBlock, "o conduto nao devia alargar");
+        helper.assertTrue(level.getBlockState(base).getBlock() == state.getBlock(), "unidade quebrou ao abrir");
+        block.ensureStructure(level, base, state);
+        helper.assertTrue(level.getBlockState(wallCell).is(Blocks.WATER), "o reparo devia respeitar o conduto aberto");
+        block.setConduit(level, base, state, false);
+        helper.assertTrue(level.getBlockState(wallCell).getBlock() instanceof PowerStructureBlock, "parede devia voltar");
+        helper.assertTrue(level.getBlockState(outlet).getBlock() instanceof PowerStructureBlock, "patio devia voltar");
+        helper.succeed();
+    }
+
     /** A sala de comando forma nas 4 direcoes: volume, 2 portas de dados, porta oca na frente e mesa solida; quebrar limpa tudo. */
     @GameTest(template = "empty", timeoutTicks = 100, batch = "hydro")
     public static void controlRoomFormsWithDoorAndDesk(GameTestHelper helper) {
