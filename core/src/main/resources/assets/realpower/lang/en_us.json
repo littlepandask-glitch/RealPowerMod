@@ -132,5 +132,10 @@
   "block.realpower.dam_concrete": "Dam Concrete Module",
   "block.realpower.dam_crest": "Dam Crest Module",
   "message.realpower.dam.no_water": "No water at the intake: build the lake on the upstream side",
-  "message.realpower.dam.breach": "Dam wall not closed in %1$s rows (first at %2$s m above the base): it must reach solid ground on both banks"
+  "message.realpower.dam.breach": "Dam wall not closed in %1$s rows (first at %2$s m above the base): it must reach solid ground on both banks",
+  "block.realpower.hydro_unit_industrial": "Industrial Hydro Powerhouse",
+  "block.realpower.hydro_unit_high_voltage": "High-Voltage Hydro Powerhouse",
+  "block.realpower.hydro_unit_advanced": "Advanced Hydro Powerhouse",
+  "block.realpower.hydro_structure": "Powerhouse Structure",
+  "block.realpower.hydro_port": "Powerhouse Power Port"
 }

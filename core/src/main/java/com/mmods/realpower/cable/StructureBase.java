@@ -11,4 +11,9 @@ public interface StructureBase {
 
     /** Celulas, sem o proprio bloco base, que o conjunto ocupa. */
     List<BlockPos> structureCells(BlockPos base, BlockState state);
+
+    /** Se {@code cell} e uma das celulas do conjunto; estruturas grandes devem sobrescrever com aritmetica. */
+    default boolean containsCell(BlockPos base, BlockState state, BlockPos cell) {
+        return structureCells(base, state).contains(cell);
+    }
 }

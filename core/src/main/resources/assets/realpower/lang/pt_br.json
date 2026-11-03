@@ -132,5 +132,10 @@
   "block.realpower.dam_concrete": "Módulo de Concreto da Barragem",
   "block.realpower.dam_crest": "Módulo de Crista da Barragem",
   "message.realpower.dam.no_water": "Sem água na tomada: forme o lago do lado de montante",
-  "message.realpower.dam.breach": "Parede da barragem aberta em %1$s linhas (a primeira a %2$s m da base): ela deve chegar ao terreno firme nas duas margens"
+  "message.realpower.dam.breach": "Parede da barragem aberta em %1$s linhas (a primeira a %2$s m da base): ela deve chegar ao terreno firme nas duas margens",
+  "block.realpower.hydro_unit_industrial": "Casa de Força Hidrelétrica Industrial",
+  "block.realpower.hydro_unit_high_voltage": "Casa de Força Hidrelétrica de Alta Tensão",
+  "block.realpower.hydro_unit_advanced": "Casa de Força Hidrelétrica Avançado",
+  "block.realpower.hydro_structure": "Estrutura da Casa de Força",
+  "block.realpower.hydro_port": "Porta de Energia da Casa de Força"
 }

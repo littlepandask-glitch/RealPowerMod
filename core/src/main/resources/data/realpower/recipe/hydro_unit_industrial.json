@@ -1,0 +1,27 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "redstone",
+ "pattern": [
+  "DDD",
+  "CRC",
+  "SSS"
+ ],
+ "key": {
+  "D": {
+   "item": "realpower:dam_concrete"
+  },
+  "C": {
+   "tag": "c:ingots/copper"
+  },
+  "R": {
+   "item": "minecraft:redstone_block"
+  },
+  "S": {
+   "item": "realpower:steel_ingot"
+  }
+ },
+ "result": {
+  "id": "realpower:hydro_unit_industrial",
+  "count": 1
+ }
+}

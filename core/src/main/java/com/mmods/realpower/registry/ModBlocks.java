@@ -14,6 +14,7 @@ import com.mmods.realpower.data.DataPortBlock;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import com.mmods.realpower.multiblock.hydro.DamBlock;
+import com.mmods.realpower.multiblock.hydro.HydroUnitBlock;
 import com.mmods.realpower.multiblock.wind.TurbineCasingBlock;
 import com.mmods.realpower.multiblock.wind.TurbinePowerPortBlock;
 import com.mmods.realpower.multiblock.wind.WindStructureBlock;
@@ -116,6 +117,24 @@ public final class ModBlocks {
             BlockBehaviour.Properties.of().strength(6.0F, 30.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
     public static final DeferredBlock<DamBlock> DAM_CREST = BLOCKS.registerBlock("dam_crest", DamBlock::new,
             BlockBehaviour.Properties.of().strength(6.0F, 30.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
+
+    /** Casa de forca da barragem (unidade geradora) por tier, com preenchimento invisivel e portas de energia. */
+    public static final Map<Tier, DeferredBlock<HydroUnitBlock>> HYDRO_UNITS = new LinkedHashMap<>();
+
+    static {
+        for (Tier tier : new Tier[]{Tier.INDUSTRIAL, Tier.HIGH_VOLTAGE, Tier.ADVANCED}) {
+            HYDRO_UNITS.put(tier, BLOCKS.registerBlock("hydro_unit_" + tier.getSerializedName(),
+                    properties -> new HydroUnitBlock(properties, tier),
+                    BlockBehaviour.Properties.of().strength(6.0F, 30.0F).sound(SoundType.STONE).requiresCorrectToolForDrops().noOcclusion()));
+        }
+    }
+
+    public static final DeferredBlock<PowerStructureBlock> HYDRO_STRUCTURE = BLOCKS.registerBlock("hydro_structure",
+            properties -> new PowerStructureBlock(properties, PowerStructureBlock.Variant.BULK),
+            BlockBehaviour.Properties.of().strength(6.0F, 30.0F).sound(SoundType.STONE).noOcclusion().noLootTable());
+    public static final DeferredBlock<PowerStructureBlock> HYDRO_PORT = BLOCKS.registerBlock("hydro_port",
+            properties -> new PowerStructureBlock(properties, PowerStructureBlock.Variant.PORT),
+            BlockBehaviour.Properties.of().strength(6.0F, 30.0F).sound(SoundType.STONE).noOcclusion().noLootTable());
 
     public static final DeferredBlock<ScreenBlock> SCREEN = BLOCKS.registerBlock("screen", ScreenBlock::new,
             BlockBehaviour.Properties.of().strength(1.5F, 3.0F).sound(SoundType.METAL).noOcclusion());

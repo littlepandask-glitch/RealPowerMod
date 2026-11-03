@@ -109,15 +109,41 @@ public class PowerStructureBlock extends Block {
         }
     }
 
+    /** Alcance horizontal da busca pela base: cobre a maior estrutura (usina, 15 x 20 m). */
+    private static final int REACH = 10;
+    private static final int REACH_DOWN = 40;
+    private static final int CACHE_SIZE = 512;
+
+    /** Ultimas bases achadas por celula; sempre revalidadas, entao um dado velho so custa uma busca nova. */
+    private static final java.util.Map<Long, Long> CACHE = java.util.Collections.synchronizedMap(
+            new java.util.LinkedHashMap<>(64, 0.75F, true) {
+                @Override
+                protected boolean removeEldestEntry(java.util.Map.Entry<Long, Long> eldest) {
+                    return size() > CACHE_SIZE;
+                }
+            });
+
+    private static boolean owns(Level level, BlockPos candidate, BlockPos cell) {
+        BlockState candidateState = level.getBlockState(candidate);
+        return candidateState.getBlock() instanceof StructureBase base && base.hasStructure()
+                && base.containsCell(candidate, candidateState, cell);
+    }
+
     /** Bloco base cujo conjunto multibloco contem a celula {@code pos}, ou null. */
     public static BlockPos findBase(Level level, BlockPos pos) {
-        for (int dy = 0; dy < 40; dy++) {
-            for (int dx = -5; dx <= 5; dx++) {
-                for (int dz = -5; dz <= 5; dz++) {
+        Long cached = CACHE.get(pos.asLong());
+        if (cached != null) {
+            BlockPos candidate = BlockPos.of(cached);
+            if (owns(level, candidate, pos)) {
+                return candidate;
+            }
+        }
+        for (int dy = 0; dy < REACH_DOWN; dy++) {
+            for (int dx = -REACH; dx <= REACH; dx++) {
+                for (int dz = -REACH; dz <= REACH; dz++) {
                     BlockPos candidate = pos.offset(dx, -dy, dz);
-                    BlockState candidateState = level.getBlockState(candidate);
-                    if (candidateState.getBlock() instanceof StructureBase base && base.hasStructure()
-                            && base.structureCells(candidate, candidateState).contains(pos)) {
+                    if (owns(level, candidate, pos)) {
+                        CACHE.put(pos.asLong(), candidate.asLong());
                         return candidate;
                     }
                 }

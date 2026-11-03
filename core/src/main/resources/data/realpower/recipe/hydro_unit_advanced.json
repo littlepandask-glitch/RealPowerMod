@@ -1,0 +1,24 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "redstone",
+ "pattern": [
+  "MDM",
+  "DUD",
+  "MDM"
+ ],
+ "key": {
+  "M": {
+   "tag": "c:gems/diamond"
+  },
+  "D": {
+   "item": "realpower:dam_concrete"
+  },
+  "U": {
+   "item": "realpower:hydro_unit_high_voltage"
+  }
+ },
+ "result": {
+  "id": "realpower:hydro_unit_advanced",
+  "count": 1
+ }
+}

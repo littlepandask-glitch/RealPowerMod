@@ -1,0 +1,6 @@
+{
+ "parent": "minecraft:item/generated",
+ "textures": {
+  "layer0": "realpower:item/hydro_unit_high_voltage"
+ }
+}

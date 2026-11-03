@@ -44,6 +44,11 @@
   "realpower:capacitor_structure",
   "realpower:capacitor_port",
   "realpower:dam_concrete",
-  "realpower:dam_crest"
+  "realpower:dam_crest",
+  "realpower:hydro_unit_industrial",
+  "realpower:hydro_unit_high_voltage",
+  "realpower:hydro_unit_advanced",
+  "realpower:hydro_structure",
+  "realpower:hydro_port"
  ]
 }

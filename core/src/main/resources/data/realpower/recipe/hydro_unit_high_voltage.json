@@ -1,0 +1,24 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "redstone",
+ "pattern": [
+  "MDM",
+  "DUD",
+  "MDM"
+ ],
+ "key": {
+  "M": {
+   "tag": "c:ingots/gold"
+  },
+  "D": {
+   "item": "realpower:dam_concrete"
+  },
+  "U": {
+   "item": "realpower:hydro_unit_industrial"
+  }
+ },
+ "result": {
+  "id": "realpower:hydro_unit_high_voltage",
+  "count": 1
+ }
+}

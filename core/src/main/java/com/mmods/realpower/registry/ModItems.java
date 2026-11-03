@@ -48,6 +48,12 @@ public final class ModItems {
     public static final DeferredItem<BlockItem> DAM_CONCRETE = ITEMS.registerSimpleBlockItem(ModBlocks.DAM_CONCRETE);
     public static final DeferredItem<BlockItem> DAM_CREST = ITEMS.registerSimpleBlockItem(ModBlocks.DAM_CREST);
 
+    public static final Map<Tier, DeferredItem<BlockItem>> HYDRO_UNITS = new LinkedHashMap<>();
+
+    static {
+        ModBlocks.HYDRO_UNITS.forEach((tier, block) -> HYDRO_UNITS.put(tier, ITEMS.registerSimpleBlockItem(block)));
+    }
+
     public static final DeferredItem<BlockItem> SCREEN = ITEMS.registerSimpleBlockItem(ModBlocks.SCREEN);
 
     public static final DeferredItem<Item> STEEL_INGOT = ITEMS.registerSimpleItem("steel_ingot");

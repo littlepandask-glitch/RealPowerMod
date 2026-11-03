@@ -3,7 +3,11 @@ package com.mmods.realpower.gametest;
 import com.mmods.realpower.RealPower;
 import com.mmods.realpower.api.tier.Tier;
 import com.mmods.realpower.multiblock.hydro.DamScan;
+import com.mmods.realpower.cable.CableKind;
+import com.mmods.realpower.cable.PowerStructureBlock;
 import com.mmods.realpower.multiblock.hydro.HydroPhysics;
+import com.mmods.realpower.multiblock.hydro.HydroUnitBlock;
+import com.mmods.realpower.multiblock.hydro.HydroUnitBlockEntity;
 import com.mmods.realpower.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -11,6 +15,7 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -102,5 +107,105 @@ public final class HydroGameTests {
         run(scan);
         helper.assertTrue(!scan.result().valid(), "sem agua devia reprovar");
         helper.succeed();
+    }
+
+    private static BlockState unit(Tier tier, Direction facing) {
+        return ModBlocks.HYDRO_UNITS.get(tier).get().defaultBlockState().setValue(HydroUnitBlock.FACING, facing);
+    }
+
+    /** A casa de forca forma o volume dos 3 tiers nas 4 direcoes: celulas, 2 portas no chao, base achavel de qualquer canto. */
+    @GameTest(template = "empty", timeoutTicks = 100, batch = "hydro")
+    public static void unitFormsAndBreaksInAllDirections(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos base = helper.absolutePos(new BlockPos(8, 2, 8));
+        for (int dx = -16; dx <= 16; dx += 16) {
+            for (int dz = -16; dz <= 16; dz += 16) {
+                level.getChunk(base.offset(dx, 0, dz)); // a maior unidade passa dos chunks carregados pelo teste
+            }
+        }
+        for (Tier tier : ModBlocks.HYDRO_UNITS.keySet()) {
+            int[] size = HydroUnitBlock.size(tier);
+            for (Direction facing : Direction.Plane.HORIZONTAL) {
+                BlockState state = unit(tier, facing);
+                HydroUnitBlock block = (HydroUnitBlock) state.getBlock();
+                var cells = block.structureCells(base, state);
+                for (BlockPos cell : cells) {
+                    level.setBlock(cell, Blocks.AIR.defaultBlockState(), 2); // a unidade passa dos limites (barreiras) do modelo de teste
+                }
+                level.setBlock(base, state, 3);
+                String what = tier + " " + facing;
+                helper.assertTrue(cells.size() == size[0] * size[1] * size[2] - 1, what + ": celulas = " + cells.size());
+                long ports = 0;
+                for (BlockPos cell : cells) {
+                    helper.assertTrue(level.getBlockState(cell).getBlock() instanceof PowerStructureBlock, what + ": falta celula em " + cell + " = " + level.getBlockState(cell) + " carregada=" + level.isLoaded(cell));
+                    helper.assertTrue(block.containsCell(base, state, cell), what + ": containsCell recusou " + cell);
+                    if (level.getBlockState(cell).is(ModBlocks.HYDRO_PORT.get())) {
+                        ports++;
+                        helper.assertTrue(cell.getY() == base.getY(), what + ": porta fora do chao");
+                    }
+                }
+                helper.assertTrue(ports == 2, what + ": portas = " + ports);
+                BlockPos corner = cells.get(cells.size() - 1);
+                helper.assertTrue(base.equals(PowerStructureBlock.findBase(level, corner)), what + ": findBase do canto " + corner);
+                helper.assertTrue(!block.containsCell(base, state, base.above(size[1])), what + ": acima do volume");
+                level.setBlock(base, Blocks.AIR.defaultBlockState(), 3);
+                for (BlockPos cell : cells) {
+                    helper.assertTrue(level.getBlockState(cell).isAir(), what + ": sobrou celula em " + cell);
+                }
+            }
+        }
+        helper.succeed();
+    }
+
+    /**
+     * Integracao: casa de forca encaixada numa parede que fecha o vale, lago a montante (sul): forma, gera pela queda e entrega
+     * pela porta ao cabo; a comporta (limite) a 0% para a entrega.
+     */
+    @GameTest(template = "empty", timeoutTicks = 400, batch = "hydro")
+    public static void unitInClosedValleyDeliversPower(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos base = helper.absolutePos(new BlockPos(8, 2, 8));
+        BlockState state = unit(Tier.INDUSTRIAL, Direction.NORTH);
+        // margens de pedra nos dois lados da unidade (x=4 e x=12), do chao ate acima do lago, e fundo do lago em z=17
+        for (int y = 1; y <= 15; y++) {
+            for (int z = 12; z <= 17; z++) {
+                level.setBlock(helper.absolutePos(new BlockPos(4, y, z)), Blocks.STONE.defaultBlockState(), 2);
+                level.setBlock(helper.absolutePos(new BlockPos(12, y, z)), Blocks.STONE.defaultBlockState(), 2);
+            }
+            for (int x = 5; x <= 11; x++) {
+                level.setBlock(helper.absolutePos(new BlockPos(x, y, 17)), Blocks.STONE.defaultBlockState(), 2);
+                if (y > 10) { // acima da unidade, a parede continua em modulos ate a crista
+                    level.setBlock(helper.absolutePos(new BlockPos(x, y, 12)),
+                            (y == 15 ? ModBlocks.DAM_CREST : ModBlocks.DAM_CONCRETE).get().defaultBlockState(), 2);
+                }
+            }
+        }
+        for (int x = 5; x <= 11; x++) {
+            for (int y = 2; y <= 13; y++) {
+                for (int z = 13; z <= 16; z++) {
+                    level.setBlock(helper.absolutePos(new BlockPos(x, y, z)), Blocks.WATER.defaultBlockState(), 2);
+                }
+            }
+        }
+        level.setBlock(base, state, 3);
+        BlockPos cable = helper.absolutePos(new BlockPos(5, 2, 3));
+        BlockPos sink = helper.absolutePos(new BlockPos(5, 2, 2));
+        level.setBlock(sink, Blocks.GOLD_BLOCK.defaultBlockState(), 3);
+        level.setBlock(cable, ModBlocks.node(CableKind.CABLE, Tier.INDUSTRIAL).get().defaultBlockState(), 3);
+        TestEnergySink.RECEIVED.put(sink, 0L);
+
+        HydroUnitBlockEntity unit = (HydroUnitBlockEntity) level.getBlockEntity(base);
+        helper.runAfterDelay(120, () -> {
+            helper.assertTrue(unit.isFormed(), "casa de forca devia formar: " + unit.lastResult().problems());
+            helper.assertTrue(unit.grossHead() >= 10.0, "queda = " + unit.grossHead());
+            helper.assertTrue(unit.powerWatts() > 0.0, "sem potencia");
+            helper.assertTrue(TestEnergySink.RECEIVED.get(sink) > 0L, "nada chegou ao consumidor pela porta");
+            unit.setLimit(0);
+        });
+        helper.runAfterDelay(240, () -> TestEnergySink.RECEIVED.put(sink, 0L));
+        helper.runAfterDelay(300, () -> {
+            helper.assertTrue(TestEnergySink.RECEIVED.get(sink) == 0L, "comporta fechada ainda entregou " + TestEnergySink.RECEIVED.get(sink));
+            helper.succeed();
+        });
     }
 }
