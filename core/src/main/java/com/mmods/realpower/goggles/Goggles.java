@@ -11,6 +11,8 @@ import com.mmods.realpower.computer.ComputerBlockEntity;
 import com.mmods.realpower.data.DataDevice;
 import com.mmods.realpower.data.DataPortBlock;
 import com.mmods.realpower.generator.AbstractGeneratorBlockEntity;
+import com.mmods.realpower.multiblock.hydro.HydroPhysics;
+import com.mmods.realpower.multiblock.hydro.HydroUnitBlockEntity;
 import com.mmods.realpower.multiblock.wind.WindTurbineControllerBlockEntity;
 import com.mmods.realpower.registry.ModBlocks;
 import com.mmods.realpower.registry.ModItems;
@@ -186,6 +188,14 @@ public final class Goggles {
             lines.add(Component.translatable(generator.isFormed() ? "goggles.realpower.formed" : "goggles.realpower.unformed"));
             if (generator instanceof WindTurbineControllerBlockEntity turbine && generator.isFormed()) {
                 lines.add(Component.translatable("goggles.realpower.wind", String.format("%.1f", turbine.windSpeed())));
+            }
+            if (generator instanceof HydroUnitBlockEntity unit) {
+                if (generator.isFormed()) {
+                    lines.add(Component.translatable("goggles.realpower.hydro", String.format("%.0f", unit.grossHead()),
+                            String.format("%.1f", HydroPhysics.flow(unit.tier(), unit.lakeArea())), unit.lakeArea()));
+                } else {
+                    lines.addAll(unit.lastResult().problems().stream().limit(2).toList());
+                }
             }
             lines.add(Component.translatable("goggles.realpower.power", String.format("%.1f", generator.powerWatts() / 1000.0)));
             lines.add(Component.translatable("goggles.realpower.buffer", generator.storedEnergy(), generator.bufferCapacity()));

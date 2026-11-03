@@ -133,9 +133,19 @@ depois sem reescrever receitas. O aco do mod e registrado em `c:ingots/steel`.
 1. API de multibloco (`api/multiblock`): controlador, regras, resultado de validacao.
 2. Primeiro gerador: turbina eolica (mais simples) para validar o sistema.
 3. Sistema de controle: bloco de painel + `Menu`/`Screen` com sincronizacao por payload.
-4. Represa, depois fissao, depois fusao.
+4. Fissao, depois fusao (a represa ja existe).
 
 ## Estilo industrial e tela local (`render/IndustrialStyle`, `screen/`)
 
 - `IndustrialStyle` e o estilo dos blocos funcionais novos (transformador, banco de capacitores; usar nos proximos): chapas cinza por tier (`Palette`: chapa + brilho), cantos luminosos (`node`), painel com raio (`bolt`), barras de LED (`ledPad`), cilindros. Quads "brilhantes" (`Mesh.Builder.glow`) ignoram a luz ambiente.
 - Tela local: sem computador na rede de dados, o mestre do painel usa o equipamento (ou multibloco) encostado em qualquer bloco do painel (`ScreenBlockEntity.refreshLocal`), com historico em memoria; liga/desliga e limite funcionam na aba de equipamentos.
+
+## Represa (`multiblock/hydro/`)
+
+- Fisica (`HydroPhysics`): `P = rho g Q H eta`. Vazao `Q = min(Q_nominal(tier), 0,02 m3/s x area do lago)`, queda util entre `minHead` e `maxHead` do tier (abaixo do minimo nao gera). Industrial 25 m3/s / 40 m (~3 MW), Alta tensao 120 / 80 (~50 MW), Avancado 700 / 120 (~500 MW).
+- `DamBlock` (`dam_concrete`, `dam_crest`): modulos de 1 m que o jogador empilha para fechar o vale. Sem logica propria; sao so lidos por `DamScan`.
+- `DamScan` (incremental, 256 blocos/tick): mede o nivel do lago a partir da tomada d'agua, confere linha a linha (do chao da unidade ate a superficie) que a parede de modulos/da propria unidade vai de margem a margem terminando em terreno solido, e conta a superficie do lago (BFS 2D, teto 50 mil). Problemas voltam como `ValidationResult` (mostrados nos oculos).
+- `HydroUnitBlock` (um por tier: Industrial 7x9x9, Alta tensao 11x14x13, Avancado 15x20x19; largura x altura x profundidade): `StructureBase` com `FACING` = sentido do canal de fuga (jusante); o lago fica atras (`upstream`), a tomada d'agua encosta na parede. Preenchimento `HYDRO_STRUCTURE` (invisivel, flags baratas) e 2 `HYDRO_PORT` no chao dos cantos de jusante (visiveis, capability de energia, empurrando para cabos encostados). `containsCell` por aritmetica evita montar a lista de celulas; `PowerStructureBlock.findBase` tem cache LRU e alcance 10.
+- `HydroUnitBlockEntity extends AbstractGeneratorBlockEntity`: a comporta e o `DataDevice` (liga/desliga e limite %, por computador, telas, chave inglesa). Potencia = `HydroPhysics.watts(tier, lago - eixo da turbina, area)`.
+- Visual: `HydroModel` (concreto realista, fora do estilo industrial; salao, tubo forcado, caixa espiral, grade da tomada, ponte rolante) + `HydroUnitRenderer`; o rotor e uma malha separada que gira conforme `runFraction()`.
+- Terraformador (`TerraformerItem`, `TerraformJob`, `TerraformOverlay`): clique em dois blocos marca a caixa (ate 64 por lado, guardada em `CUSTOM_DATA`); clique no ar executa, agachado + clique no ar alterna escavar/aterrar. Tarefa de 1000 blocos/tick, sem drops, preserva maquinas e blocos indestrutiveis; aterro consome pedra/pedregulho/terra e a ferramenta desgasta 1 a cada 64 blocos. Testes: `HydroGameTests`.

@@ -150,5 +150,6 @@
   "message.realpower.terraform.started": "Terraforming started",
   "message.realpower.terraform.need_box": "Mark two corners first: right-click two blocks",
   "message.realpower.terraform.done": "Terraforming finished: %s blocks changed",
-  "message.realpower.terraform.no_material": "Out of fill material (stone, cobblestone or dirt)"
+  "message.realpower.terraform.no_material": "Out of fill material (stone, cobblestone or dirt)",
+  "goggles.realpower.hydro": "Head: %1$s m | Flow: %2$s m3/s | Lake: %3$s m2"
 }
