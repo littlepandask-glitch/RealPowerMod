@@ -3,7 +3,7 @@ package com.mmods.realpower.registry;
 import com.mmods.realpower.RealPower;
 import com.mmods.realpower.api.tier.Tier;
 import com.mmods.realpower.item.EngineerGogglesItem;
-import com.mmods.realpower.item.DamBuilderItem;
+import com.mmods.realpower.item.DamModuleItem;
 import com.mmods.realpower.item.TerraformerItem;
 import com.mmods.realpower.item.WrenchItem;
 import java.util.LinkedHashMap;
@@ -52,6 +52,15 @@ public final class ModItems {
     public static final DeferredItem<BlockItem> DAM_CONCRETE = ITEMS.registerSimpleBlockItem(ModBlocks.DAM_CONCRETE);
     public static final DeferredItem<BlockItem> DAM_CREST = ITEMS.registerSimpleBlockItem(ModBlocks.DAM_CREST);
 
+    /** Modulos prontos de muro e crista, na escala de cada casa de forca. */
+    public static final Map<String, DeferredItem<DamModuleItem>> DAM_MODULES = new LinkedHashMap<>();
+
+    static {
+        for (DamModuleItem.Module module : DamModuleItem.MODULES) {
+            DAM_MODULES.put(module.id(), ITEMS.registerItem(module.id(), properties -> new DamModuleItem(properties, module)));
+        }
+    }
+
     public static final Map<Tier, DeferredItem<BlockItem>> HYDRO_UNITS = new LinkedHashMap<>();
 
     static {
@@ -64,7 +73,6 @@ public final class ModItems {
     public static final DeferredItem<EngineerGogglesItem> ENGINEER_GOGGLES =
             ITEMS.registerItem("engineer_goggles", EngineerGogglesItem::new);
     public static final DeferredItem<WrenchItem> WRENCH = ITEMS.registerItem("wrench", WrenchItem::new);
-    public static final DeferredItem<DamBuilderItem> DAM_BUILDER = ITEMS.registerItem("dam_builder", DamBuilderItem::new);
     public static final DeferredItem<TerraformerItem> TERRAFORMER = ITEMS.registerItem("terraformer", TerraformerItem::new);
 
     private ModItems() {

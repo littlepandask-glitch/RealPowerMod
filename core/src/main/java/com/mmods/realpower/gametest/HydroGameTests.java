@@ -3,7 +3,7 @@ package com.mmods.realpower.gametest;
 import com.mmods.realpower.RealPower;
 import com.mmods.realpower.api.tier.Tier;
 import com.mmods.realpower.computer.ControlRoomBlock;
-import com.mmods.realpower.item.DamBuilderItem;
+import com.mmods.realpower.item.DamModuleItem;
 import com.mmods.realpower.multiblock.hydro.DamCrestBlock;
 import com.mmods.realpower.multiblock.hydro.DamScan;
 import com.mmods.realpower.cable.CableKind;
@@ -276,22 +276,22 @@ public final class HydroGameTests {
 
     /** O construtor poe o muro e a crista na escala da casa de forca e a varredura aceita o muro construido. */
     @GameTest(template = "empty", timeoutTicks = 100, batch = "hydro")
-    public static void builderPlacesModulesAtUnitScale(GameTestHelper helper) {
+    public static void moduleItemsPlaceAtUnitScale(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         BlockPos origin = helper.absolutePos(new BlockPos(8, 2, 8));
-        for (var module : DamBuilderItem.MODULES) {
-            var cells = DamBuilderItem.cells(origin, Direction.SOUTH, module);
+        for (var module : DamModuleItem.MODULES) {
+            var cells = DamModuleItem.cells(origin, Direction.SOUTH, module);
             for (BlockPos cell : cells) {
                 level.setBlock(cell, Blocks.AIR.defaultBlockState(), 2);
             }
             int[] size = HydroUnitBlock.size(module.tier());
             helper.assertTrue(module.length() == size[0], module + ": largura diferente da casa de forca");
             helper.assertTrue(cells.size() == module.cubes(), module + ": celulas");
-            helper.assertTrue(DamBuilderItem.place(level, null, origin, Direction.SOUTH, module) == null, module + ": falhou ao colocar");
+            helper.assertTrue(DamModuleItem.place(level, origin, Direction.SOUTH, module) == null, module + ": falhou ao colocar");
             long rails = cells.stream().filter(c -> level.getBlockState(c).hasProperty(DamCrestBlock.RAIL)
                     && level.getBlockState(c).getValue(DamCrestBlock.RAIL) != DamCrestBlock.Rail.NONE).count();
-            helper.assertTrue(module.kind() == DamBuilderItem.Kind.WALL ? rails == 0 : rails == 2L * module.length(), module + ": guarda-corpos = " + rails);
-            helper.assertTrue(DamBuilderItem.place(level, null, origin, Direction.SOUTH, module) != null, module + ": devia recusar sobre si mesmo");
+            helper.assertTrue(module.kind() == DamModuleItem.Kind.WALL ? rails == 0 : rails == 2L * module.length(), module + ": guarda-corpos = " + rails);
+            helper.assertTrue(DamModuleItem.place(level, origin, Direction.SOUTH, module) != null, module + ": devia recusar sobre si mesmo");
             for (BlockPos cell : cells) {
                 level.setBlock(cell, Blocks.AIR.defaultBlockState(), 2);
             }

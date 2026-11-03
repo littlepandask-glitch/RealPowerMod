@@ -1,21 +1,21 @@
 {
  "type": "minecraft:crafting_shaped",
- "category": "redstone",
+ "category": "building",
  "pattern": [
   "CCC",
-  "CSC",
-  " S "
+  "CXC",
+  "CCC"
  ],
  "key": {
   "C": {
    "item": "realpower:dam_concrete"
   },
-  "S": {
-   "item": "realpower:steel_ingot"
+  "X": {
+   "item": "realpower:dam_wall_industrial"
   }
  },
  "result": {
-  "id": "realpower:dam_builder",
+  "id": "realpower:dam_wall_high_voltage",
   "count": 1
  }
 }

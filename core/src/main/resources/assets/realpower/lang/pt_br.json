@@ -154,10 +154,11 @@
   "goggles.realpower.hydro": "Queda: %1$s m | Vazão: %2$s m³/s | Lago: %3$s m²",
   "block.realpower.control_room": "Sala de Comando",
   "block.realpower.structure_hollow": "Célula Oca de Multibloco",
-  "item.realpower.dam_builder": "Construtor de Barragem",
-  "message.realpower.dam_builder.wall": "Muro p/ casa de força %1$s (%2$s x %3$s x %4$s)",
-  "message.realpower.dam_builder.crest": "Crista p/ casa de força %1$s (%2$s x %3$s x %4$s)",
-  "message.realpower.dam_builder.mode": "Módulo: %1$s - %2$s cubos",
-  "message.realpower.dam_builder.blocked": "Há algo no caminho do módulo",
-  "message.realpower.dam_builder.missing": "Faltam cubos no inventário (%s necessários)"
+  "item.realpower.dam_wall_industrial": "Módulo de Muro (Industrial)",
+  "item.realpower.dam_crest_industrial": "Módulo de Crista (Industrial)",
+  "item.realpower.dam_wall_high_voltage": "Módulo de Muro (Alta Tensão)",
+  "item.realpower.dam_crest_high_voltage": "Módulo de Crista (Alta Tensão)",
+  "item.realpower.dam_wall_advanced": "Módulo de Muro (Avançado)",
+  "item.realpower.dam_crest_advanced": "Módulo de Crista (Avançado)",
+  "message.realpower.dam_module.blocked": "Há algo no caminho do módulo"
 }

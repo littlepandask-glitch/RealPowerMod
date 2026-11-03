@@ -1,0 +1,21 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "building",
+ "pattern": [
+  "CCC",
+  "CXC",
+  "CCC"
+ ],
+ "key": {
+  "C": {
+   "item": "realpower:dam_concrete"
+  },
+  "X": {
+   "item": "realpower:steel_ingot"
+  }
+ },
+ "result": {
+  "id": "realpower:dam_wall_industrial",
+  "count": 1
+ }
+}

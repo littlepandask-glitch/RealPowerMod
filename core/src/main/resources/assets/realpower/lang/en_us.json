@@ -154,10 +154,11 @@
   "goggles.realpower.hydro": "Head: %1$s m | Flow: %2$s m3/s | Lake: %3$s m2",
   "block.realpower.control_room": "Control Room",
   "block.realpower.structure_hollow": "Multiblock Hollow Cell",
-  "item.realpower.dam_builder": "Dam Builder",
-  "message.realpower.dam_builder.wall": "Wall for %1$s powerhouse (%2$s x %3$s x %4$s)",
-  "message.realpower.dam_builder.crest": "Crest for %1$s powerhouse (%2$s x %3$s x %4$s)",
-  "message.realpower.dam_builder.mode": "Module: %1$s - %2$s cubes",
-  "message.realpower.dam_builder.blocked": "Something is in the way of the module",
-  "message.realpower.dam_builder.missing": "Not enough cubes in the inventory (%s needed)"
+  "item.realpower.dam_wall_industrial": "Dam Wall Module (Industrial)",
+  "item.realpower.dam_crest_industrial": "Dam Crest Module (Industrial)",
+  "item.realpower.dam_wall_high_voltage": "Dam Wall Module (High Voltage)",
+  "item.realpower.dam_crest_high_voltage": "Dam Crest Module (High Voltage)",
+  "item.realpower.dam_wall_advanced": "Dam Wall Module (Advanced)",
+  "item.realpower.dam_crest_advanced": "Dam Crest Module (Advanced)",
+  "message.realpower.dam_module.blocked": "Something is in the way of the module"
 }
