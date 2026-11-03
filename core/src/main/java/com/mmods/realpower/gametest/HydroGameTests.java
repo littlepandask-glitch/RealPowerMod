@@ -8,6 +8,7 @@ import com.mmods.realpower.cable.PowerStructureBlock;
 import com.mmods.realpower.multiblock.hydro.HydroPhysics;
 import com.mmods.realpower.multiblock.hydro.HydroUnitBlock;
 import com.mmods.realpower.multiblock.hydro.HydroUnitBlockEntity;
+import com.mmods.realpower.multiblock.hydro.TerraformJob;
 import com.mmods.realpower.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -207,5 +208,32 @@ public final class HydroGameTests {
             helper.assertTrue(TestEnergySink.RECEIVED.get(sink) == 0L, "comporta fechada ainda entregou " + TestEnergySink.RECEIVED.get(sink));
             helper.succeed();
         });
+    }
+
+    /** Escavar remove a caixa (preservando o que esta fora e maquinas); aterrar a preenche so onde esta livre. */
+    @GameTest(template = "empty", timeoutTicks = 100, batch = "hydro")
+    public static void terraformerDigsAndFillsABox(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos a = helper.absolutePos(new BlockPos(2, 2, 2));
+        BlockPos b = helper.absolutePos(new BlockPos(7, 5, 6));
+        for (int x = 1; x <= 8; x++) {
+            for (int y = 1; y <= 6; y++) {
+                for (int z = 1; z <= 7; z++) {
+                    level.setBlock(helper.absolutePos(new BlockPos(x, y, z)), Blocks.STONE.defaultBlockState(), 2);
+                }
+            }
+        }
+        level.setBlock(helper.absolutePos(new BlockPos(4, 3, 4)), Blocks.CHEST.defaultBlockState(), 2);
+        TerraformJob dig = new TerraformJob(level, a, b, false, null);
+        helper.assertTrue(dig.advance(100_000), "escavacao devia terminar");
+        helper.assertTrue(level.getBlockState(helper.absolutePos(new BlockPos(3, 3, 3))).isAir(), "caixa nao foi escavada");
+        helper.assertTrue(level.getBlockState(helper.absolutePos(new BlockPos(1, 3, 3))).is(Blocks.STONE), "escavou fora da caixa");
+        helper.assertTrue(level.getBlockState(helper.absolutePos(new BlockPos(4, 3, 4))).is(Blocks.CHEST), "removeu bloco com entidade");
+        helper.assertTrue(dig.changed() == 6 * 4 * 5 - 1, "alterados = " + dig.changed());
+        TerraformJob fill = new TerraformJob(level, a, b, true, null);
+        helper.assertTrue(fill.advance(100_000), "aterro devia terminar");
+        helper.assertTrue(level.getBlockState(helper.absolutePos(new BlockPos(3, 3, 3))).is(Blocks.STONE), "caixa nao foi aterrada");
+        helper.assertTrue(level.getBlockState(helper.absolutePos(new BlockPos(4, 3, 4))).is(Blocks.CHEST), "aterro cobriu bloco com entidade");
+        helper.succeed();
     }
 }

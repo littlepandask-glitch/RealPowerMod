@@ -137,5 +137,18 @@
   "block.realpower.hydro_unit_high_voltage": "High-Voltage Hydro Powerhouse",
   "block.realpower.hydro_unit_advanced": "Advanced Hydro Powerhouse",
   "block.realpower.hydro_structure": "Powerhouse Structure",
-  "block.realpower.hydro_port": "Powerhouse Power Port"
+  "block.realpower.hydro_port": "Powerhouse Power Port",
+  "item.realpower.terraformer": "Terraformer",
+  "message.realpower.terraform.corner_a": "Corner A set at %s. Right-click a second block to set corner B",
+  "message.realpower.terraform.corner_b": "Box %1$s x %2$s x %3$s (%4$s). Right-click in the air to run; sneak + right-click in the air changes mode",
+  "message.realpower.terraform.cleared": "Selection cleared",
+  "message.realpower.terraform.too_big": "Box too big: each side can be at most %s blocks",
+  "message.realpower.terraform.mode_dig": "excavate",
+  "message.realpower.terraform.mode_fill": "fill",
+  "message.realpower.terraform.mode_dig_set": "Mode: excavate (removes blocks, no drops)",
+  "message.realpower.terraform.mode_fill_set": "Mode: fill (uses stone, cobblestone or dirt from the inventory)",
+  "message.realpower.terraform.started": "Terraforming started",
+  "message.realpower.terraform.need_box": "Mark two corners first: right-click two blocks",
+  "message.realpower.terraform.done": "Terraforming finished: %s blocks changed",
+  "message.realpower.terraform.no_material": "Out of fill material (stone, cobblestone or dirt)"
 }

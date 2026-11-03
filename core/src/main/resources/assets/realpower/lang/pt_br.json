@@ -137,5 +137,18 @@
   "block.realpower.hydro_unit_high_voltage": "Casa de Força Hidrelétrica de Alta Tensão",
   "block.realpower.hydro_unit_advanced": "Casa de Força Hidrelétrica Avançado",
   "block.realpower.hydro_structure": "Estrutura da Casa de Força",
-  "block.realpower.hydro_port": "Porta de Energia da Casa de Força"
+  "block.realpower.hydro_port": "Porta de Energia da Casa de Força",
+  "item.realpower.terraformer": "Terraformador",
+  "message.realpower.terraform.corner_a": "Canto A marcado em %s. Clique direito em outro bloco para marcar o canto B",
+  "message.realpower.terraform.corner_b": "Caixa %1$s x %2$s x %3$s (%4$s). Clique direito no ar executa; agachado + clique direito no ar troca o modo",
+  "message.realpower.terraform.cleared": "Seleção limpa",
+  "message.realpower.terraform.too_big": "Caixa grande demais: cada lado pode ter no máximo %s blocos",
+  "message.realpower.terraform.mode_dig": "escavar",
+  "message.realpower.terraform.mode_fill": "aterrar",
+  "message.realpower.terraform.mode_dig_set": "Modo: escavar (remove blocos, sem itens)",
+  "message.realpower.terraform.mode_fill_set": "Modo: aterrar (usa pedra, pedregulho ou terra do inventário)",
+  "message.realpower.terraform.started": "Terraformação iniciada",
+  "message.realpower.terraform.need_box": "Marque dois cantos antes: clique direito em dois blocos",
+  "message.realpower.terraform.done": "Terraformação concluída: %s blocos alterados",
+  "message.realpower.terraform.no_material": "Sem material de aterro (pedra, pedregulho ou terra)"
 }

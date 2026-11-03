@@ -1,0 +1,24 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "redstone",
+ "pattern": [
+  "CIC",
+  " S ",
+  " S "
+ ],
+ "key": {
+  "C": {
+   "item": "realpower:dam_concrete"
+  },
+  "I": {
+   "item": "minecraft:iron_pickaxe"
+  },
+  "S": {
+   "item": "realpower:steel_ingot"
+  }
+ },
+ "result": {
+  "id": "realpower:terraformer",
+  "count": 1
+ }
+}

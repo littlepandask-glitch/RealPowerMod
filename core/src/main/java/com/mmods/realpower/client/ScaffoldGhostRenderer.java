@@ -149,7 +149,7 @@ public final class ScaffoldGhostRenderer {
         };
     }
 
-    private static void filledBox(Matrix4f pose, VertexConsumer c, AABB b, float r, float g, float bl, float a) {
+    static void filledBox(Matrix4f pose, VertexConsumer c, AABB b, float r, float g, float bl, float a) {
         float x0 = (float) b.minX, y0 = (float) b.minY, z0 = (float) b.minZ;
         float x1 = (float) b.maxX, y1 = (float) b.maxY, z1 = (float) b.maxZ;
         quad(pose, c, x0, y0, z0, x1, y0, z0, x1, y0, z1, x0, y0, z1, r, g, bl, a); // baixo

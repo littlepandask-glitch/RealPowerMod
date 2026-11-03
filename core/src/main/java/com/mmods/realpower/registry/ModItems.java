@@ -3,6 +3,7 @@ package com.mmods.realpower.registry;
 import com.mmods.realpower.RealPower;
 import com.mmods.realpower.api.tier.Tier;
 import com.mmods.realpower.item.EngineerGogglesItem;
+import com.mmods.realpower.item.TerraformerItem;
 import com.mmods.realpower.item.WrenchItem;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -60,6 +61,7 @@ public final class ModItems {
     public static final DeferredItem<EngineerGogglesItem> ENGINEER_GOGGLES =
             ITEMS.registerItem("engineer_goggles", EngineerGogglesItem::new);
     public static final DeferredItem<WrenchItem> WRENCH = ITEMS.registerItem("wrench", WrenchItem::new);
+    public static final DeferredItem<TerraformerItem> TERRAFORMER = ITEMS.registerItem("terraformer", TerraformerItem::new);
 
     private ModItems() {
     }
