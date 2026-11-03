@@ -133,13 +133,14 @@ public class HydroUnitBlock extends BaseEntityBlock implements Tiered, Structure
                 && Math.abs(local[1]) <= (size[2] - 1) / 2 && (local[0] != 0 || local[1] != 0 || local[2] != 0);
     }
 
-    /** Duas portas de energia, no chao, nos cantos do lado de jusante (canal de fuga). */
+    /** Duas portas de energia, nas paredes laterais do fundo do salao (fora do caminho da agua de jusante). */
     public List<BlockPos> portCells(BlockPos base, BlockState state) {
         int[] size = size(tier);
         Direction facing = state.getValue(FACING);
         int halfW = (size[0] - 1) / 2;
         int halfD = (size[2] - 1) / 2;
-        return List.of(CableBlock.rotate(base, facing, -halfW, -halfD, 0), CableBlock.rotate(base, facing, halfW, -halfD, 0));
+        int lz = halfD - HydroLayout.wallCells(size[2]);
+        return List.of(CableBlock.rotate(base, facing, -halfW, lz, 1), CableBlock.rotate(base, facing, halfW, lz, 1));
     }
 
     /** Sentido do lago (montante): oposto ao canal de fuga. */
@@ -174,7 +175,7 @@ public class HydroUnitBlock extends BaseEntityBlock implements Tiered, Structure
                         if (!level.isLoaded(cell)) {
                             continue;
                         }
-                        boolean port = y == 0 && Math.abs(lx) == halfW && lz == -halfD;
+                        boolean port = HydroLayout.port(size[0], size[2], lx, lz, y);
                         Block wanted = port ? ModBlocks.HYDRO_PORT.get()
                                 : HydroLayout.solid(size[0], size[1], size[2], lx, lz, y) ? ModBlocks.HYDRO_STRUCTURE.get()
                                 : ModBlocks.STRUCTURE_HOLLOW.get();
@@ -196,7 +197,7 @@ public class HydroUnitBlock extends BaseEntityBlock implements Tiered, Structure
     }
 
     /** Abre (agua passando da tomada ao canal de fuga) ou fecha (de volta a parede e ao patio) o conduto da unidade. */
-    public void setConduit(Level level, BlockPos base, BlockState state, boolean open) {
+    public void setConduit(Level level, BlockPos base, BlockState state, double opening) {
         int[] size = size(tier);
         int halfD = (size[2] - 1) / 2;
         Direction facing = state.getValue(FACING);
@@ -214,7 +215,7 @@ public class HydroUnitBlock extends BaseEntityBlock implements Tiered, Structure
                             continue;
                         }
                         BlockState current = level.getBlockState(cell);
-                        if (open) {
+                        if (HydroLayout.conduitWater(size[0], size[1], size[2], lx, lz, y, opening)) {
                             if (current.getBlock() instanceof PowerStructureBlock || current.canBeReplaced()
                                     || current.is(net.minecraft.world.level.block.Blocks.WATER) && !current.getFluidState().isSource()) {
                                 level.setBlock(cell, net.minecraft.world.level.block.Blocks.WATER.defaultBlockState(), Block.UPDATE_ALL);

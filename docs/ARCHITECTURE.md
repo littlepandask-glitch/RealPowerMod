@@ -164,4 +164,5 @@ depois sem reescrever receitas. O aco do mod e registrado em `c:ingots/steel`.
 - `DamScan`: a contagem da area do lago ignora chunks descarregados na borda (nao aborta mais a varredura).
 - `HydroLayout.conduit`: a agua sai por todo o patio de jusante (largura inteira, y=1); a tomada continua um conduto central.
 - Comporta: slider no menu (botoes 1..101 do `HydroMenu` -> `HydroUnitBlockEntity.setGate` = `limit`); `gateOpening()` = limite quando formada e ligada, e o renderer sobe a comporta proporcionalmente.
+- Agua: `HydroLayout.conduitWater` enche a camara do rotor (o salao na largura da janela) e a janela da fachada ate a verga, de baixo para cima, conforme a abertura da comporta (`waterLevel`); o tubo forcado e o patio enchem assim que ha abertura. Portas de energia (`HydroLayout.port`) nas paredes laterais do fundo do salao, y=1, longe do caminho da agua.
 

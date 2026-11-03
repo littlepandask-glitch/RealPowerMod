@@ -84,7 +84,7 @@ public class HydroUnitBlockEntity extends AbstractGeneratorBlockEntity implement
         if (level.isClientSide) {
             return;
         }
-        block().setConduit(level, pos, getBlockState(), generating());
+        block().setConduit(level, pos, getBlockState(), generating() ? gateOpening() : 0.0);
     }
 
     /** Abertura da comporta (0..1): o percentual escolhido no menu (ou pelo computador), fechada se a usina esta desligada ou desfeita. */

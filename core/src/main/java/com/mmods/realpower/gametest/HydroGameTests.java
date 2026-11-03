@@ -150,7 +150,7 @@ public final class HydroGameTests {
                     helper.assertTrue(block.containsCell(base, state, cell), what + ": containsCell recusou " + cell);
                     if (level.getBlockState(cell).is(ModBlocks.HYDRO_PORT.get())) {
                         ports++;
-                        helper.assertTrue(cell.getY() == base.getY(), what + ": porta fora do chao");
+                        helper.assertTrue(cell.getY() == base.getY() + 1, what + ": porta fora do lugar");
                     }
                 }
                 helper.assertTrue(ports == 2, what + ": portas = " + ports);
@@ -197,8 +197,8 @@ public final class HydroGameTests {
             }
         }
         level.setBlock(base, state, 3);
-        BlockPos cable = helper.absolutePos(new BlockPos(5, 2, 3));
-        BlockPos sink = helper.absolutePos(new BlockPos(5, 2, 2));
+        BlockPos cable = helper.absolutePos(new BlockPos(4, 3, 9));
+        BlockPos sink = helper.absolutePos(new BlockPos(3, 3, 9));
         level.setBlock(sink, Blocks.GOLD_BLOCK.defaultBlockState(), 3);
         level.setBlock(cable, ModBlocks.node(CableKind.CABLE, Tier.INDUSTRIAL).get().defaultBlockState(), 3);
         TestEnergySink.RECEIVED.put(sink, 0L);
@@ -450,7 +450,13 @@ public final class HydroGameTests {
         BlockPos outlet = com.mmods.realpower.cable.CableBlock.rotate(base, Direction.NORTH, 0, -halfD, 1);
         BlockPos beside = com.mmods.realpower.cable.CableBlock.rotate(base, Direction.NORTH, 1, halfD, 2);
         helper.assertTrue(level.getBlockState(wallCell).getBlock() instanceof PowerStructureBlock, "parede devia estar fechada");
-        block.setConduit(level, base, state, true);
+        block.setConduit(level, base, state, 0.3);
+        BlockPos chamberLow = com.mmods.realpower.cable.CableBlock.rotate(base, Direction.NORTH, 0, -halfD + 3, 1);
+        BlockPos windowTop = com.mmods.realpower.cable.CableBlock.rotate(base, Direction.NORTH, 0, -halfD + 2, com.mmods.realpower.multiblock.hydro.HydroLayout.topWater(size[1]));
+        helper.assertTrue(level.getBlockState(chamberLow).is(Blocks.WATER), "a camara do rotor devia ter agua no fundo");
+        helper.assertTrue(!level.getBlockState(windowTop).is(Blocks.WATER), "a janela nao devia estar cheia com a comporta a 30%");
+        block.setConduit(level, base, state, 1.0);
+        helper.assertTrue(level.getBlockState(windowTop).is(Blocks.WATER), "a janela devia encher com a comporta aberta");
         helper.assertTrue(level.getBlockState(wallCell).is(Blocks.WATER), "falta agua na tomada");
         helper.assertTrue(level.getBlockState(outlet).is(Blocks.WATER), "falta agua na saida");
         helper.assertTrue(level.getBlockState(beside).getBlock() instanceof PowerStructureBlock, "a tomada nao devia alargar");
@@ -462,7 +468,7 @@ public final class HydroGameTests {
         helper.assertTrue(level.getBlockState(base).getBlock() == state.getBlock(), "unidade quebrou ao abrir");
         block.ensureStructure(level, base, state);
         helper.assertTrue(level.getBlockState(wallCell).is(Blocks.WATER), "o reparo devia respeitar o conduto aberto");
-        block.setConduit(level, base, state, false);
+        block.setConduit(level, base, state, 0.0);
         helper.assertTrue(level.getBlockState(wallCell).getBlock() instanceof PowerStructureBlock, "parede devia voltar");
         helper.assertTrue(level.getBlockState(outlet).getBlock() instanceof PowerStructureBlock, "patio devia voltar");
         helper.succeed();

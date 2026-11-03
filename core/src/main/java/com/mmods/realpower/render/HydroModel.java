@@ -57,12 +57,11 @@ public final class HydroModel {
 
     /** Posicao z do eixo da turbina e do gerador, no meio do salao. */
     public static double axisZ(int d) {
-        return (APRON - wallThickness(d)) / 2.0;
+        return HydroLayout.axisZ(d);
     }
 
     private static double spiralRadius(int w, int d) {
-        double hallLength = d - wallThickness(d) - APRON;
-        return Math.max(1.0, Math.min(w, hallLength) * 0.30);
+        return HydroLayout.spiralRadius(w, d);
     }
 
     /** Cilindro horizontal ao longo de z. */
@@ -160,19 +159,24 @@ public final class HydroModel {
         b.box(v(0, hall + 0.5, (frontZ + backZ) / 2 - 0.15), w + 0.4, 1.0, length + 0.3, ROOF);
         b.box(v(0, hall + 1.04, (frontZ + backZ) / 2 - 0.15), w + 0.6, 0.08, length + 0.5, CONCRETE_DARK);
 
-        // canal de fuga na frente do salao e as duas portas de energia nos cantos
+        // canal de fuga na frente do salao
         double tail = Math.max(1.0, hw - 1.6);
         b.box(v(0, 1.03, -hd + APRON / 2), tail * 2, 0.06, APRON, WATER);
         for (int sx = -1; sx <= 1; sx += 2) {
             b.box(v(sx * (tail + 0.15), 1.1, -hd + APRON / 2), 0.3, 0.2, APRON, CONCRETE_DARK);
+        }
+
+        // as duas portas de energia, nas paredes laterais do fundo do salao
+        for (int sx = -1; sx <= 1; sx += 2) {
             double px = sx * (hw - 0.5);
-            double pz = -(hd - 0.5);
-            b.box(v(px, 0.5, pz), 1.02, 1.02, 1.02, STEEL);
-            b.box(v(px, 1.01, pz), 1.04, 0.06, 1.04, STEEL_DARK);
+            double pz = (d - 1) / 2 - t;
+            b.box(v(px, 1.5, pz), 1.02, 1.02, 1.02, STEEL);
+            b.box(v(px, 2.01, pz), 1.04, 0.06, 1.04, STEEL_DARK);
             b.glow(true);
-            IndustrialStyle.cylinder(b, px, pz, 1.04, 1.1, 0.26, palette.accent());
-            b.box(v(px + sx * 0.52, 0.5, pz), 0.06, 0.6, 0.6, palette.accent());
-            b.box(v(px, 0.5, pz - 0.52), 0.6, 0.6, 0.06, palette.accent());
+            IndustrialStyle.cylinder(b, px, pz, 2.04, 2.1, 0.26, palette.accent());
+            b.box(v(px + sx * 0.52, 1.5, pz), 0.06, 0.6, 0.6, palette.accent());
+            b.box(v(px, 1.5, pz - 0.52), 0.6, 0.6, 0.06, palette.accent());
+            b.box(v(px, 1.5, pz + 0.52), 0.6, 0.6, 0.06, palette.accent());
             b.glow(false);
         }
 
