@@ -71,7 +71,7 @@ public final class ModBlocks {
             BlockBehaviour.Properties.of().strength(1.5F, 3.0F).sound(SoundType.METAL).noOcclusion().noLootTable());
     public static final DeferredBlock<PowerStructureBlock> TOWER_STRUCTURE = BLOCKS.registerBlock("tower_structure",
             properties -> new PowerStructureBlock(properties, PowerStructureBlock.Variant.TOWER),
-            BlockBehaviour.Properties.of().strength(1.5F, 3.0F).sound(SoundType.METAL).noOcclusion().noLootTable());
+            BlockBehaviour.Properties.of().strength(1.5F, 3.0F).sound(SoundType.METAL).noOcclusion().forceSolidOn().noLootTable());
     public static final DeferredBlock<PowerStructureBlock> TRANSFORMER_STRUCTURE = BLOCKS.registerBlock("transformer_structure",
             properties -> new PowerStructureBlock(properties, PowerStructureBlock.Variant.BULK),
             BlockBehaviour.Properties.of().strength(3.0F, 6.0F).sound(SoundType.METAL).noOcclusion().noLootTable());
@@ -126,7 +126,7 @@ public final class ModBlocks {
     /** Celula oca de um multibloco por onde se anda (sem colisao nem selecao); parte do conjunto como as demais. */
     public static final DeferredBlock<PowerStructureBlock> STRUCTURE_HOLLOW = BLOCKS.registerBlock("structure_hollow",
             properties -> new PowerStructureBlock(properties, PowerStructureBlock.Variant.HOLLOW),
-            BlockBehaviour.Properties.of().strength(6.0F, 30.0F).sound(SoundType.STONE).noOcclusion().noLootTable());
+            BlockBehaviour.Properties.of().strength(6.0F, 30.0F).sound(SoundType.STONE).noOcclusion().forceSolidOn().noLootTable());
 
     /** Casa de forca da barragem (unidade geradora) por tier, com preenchimento invisivel e portas de energia. */
     public static final Map<Tier, DeferredBlock<HydroUnitBlock>> HYDRO_UNITS = new LinkedHashMap<>();

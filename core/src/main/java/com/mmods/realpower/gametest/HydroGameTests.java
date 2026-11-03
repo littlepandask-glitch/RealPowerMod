@@ -3,6 +3,7 @@ package com.mmods.realpower.gametest;
 import com.mmods.realpower.RealPower;
 import com.mmods.realpower.api.tier.Tier;
 import com.mmods.realpower.computer.ControlRoomBlock;
+import com.mmods.realpower.item.DamBuilderItem;
 import com.mmods.realpower.multiblock.hydro.DamCrestBlock;
 import com.mmods.realpower.multiblock.hydro.DamScan;
 import com.mmods.realpower.cable.CableKind;
@@ -18,6 +19,7 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -260,18 +262,67 @@ public final class HydroGameTests {
         helper.succeed();
     }
 
-    /** O modulo de crista acompanha o muro vizinho e deixa andar por cima com guarda-corpo. */
+    /** O modulo de crista tem guarda-corpo so na borda escolhida e deixa o resto livre para andar. */
     @GameTest(template = "empty", timeoutTicks = 100, batch = "hydro")
-    public static void crestFollowsTheWallAxis(GameTestHelper helper) {
+    public static void crestRailOnlyOnItsEdge(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        BlockPos start = helper.absolutePos(new BlockPos(3, 2, 3));
-        for (int i = 0; i < 3; i++) {
-            level.setBlock(start.offset(0, 0, i), ModBlocks.DAM_CONCRETE.get().defaultBlockState(), 2);
-        }
-        BlockState crest = ModBlocks.DAM_CREST.get().defaultBlockState().setValue(DamCrestBlock.AXIS, Direction.Axis.Z);
-        helper.assertTrue(crest.getValue(DamCrestBlock.AXIS) == Direction.Axis.Z, "eixo");
-        helper.assertTrue(crest.getCollisionShape(level, start, CollisionContext.empty()).max(Direction.Axis.Y) > 1.0, "guarda-corpo sem colisao acima do piso");
+        BlockPos pos = helper.absolutePos(new BlockPos(3, 2, 3));
+        BlockState plain = ModBlocks.DAM_CREST.get().defaultBlockState();
+        BlockState railed = plain.setValue(DamCrestBlock.RAIL, DamCrestBlock.Rail.NORTH);
+        helper.assertTrue(plain.getCollisionShape(level, pos, CollisionContext.empty()).max(Direction.Axis.Y) == 1.0, "crista sem guarda-corpo devia ser cubo");
+        helper.assertTrue(railed.getCollisionShape(level, pos, CollisionContext.empty()).max(Direction.Axis.Y) > 1.0, "guarda-corpo sem colisao acima do piso");
         helper.succeed();
+    }
+
+    /** O construtor poe o muro e a crista na escala da casa de forca e a varredura aceita o muro construido. */
+    @GameTest(template = "empty", timeoutTicks = 100, batch = "hydro")
+    public static void builderPlacesModulesAtUnitScale(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos origin = helper.absolutePos(new BlockPos(8, 2, 8));
+        for (var module : DamBuilderItem.MODULES) {
+            var cells = DamBuilderItem.cells(origin, Direction.SOUTH, module);
+            for (BlockPos cell : cells) {
+                level.setBlock(cell, Blocks.AIR.defaultBlockState(), 2);
+            }
+            int[] size = HydroUnitBlock.size(module.tier());
+            helper.assertTrue(module.length() == size[0], module + ": largura diferente da casa de forca");
+            helper.assertTrue(cells.size() == module.cubes(), module + ": celulas");
+            helper.assertTrue(DamBuilderItem.place(level, null, origin, Direction.SOUTH, module) == null, module + ": falhou ao colocar");
+            long rails = cells.stream().filter(c -> level.getBlockState(c).hasProperty(DamCrestBlock.RAIL)
+                    && level.getBlockState(c).getValue(DamCrestBlock.RAIL) != DamCrestBlock.Rail.NONE).count();
+            helper.assertTrue(module.kind() == DamBuilderItem.Kind.WALL ? rails == 0 : rails == 2L * module.length(), module + ": guarda-corpos = " + rails);
+            helper.assertTrue(DamBuilderItem.place(level, null, origin, Direction.SOUTH, module) != null, module + ": devia recusar sobre si mesmo");
+            for (BlockPos cell : cells) {
+                level.setBlock(cell, Blocks.AIR.defaultBlockState(), 2);
+            }
+        }
+        helper.succeed();
+    }
+
+    /** Agua ao redor da casa de forca nao pode derrubar a estrutura (celulas ocas nao sao substituiveis por fluido). */
+    @GameTest(template = "empty", timeoutTicks = 100, batch = "hydro")
+    public static void waterDoesNotBreakTheUnit(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos base = helper.absolutePos(new BlockPos(8, 2, 8));
+        BlockState state = unit(Tier.INDUSTRIAL, Direction.NORTH);
+        HydroUnitBlock block = (HydroUnitBlock) state.getBlock();
+        var cells = block.structureCells(base, state);
+        for (BlockPos cell : cells) {
+            level.setBlock(cell, Blocks.AIR.defaultBlockState(), 2);
+        }
+        level.setBlock(base, state, 3);
+        for (BlockPos cell : cells) {
+            helper.assertTrue(!level.getBlockState(cell).canBeReplaced(Fluids.WATER), "celula substituivel por agua em " + cell);
+        }
+        BlockPos spring = base.offset(0, 3, -6);
+        level.setBlock(spring, Blocks.WATER.defaultBlockState(), 3);
+        helper.runAfterDelay(60, () -> {
+            helper.assertTrue(level.getBlockState(base).getBlock() == state.getBlock(), "casa de forca quebrou com a agua");
+            for (BlockPos cell : cells) {
+                helper.assertTrue(level.getBlockState(cell).getBlock() instanceof PowerStructureBlock, "celula perdida em " + cell);
+            }
+            helper.succeed();
+        });
     }
 
     /** A sala de comando forma nas 4 direcoes: volume, 2 portas de dados, porta oca na frente e mesa solida; quebrar limpa tudo. */

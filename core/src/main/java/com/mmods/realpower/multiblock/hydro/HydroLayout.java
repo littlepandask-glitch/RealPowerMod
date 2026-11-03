@@ -14,7 +14,7 @@ public final class HydroLayout {
 
     /** Espessura (celulas) da parede da barragem na face de montante. */
     public static int wallCells(int depth) {
-        return Math.max(2, Math.round(depth * 0.25F));
+        return depth <= 9 ? 3 : depth <= 13 ? 5 : 7;
     }
 
     /** Altura do telhado do salao (indice da celula do telhado). */

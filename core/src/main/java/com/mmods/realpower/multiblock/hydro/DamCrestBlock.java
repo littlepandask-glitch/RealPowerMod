@@ -1,37 +1,70 @@
 package com.mmods.realpower.multiblock.hydro;
 
-import com.mmods.realpower.cable.PowerStructureBlock;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
- * Modulo de crista: passarela de 1 m com guarda-corpo nas duas bordas, no mesmo nivel do topo da casa de forca (a passarela
- * fica na face de cima). {@code AXIS} e o sentido em que a passarela corre; ao colocar, acompanha o muro vizinho.
+ * Cubo de crista: piso de passarela que pode ter um guarda-corpo numa das bordas ({@code RAIL}). O construtor de modulos poe
+ * o guarda-corpo so nas duas bordas externas da crista, deixando o meio livre para andar.
  */
 public class DamCrestBlock extends DamBlock {
     public static final MapCodec<DamCrestBlock> CODEC = simpleCodec(DamCrestBlock::new);
-    public static final EnumProperty<Direction.Axis> AXIS = BlockStateProperties.HORIZONTAL_AXIS;
+    public static final EnumProperty<Rail> RAIL = EnumProperty.create("rail", Rail.class);
 
-    private static final VoxelShape ALONG_X = Shapes.or(Block.box(0, 0, 0, 16, 16, 16),
-            Block.box(0, 16, 0, 16, 24, 2), Block.box(0, 16, 14, 16, 24, 16));
-    private static final VoxelShape ALONG_Z = Shapes.or(Block.box(0, 0, 0, 16, 16, 16),
-            Block.box(0, 16, 0, 2, 24, 16), Block.box(14, 16, 0, 16, 24, 16));
+    /** Borda com guarda-corpo (ou nenhuma). */
+    public enum Rail implements StringRepresentable {
+        NONE("none", null), NORTH("north", Direction.NORTH), EAST("east", Direction.EAST),
+        SOUTH("south", Direction.SOUTH), WEST("west", Direction.WEST);
+
+        private final String id;
+        private final Direction side;
+
+        Rail(String id, Direction side) {
+            this.id = id;
+            this.side = side;
+        }
+
+        public static Rail of(Direction side) {
+            return switch (side) {
+                case NORTH -> NORTH;
+                case EAST -> EAST;
+                case SOUTH -> SOUTH;
+                case WEST -> WEST;
+                default -> NONE;
+            };
+        }
+
+        @Override
+        public String getSerializedName() {
+            return id;
+        }
+    }
+
+    private static final VoxelShape BODY = Block.box(0, 0, 0, 16, 16, 16);
+    private static final VoxelShape[] SHAPES = new VoxelShape[Rail.values().length];
+
+    static {
+        SHAPES[Rail.NONE.ordinal()] = BODY;
+        SHAPES[Rail.NORTH.ordinal()] = Shapes.or(BODY, Block.box(0, 16, 0, 16, 24, 2));
+        SHAPES[Rail.SOUTH.ordinal()] = Shapes.or(BODY, Block.box(0, 16, 14, 16, 24, 16));
+        SHAPES[Rail.WEST.ordinal()] = Shapes.or(BODY, Block.box(0, 16, 0, 2, 24, 16));
+        SHAPES[Rail.EAST.ordinal()] = Shapes.or(BODY, Block.box(14, 16, 0, 16, 24, 16));
+    }
 
     public DamCrestBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(AXIS, Direction.Axis.X));
+        registerDefaultState(stateDefinition.any().setValue(RAIL, Rail.NONE));
     }
 
     @Override
@@ -41,28 +74,17 @@ public class DamCrestBlock extends DamBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(AXIS);
+        builder.add(RAIL);
     }
 
-    /** O muro corre para o lado em que ha vizinhos de muro; sem vizinhos, perpendicular a quem olha. */
+    /** Colocado a mao: guarda-corpo na borda voltada para onde o jogador olha (o lado do lago). */
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        Level level = context.getLevel();
-        BlockPos pos = context.getClickedPos();
-        int alongX = wall(level, pos.east()) + wall(level, pos.west());
-        int alongZ = wall(level, pos.north()) + wall(level, pos.south());
-        Direction.Axis axis = alongX != alongZ ? (alongX > alongZ ? Direction.Axis.X : Direction.Axis.Z)
-                : context.getHorizontalDirection().getAxis() == Direction.Axis.X ? Direction.Axis.Z : Direction.Axis.X;
-        return defaultBlockState().setValue(AXIS, axis);
-    }
-
-    private static int wall(Level level, BlockPos pos) {
-        BlockState state = level.getBlockState(pos);
-        return state.getBlock() instanceof DamBlock || state.getBlock() instanceof PowerStructureBlock ? 1 : 0;
+        return defaultBlockState().setValue(RAIL, Rail.of(context.getHorizontalDirection()));
     }
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return state.getValue(AXIS) == Direction.Axis.X ? ALONG_X : ALONG_Z;
+        return SHAPES[state.getValue(RAIL).ordinal()];
     }
 }

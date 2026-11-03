@@ -36,6 +36,7 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.CONTROL_ROOM.get());
                         output.accept(ModItems.DAM_CONCRETE.get());
                         output.accept(ModItems.DAM_CREST.get());
+                        output.accept(ModItems.DAM_BUILDER.get());
                         ModItems.HYDRO_UNITS.values().forEach(item -> output.accept(item.get()));
                         output.accept(ModItems.SCREEN.get());
                         output.accept(ModItems.DATA_CABLE.get());

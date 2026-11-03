@@ -153,5 +153,11 @@
   "message.realpower.terraform.no_material": "Out of fill material (stone, cobblestone or dirt)",
   "goggles.realpower.hydro": "Head: %1$s m | Flow: %2$s m3/s | Lake: %3$s m2",
   "block.realpower.control_room": "Control Room",
-  "block.realpower.structure_hollow": "Multiblock Hollow Cell"
+  "block.realpower.structure_hollow": "Multiblock Hollow Cell",
+  "item.realpower.dam_builder": "Dam Builder",
+  "message.realpower.dam_builder.wall": "Wall for %1$s powerhouse (%2$s x %3$s x %4$s)",
+  "message.realpower.dam_builder.crest": "Crest for %1$s powerhouse (%2$s x %3$s x %4$s)",
+  "message.realpower.dam_builder.mode": "Module: %1$s - %2$s cubes",
+  "message.realpower.dam_builder.blocked": "Something is in the way of the module",
+  "message.realpower.dam_builder.missing": "Not enough cubes in the inventory (%s needed)"
 }

@@ -1,0 +1,21 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "redstone",
+ "pattern": [
+  "CCC",
+  "CSC",
+  " S "
+ ],
+ "key": {
+  "C": {
+   "item": "realpower:dam_concrete"
+  },
+  "S": {
+   "item": "realpower:steel_ingot"
+  }
+ },
+ "result": {
+  "id": "realpower:dam_builder",
+  "count": 1
+ }
+}

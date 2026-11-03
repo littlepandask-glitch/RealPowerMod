@@ -1,11 +1,44 @@
 {
- "variants": {
-  "axis=x": {
-   "model": "realpower:block/dam_crest"
+ "multipart": [
+  {
+   "apply": {
+    "model": "realpower:block/dam_crest"
+   }
   },
-  "axis=z": {
-   "model": "realpower:block/dam_crest",
-   "y": 90
+  {
+   "when": {
+    "rail": "north"
+   },
+   "apply": {
+    "model": "realpower:block/dam_crest_rail"
+   }
+  },
+  {
+   "when": {
+    "rail": "east"
+   },
+   "apply": {
+    "model": "realpower:block/dam_crest_rail",
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "rail": "south"
+   },
+   "apply": {
+    "model": "realpower:block/dam_crest_rail",
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "rail": "west"
+   },
+   "apply": {
+    "model": "realpower:block/dam_crest_rail",
+    "y": 270
+   }
   }
- }
+ ]
 }
