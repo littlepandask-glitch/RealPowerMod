@@ -128,5 +128,9 @@
   "goggles.realpower.charge": "Carga: %s%%",
   "goggles.realpower.charging": "Carregando: %s FE/t",
   "goggles.realpower.discharging": "Descarregando: %s FE/t",
-  "goggles.realpower.idle": "Parado"
+  "goggles.realpower.idle": "Parado",
+  "block.realpower.dam_concrete": "Módulo de Concreto da Barragem",
+  "block.realpower.dam_crest": "Módulo de Crista da Barragem",
+  "message.realpower.dam.no_water": "Sem água na tomada: forme o lago do lado de montante",
+  "message.realpower.dam.breach": "Parede da barragem aberta em %1$s linhas (a primeira a %2$s m da base): ela deve chegar ao terreno firme nas duas margens"
 }

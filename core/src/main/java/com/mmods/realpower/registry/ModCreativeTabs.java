@@ -32,6 +32,8 @@ public final class ModCreativeTabs {
                         ModItems.CAPACITOR_BANKS.values().forEach(item -> output.accept(item.get()));
                         output.accept(ModItems.COMPUTER_BASIC.get());
                         output.accept(ModItems.COMPUTER_INDUSTRIAL.get());
+                        output.accept(ModItems.DAM_CONCRETE.get());
+                        output.accept(ModItems.DAM_CREST.get());
                         output.accept(ModItems.SCREEN.get());
                         output.accept(ModItems.DATA_CABLE.get());
                         output.accept(ModItems.DATA_PORT.get());

@@ -42,6 +42,8 @@
   "realpower:capacitor_bank_advanced",
   "realpower:capacitor_bank_future",
   "realpower:capacitor_structure",
-  "realpower:capacitor_port"
+  "realpower:capacitor_port",
+  "realpower:dam_concrete",
+  "realpower:dam_crest"
  ]
 }

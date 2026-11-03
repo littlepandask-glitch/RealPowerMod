@@ -13,6 +13,7 @@ import com.mmods.realpower.screen.ScreenBlock;
 import com.mmods.realpower.data.DataPortBlock;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import com.mmods.realpower.multiblock.hydro.DamBlock;
 import com.mmods.realpower.multiblock.wind.TurbineCasingBlock;
 import com.mmods.realpower.multiblock.wind.TurbinePowerPortBlock;
 import com.mmods.realpower.multiblock.wind.WindStructureBlock;
@@ -109,6 +110,12 @@ public final class ModBlocks {
     public static final DeferredBlock<PowerStructureBlock> CAPACITOR_PORT = BLOCKS.registerBlock("capacitor_port",
             properties -> new PowerStructureBlock(properties, PowerStructureBlock.Variant.PORT),
             BlockBehaviour.Properties.of().strength(3.0F, 6.0F).sound(SoundType.METAL).noOcclusion().noLootTable());
+
+    /** Modulos da barragem (concreto armado de 1 m): a parede que fecha o vale para a usina hidreletrica. */
+    public static final DeferredBlock<DamBlock> DAM_CONCRETE = BLOCKS.registerBlock("dam_concrete", DamBlock::new,
+            BlockBehaviour.Properties.of().strength(6.0F, 30.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
+    public static final DeferredBlock<DamBlock> DAM_CREST = BLOCKS.registerBlock("dam_crest", DamBlock::new,
+            BlockBehaviour.Properties.of().strength(6.0F, 30.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
 
     public static final DeferredBlock<ScreenBlock> SCREEN = BLOCKS.registerBlock("screen", ScreenBlock::new,
             BlockBehaviour.Properties.of().strength(1.5F, 3.0F).sound(SoundType.METAL).noOcclusion());
