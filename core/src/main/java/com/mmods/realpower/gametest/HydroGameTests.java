@@ -287,6 +287,9 @@ public final class HydroGameTests {
             int[] size = HydroUnitBlock.size(module.tier());
             helper.assertTrue(module.length() == size[0], module + ": largura diferente da casa de forca");
             helper.assertTrue(cells.size() == module.cubes(), module + ": celulas");
+            var box = DamModuleItem.bounds(origin, Direction.SOUTH, module);
+            helper.assertTrue(cells.stream().allMatch(box::isInside) && box.isInside(origin), module + ": caixa");
+            helper.assertTrue(box.minX() == origin.getX() - (module.length() - 1) && box.minZ() == origin.getZ(), module + ": canto");
             helper.assertTrue(DamModuleItem.place(level, origin, Direction.SOUTH, module) == null, module + ": falhou ao colocar");
             long rails = cells.stream().filter(c -> level.getBlockState(c).hasProperty(DamCrestBlock.RAIL)
                     && level.getBlockState(c).getValue(DamCrestBlock.RAIL) != DamCrestBlock.Rail.NONE).count();
@@ -323,6 +326,29 @@ public final class HydroGameTests {
             }
             helper.succeed();
         });
+    }
+
+    /** Posicionar pelo canto: o ponto clicado vira o canto proximo-esquerdo da pegada, que se estende para a frente e a direita. */
+    @GameTest(template = "empty", timeoutTicks = 20, batch = "hydro")
+    public static void cornerPlacementAnchorsTheFootprint(GameTestHelper helper) {
+        BlockPos corner = helper.absolutePos(new BlockPos(8, 2, 8));
+        for (Tier tier : ModBlocks.HYDRO_UNITS.keySet()) {
+            HydroUnitBlock block = (HydroUnitBlock) unit(tier, Direction.NORTH).getBlock();
+            for (Direction look : Direction.Plane.HORIZONTAL) {
+                BlockPos base = block.baseForCorner(corner, look);
+                var box = block.footprint(base, block.footprintState(look));
+                int[] size = HydroUnitBlock.size(tier);
+                Direction right = look.getClockWise();
+                int sx = look.getStepX() != 0 ? look.getStepX() : right.getStepX();
+                int sz = look.getStepZ() != 0 ? look.getStepZ() : right.getStepZ();
+                String what = tier + " " + look;
+                helper.assertTrue(box.minY() == corner.getY() && box.getYSpan() == size[1], what + ": altura");
+                helper.assertTrue((sx > 0 ? box.minX() : box.maxX()) == corner.getX(), what + ": canto x");
+                helper.assertTrue((sz > 0 ? box.minZ() : box.maxZ()) == corner.getZ(), what + ": canto z");
+                helper.assertTrue(box.getXSpan() * box.getZSpan() == size[0] * size[2], what + ": area");
+            }
+        }
+        helper.succeed();
     }
 
     /** A sala de comando forma nas 4 direcoes: volume, 2 portas de dados, porta oca na frente e mesa solida; quebrar limpa tudo. */

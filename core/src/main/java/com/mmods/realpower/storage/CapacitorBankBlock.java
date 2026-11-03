@@ -106,6 +106,11 @@ public class CapacitorBankBlock extends BaseEntityBlock implements Tiered, Struc
     }
 
     @Override
+    public BlockState footprintState(Direction look) {
+        return defaultBlockState().setValue(FACING, look.getOpposite());
+    }
+
+    @Override
     public boolean hasStructure() {
         return true;
     }

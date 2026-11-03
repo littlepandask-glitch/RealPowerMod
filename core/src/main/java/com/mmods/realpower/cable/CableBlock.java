@@ -142,6 +142,11 @@ public class CableBlock extends BaseEntityBlock implements Tiered, StructureBase
         return state;
     }
 
+    @Override
+    public BlockState footprintState(Direction look) {
+        return defaultBlockState().setValue(FACING, look);
+    }
+
     private boolean hasRoom(Level level, BlockPos pos, BlockState state) {
         for (BlockPos cell : structureCells(pos, state)) {
             if (!level.getBlockState(cell).canBeReplaced() || level.isOutsideBuildHeight(cell)) {

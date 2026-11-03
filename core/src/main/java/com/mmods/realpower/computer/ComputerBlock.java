@@ -91,6 +91,11 @@ public class ComputerBlock extends BaseEntityBlock implements Tiered, StructureB
     }
 
     @Override
+    public BlockState footprintState(Direction look) {
+        return defaultBlockState().setValue(FACING, look.getOpposite());
+    }
+
+    @Override
     public boolean hasStructure() {
         return true;
     }

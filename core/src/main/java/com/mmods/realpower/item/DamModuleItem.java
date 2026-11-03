@@ -60,12 +60,15 @@ public class DamModuleItem extends Item {
         return module;
     }
 
-    /** Celulas do modulo para um clique em {@code origin} (centro da base) olhando para {@code facing}, com o guarda-corpo da crista. */
+    /**
+     * Celulas do modulo com o canto proximo-esquerdo e inferior em {@code origin}: a espessura corre para a frente de quem olha
+     * para {@code facing} e o comprimento para a direita dele.
+     */
     public static List<BlockPos> cells(BlockPos origin, Direction facing, Module module) {
         List<BlockPos> cells = new ArrayList<>(module.cubes());
         Direction lateral = facing.getClockWise();
-        for (int t = -(module.thickness() - 1) / 2; t <= module.thickness() / 2; t++) {
-            for (int l = -(module.length() - 1) / 2; l <= module.length() / 2; l++) {
+        for (int t = 0; t < module.thickness(); t++) {
+            for (int l = 0; l < module.length(); l++) {
                 for (int h = 0; h < module.height(); h++) {
                     cells.add(origin.relative(facing, t).relative(lateral, l).above(h));
                 }
@@ -79,9 +82,8 @@ public class DamModuleItem extends Item {
             return ModBlocks.DAM_CONCRETE.get().defaultBlockState();
         }
         int along = (cell.getX() - origin.getX()) * facing.getStepX() + (cell.getZ() - origin.getZ()) * facing.getStepZ();
-        int edge = (module.thickness() - 1) / 2;
-        DamCrestBlock.Rail rail = along == edge ? DamCrestBlock.Rail.of(facing)
-                : along == -edge ? DamCrestBlock.Rail.of(facing.getOpposite()) : DamCrestBlock.Rail.NONE;
+        DamCrestBlock.Rail rail = along == module.thickness() - 1 ? DamCrestBlock.Rail.of(facing)
+                : along == 0 ? DamCrestBlock.Rail.of(facing.getOpposite()) : DamCrestBlock.Rail.NONE;
         return ModBlocks.DAM_CREST.get().defaultBlockState().setValue(DamCrestBlock.RAIL, rail);
     }
 
@@ -99,7 +101,14 @@ public class DamModuleItem extends Item {
         return null;
     }
 
-    /** Clique direito num bloco: o modulo inteiro e posto ali (a espessura corre na direcao em que o jogador olha). */
+    /** Caixa (em celulas, inclusive) que o modulo ocupa para um canto em {@code origin}. */
+    public static net.minecraft.world.level.levelgen.structure.BoundingBox bounds(BlockPos origin, Direction facing, Module module) {
+        BlockPos far = origin.relative(facing, module.thickness() - 1).relative(facing.getClockWise(), module.length() - 1)
+                .above(module.height() - 1);
+        return net.minecraft.world.level.levelgen.structure.BoundingBox.fromCorners(origin, far);
+    }
+
+    /** Clique direito num bloco: o clique e o canto proximo-esquerdo do modulo, que se estende para a frente e para a direita. */
     @Override
     public InteractionResult useOn(UseOnContext context) {
         Player player = context.getPlayer();
@@ -107,7 +116,7 @@ public class DamModuleItem extends Item {
             return InteractionResult.PASS;
         }
         if (!context.getLevel().isClientSide) {
-            BlockPos origin = context.getClickedPos().relative(context.getClickedFace());
+            BlockPos origin = new net.minecraft.world.item.context.BlockPlaceContext(context).getClickedPos();
             String failure = place(context.getLevel(), origin, player.getDirection(), module);
             if (failure != null) {
                 player.displayClientMessage(Component.translatable(failure), true);

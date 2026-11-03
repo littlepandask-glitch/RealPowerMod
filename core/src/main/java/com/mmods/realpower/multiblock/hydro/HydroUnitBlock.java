@@ -97,6 +97,11 @@ public class HydroUnitBlock extends BaseEntityBlock implements Tiered, Structure
     }
 
     @Override
+    public BlockState footprintState(Direction look) {
+        return defaultBlockState().setValue(FACING, look.getOpposite());
+    }
+
+    @Override
     public boolean hasStructure() {
         return true;
     }

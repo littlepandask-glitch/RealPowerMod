@@ -3,6 +3,7 @@ package com.mmods.realpower.registry;
 import com.mmods.realpower.RealPower;
 import com.mmods.realpower.api.tier.Tier;
 import com.mmods.realpower.item.EngineerGogglesItem;
+import com.mmods.realpower.item.StructureBlockItem;
 import com.mmods.realpower.item.DamModuleItem;
 import com.mmods.realpower.item.TerraformerItem;
 import com.mmods.realpower.item.WrenchItem;
@@ -10,7 +11,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -20,10 +23,15 @@ public final class ModItems {
     public static final DeferredItem<BlockItem> TURBINE_BASE = ITEMS.registerSimpleBlockItem(ModBlocks.TURBINE_BASE);
     public static final DeferredItem<BlockItem> TURBINE_CASING = ITEMS.registerSimpleBlockItem(ModBlocks.TURBINE_CASING);
     /** Itens dos nos da rede eletrica, pelo mesmo id dos blocos. */
-    public static final Map<String, DeferredItem<BlockItem>> NODES = new LinkedHashMap<>();
+    public static final Map<String, DeferredItem<StructureBlockItem>> NODES = new LinkedHashMap<>();
+
+    /** Item de bloco que, se o bloco for um multibloco, e posto pelo canto com previa da area. */
+    private static DeferredItem<StructureBlockItem> structureItem(DeferredBlock<? extends Block> block) {
+        return ITEMS.registerItem(block.getId().getPath(), properties -> new StructureBlockItem(block.get(), properties));
+    }
 
     static {
-        ModBlocks.NODES.forEach((id, block) -> NODES.put(id, ITEMS.registerSimpleBlockItem(block)));
+        ModBlocks.NODES.forEach((id, block) -> NODES.put(id, structureItem(block)));
     }
 
     public static final DeferredItem<BlockItem> INDUSTRIAL_LIGHT = ITEMS.registerSimpleBlockItem(ModBlocks.INDUSTRIAL_LIGHT);
@@ -38,16 +46,16 @@ public final class ModItems {
     public static final DeferredItem<BlockItem> DATA_CABLE = ITEMS.registerSimpleBlockItem(ModBlocks.DATA_CABLE);
     public static final DeferredItem<BlockItem> DATA_PORT = ITEMS.registerSimpleBlockItem(ModBlocks.DATA_PORT);
 
-    public static final Map<Tier, DeferredItem<BlockItem>> CAPACITOR_BANKS = new LinkedHashMap<>();
+    public static final Map<Tier, DeferredItem<StructureBlockItem>> CAPACITOR_BANKS = new LinkedHashMap<>();
 
     static {
-        ModBlocks.CAPACITOR_BANKS.forEach((tier, block) -> CAPACITOR_BANKS.put(tier, ITEMS.registerSimpleBlockItem(block)));
+        ModBlocks.CAPACITOR_BANKS.forEach((tier, block) -> CAPACITOR_BANKS.put(tier, structureItem(block)));
     }
 
-    public static final DeferredItem<BlockItem> COMPUTER_BASIC = ITEMS.registerSimpleBlockItem(ModBlocks.COMPUTER_BASIC);
-    public static final DeferredItem<BlockItem> COMPUTER_INDUSTRIAL = ITEMS.registerSimpleBlockItem(ModBlocks.COMPUTER_INDUSTRIAL);
+    public static final DeferredItem<StructureBlockItem> COMPUTER_BASIC = structureItem(ModBlocks.COMPUTER_BASIC);
+    public static final DeferredItem<StructureBlockItem> COMPUTER_INDUSTRIAL = structureItem(ModBlocks.COMPUTER_INDUSTRIAL);
 
-    public static final DeferredItem<BlockItem> CONTROL_ROOM = ITEMS.registerSimpleBlockItem(ModBlocks.CONTROL_ROOM);
+    public static final DeferredItem<StructureBlockItem> CONTROL_ROOM = structureItem(ModBlocks.CONTROL_ROOM);
 
     public static final DeferredItem<BlockItem> DAM_CONCRETE = ITEMS.registerSimpleBlockItem(ModBlocks.DAM_CONCRETE);
     public static final DeferredItem<BlockItem> DAM_CREST = ITEMS.registerSimpleBlockItem(ModBlocks.DAM_CREST);
@@ -61,10 +69,10 @@ public final class ModItems {
         }
     }
 
-    public static final Map<Tier, DeferredItem<BlockItem>> HYDRO_UNITS = new LinkedHashMap<>();
+    public static final Map<Tier, DeferredItem<StructureBlockItem>> HYDRO_UNITS = new LinkedHashMap<>();
 
     static {
-        ModBlocks.HYDRO_UNITS.forEach((tier, block) -> HYDRO_UNITS.put(tier, ITEMS.registerSimpleBlockItem(block)));
+        ModBlocks.HYDRO_UNITS.forEach((tier, block) -> HYDRO_UNITS.put(tier, structureItem(block)));
     }
 
     public static final DeferredItem<BlockItem> SCREEN = ITEMS.registerSimpleBlockItem(ModBlocks.SCREEN);
