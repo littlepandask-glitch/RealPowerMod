@@ -21,6 +21,7 @@ public final class ClientSetup {
         event.registerBlockEntityRenderer(ModBlockEntities.CABLE.get(), context -> new PowerLineRenderer());
         event.registerBlockEntityRenderer(ModBlockEntities.COMPUTER.get(), context -> new ComputerRenderer());
         event.registerBlockEntityRenderer(ModBlockEntities.CAPACITOR_BANK.get(), context -> new CapacitorBankRenderer());
+        event.registerBlockEntityRenderer(ModBlockEntities.HYDRO_UNIT.get(), context -> new HydroUnitRenderer());
         event.registerBlockEntityRenderer(ModBlockEntities.SCREEN.get(), context -> new ScreenRenderer());
     }
 

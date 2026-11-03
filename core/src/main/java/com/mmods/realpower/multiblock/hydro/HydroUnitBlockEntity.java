@@ -52,6 +52,14 @@ public class HydroUnitBlockEntity extends AbstractGeneratorBlockEntity {
         return lakeArea <= 0 ? 0.0 : Math.max(0.0, lakeSurfaceY - (getBlockPos().getY() + HydroUnitBlock.turbineHeight(tier())));
     }
 
+    /** Carga da turbina (0..1) para a animacao: potencia entregue em relacao a nominal. */
+    public double runFraction() {
+        if (!isFormed() || !enabled()) {
+            return 0.0;
+        }
+        return Math.min(1.0, powerWatts() * limit() / 100.0 / Math.max(1.0, ratedOutputWatts()));
+    }
+
     public int lakeArea() {
         return lakeArea;
     }
