@@ -2,6 +2,8 @@ package com.mmods.realpower.gametest;
 
 import com.mmods.realpower.RealPower;
 import com.mmods.realpower.api.tier.Tier;
+import com.mmods.realpower.computer.ControlRoomBlock;
+import com.mmods.realpower.multiblock.hydro.DamCrestBlock;
 import com.mmods.realpower.multiblock.hydro.DamScan;
 import com.mmods.realpower.cable.CableKind;
 import com.mmods.realpower.cable.PowerStructureBlock;
@@ -17,6 +19,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.shapes.CollisionContext;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -234,6 +237,71 @@ public final class HydroGameTests {
         helper.assertTrue(fill.advance(100_000), "aterro devia terminar");
         helper.assertTrue(level.getBlockState(helper.absolutePos(new BlockPos(3, 3, 3))).is(Blocks.STONE), "caixa nao foi aterrada");
         helper.assertTrue(level.getBlockState(helper.absolutePos(new BlockPos(4, 3, 4))).is(Blocks.CHEST), "aterro cobriu bloco com entidade");
+        helper.succeed();
+    }
+
+    /** Piso, parede e salao sao solidos; o patio de jusante e o ar acima do telhado sao ocos (da para andar e ficar de pe). */
+    @GameTest(template = "empty", timeoutTicks = 100, batch = "hydro")
+    public static void unitHasSolidShellAndWalkableApronAndRoof(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos base = helper.absolutePos(new BlockPos(8, 2, 8));
+        BlockState state = unit(Tier.INDUSTRIAL, Direction.NORTH);
+        level.setBlock(base, state, 3);
+        HydroUnitBlock block = (HydroUnitBlock) state.getBlock();
+        BlockPos apron = base.offset(0, 1, -3);  // patio de jusante (norte), logo acima do piso
+        BlockPos hall = base.offset(0, 2, 0);     // dentro do salao
+        BlockPos roof = base.offset(0, 7, 0);     // sobre o telhado (indice 6), acima do salao
+        BlockPos wall = base.offset(0, 8, 4);     // topo da parede de montante (celula y=8)
+        helper.assertTrue(level.getBlockState(apron).getCollisionShape(level, apron, CollisionContext.empty()).isEmpty(), "patio devia ser oco");
+        helper.assertTrue(!level.getBlockState(hall).getCollisionShape(level, hall, CollisionContext.empty()).isEmpty(), "salao devia ser solido");
+        helper.assertTrue(level.getBlockState(roof).getCollisionShape(level, roof, CollisionContext.empty()).isEmpty(), "ar sobre o telhado devia ser oco");
+        helper.assertTrue(!level.getBlockState(base.offset(0, 6, 0)).getCollisionShape(level, base.offset(0, 6, 0), CollisionContext.empty()).isEmpty(), "telhado devia ser solido");
+        helper.assertTrue(!level.getBlockState(wall).getCollisionShape(level, wall, CollisionContext.empty()).isEmpty(), "topo da parede devia ser solido");
+        helper.succeed();
+    }
+
+    /** O modulo de crista acompanha o muro vizinho e deixa andar por cima com guarda-corpo. */
+    @GameTest(template = "empty", timeoutTicks = 100, batch = "hydro")
+    public static void crestFollowsTheWallAxis(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos start = helper.absolutePos(new BlockPos(3, 2, 3));
+        for (int i = 0; i < 3; i++) {
+            level.setBlock(start.offset(0, 0, i), ModBlocks.DAM_CONCRETE.get().defaultBlockState(), 2);
+        }
+        BlockState crest = ModBlocks.DAM_CREST.get().defaultBlockState().setValue(DamCrestBlock.AXIS, Direction.Axis.Z);
+        helper.assertTrue(crest.getValue(DamCrestBlock.AXIS) == Direction.Axis.Z, "eixo");
+        helper.assertTrue(crest.getCollisionShape(level, start, CollisionContext.empty()).max(Direction.Axis.Y) > 1.0, "guarda-corpo sem colisao acima do piso");
+        helper.succeed();
+    }
+
+    /** A sala de comando forma nas 4 direcoes: volume, 2 portas de dados, porta oca na frente e mesa solida; quebrar limpa tudo. */
+    @GameTest(template = "empty", timeoutTicks = 100, batch = "hydro")
+    public static void controlRoomFormsWithDoorAndDesk(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos base = helper.absolutePos(new BlockPos(8, 2, 8));
+        for (Direction facing : Direction.Plane.HORIZONTAL) {
+            BlockState state = ModBlocks.CONTROL_ROOM.get().defaultBlockState().setValue(ControlRoomBlock.FACING, facing);
+            ControlRoomBlock block = (ControlRoomBlock) state.getBlock();
+            var cells = block.structureCells(base, state);
+            for (BlockPos cell : cells) {
+                level.setBlock(cell, Blocks.AIR.defaultBlockState(), 2);
+            }
+            level.setBlock(base, state, 3);
+            helper.assertTrue(cells.size() == 9 * 5 * 7 - 1, facing + ": celulas = " + cells.size());
+            long ports = cells.stream().filter(c -> level.getBlockState(c).is(ModBlocks.COMPUTER_PORT.get())).count();
+            helper.assertTrue(ports == 2, facing + ": portas = " + ports);
+            BlockPos door = com.mmods.realpower.cable.CableBlock.rotate(base, facing, 0, -3, 1);
+            BlockPos desk = com.mmods.realpower.cable.CableBlock.rotate(base, facing, 0, 2, 1);
+            BlockPos inside = com.mmods.realpower.cable.CableBlock.rotate(base, facing, 0, 0, 1);
+            helper.assertTrue(level.getBlockState(door).getCollisionShape(level, door, CollisionContext.empty()).isEmpty(), facing + ": porta fechada");
+            helper.assertTrue(level.getBlockState(inside).getCollisionShape(level, inside, CollisionContext.empty()).isEmpty(), facing + ": interior solido");
+            helper.assertTrue(!level.getBlockState(desk).getCollisionShape(level, desk, CollisionContext.empty()).isEmpty(), facing + ": mesa sem solido");
+            helper.assertTrue(base.equals(com.mmods.realpower.cable.PowerStructureBlock.findBase(level, desk)), facing + ": findBase da mesa");
+            level.setBlock(base, Blocks.AIR.defaultBlockState(), 3);
+            for (BlockPos cell : cells) {
+                helper.assertTrue(level.getBlockState(cell).isAir(), facing + ": sobrou celula em " + cell);
+            }
+        }
         helper.succeed();
     }
 }

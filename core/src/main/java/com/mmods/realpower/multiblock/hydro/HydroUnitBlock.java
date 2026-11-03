@@ -26,6 +26,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Casa de forca da barragem (unidade geradora): multibloco de tamanho fixo por tier, base no centro do chao. {@code FACING}
@@ -122,31 +123,9 @@ public class HydroUnitBlock extends BaseEntityBlock implements Tiered, Structure
     @Override
     public boolean containsCell(BlockPos base, BlockState state, BlockPos cell) {
         int[] size = size(tier);
-        int dx = cell.getX() - base.getX();
-        int dz = cell.getZ() - base.getZ();
-        int y = cell.getY() - base.getY();
-        int lx;
-        int lz;
-        switch (state.getValue(FACING)) {
-            case EAST -> {
-                lx = dz;
-                lz = -dx;
-            }
-            case SOUTH -> {
-                lx = -dx;
-                lz = -dz;
-            }
-            case WEST -> {
-                lx = -dz;
-                lz = dx;
-            }
-            default -> {
-                lx = dx;
-                lz = dz;
-            }
-        }
-        return y >= 0 && y < size[1] && Math.abs(lx) <= (size[0] - 1) / 2 && Math.abs(lz) <= (size[2] - 1) / 2
-                && (lx != 0 || lz != 0 || y != 0);
+        int[] local = CableBlock.unrotate(base, state.getValue(FACING), cell);
+        return local[2] >= 0 && local[2] < size[1] && Math.abs(local[0]) <= (size[0] - 1) / 2
+                && Math.abs(local[1]) <= (size[2] - 1) / 2 && (local[0] != 0 || local[1] != 0 || local[2] != 0);
     }
 
     /** Duas portas de energia, no chao, nos cantos do lado de jusante (canal de fuga). */
@@ -169,23 +148,37 @@ public class HydroUnitBlock extends BaseEntityBlock implements Tiered, Structure
         return CableBlock.rotate(base, state.getValue(FACING), 0, halfD + 1, 2);
     }
 
-    /** Garante as celulas do conjunto (preenchimento e portas) no lugar certo. */
+    /** Garante as celulas do conjunto: solidas (piso, parede, salao), ocas (patio e ar acima do telhado) e as portas. */
     public void ensureStructure(Level level, BlockPos pos, BlockState state) {
         if (PowerStructureBlock.healing) {
             return;
         }
-        List<BlockPos> ports = portCells(pos, state);
+        int[] size = size(tier);
+        int halfW = (size[0] - 1) / 2;
+        int halfD = (size[2] - 1) / 2;
+        Direction facing = state.getValue(FACING);
         PowerStructureBlock.healing = true;
         try {
-            for (BlockPos cell : structureCells(pos, state)) {
-                if (!level.isLoaded(cell)) {
-                    continue;
-                }
-                boolean port = ports.contains(cell);
-                Block wanted = port ? ModBlocks.HYDRO_PORT.get() : ModBlocks.HYDRO_STRUCTURE.get();
-                BlockState current = level.getBlockState(cell);
-                if (current.getBlock() != wanted && (current.canBeReplaced() || current.getBlock() instanceof PowerStructureBlock)) {
-                    level.setBlock(cell, wanted.defaultBlockState(), port ? Block.UPDATE_ALL : Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
+            for (int y = 0; y < size[1]; y++) {
+                for (int lx = -halfW; lx <= halfW; lx++) {
+                    for (int lz = -halfD; lz <= halfD; lz++) {
+                        if (lx == 0 && lz == 0 && y == 0) {
+                            continue;
+                        }
+                        BlockPos cell = CableBlock.rotate(pos, facing, lx, lz, y);
+                        if (!level.isLoaded(cell)) {
+                            continue;
+                        }
+                        boolean port = y == 0 && Math.abs(lx) == halfW && lz == -halfD;
+                        Block wanted = port ? ModBlocks.HYDRO_PORT.get()
+                                : HydroLayout.solid(size[0], size[1], size[2], lx, lz, y) ? ModBlocks.HYDRO_STRUCTURE.get()
+                                : ModBlocks.STRUCTURE_HOLLOW.get();
+                        BlockState current = level.getBlockState(cell);
+                        if (current.getBlock() != wanted && (current.canBeReplaced() || current.getBlock() instanceof PowerStructureBlock)) {
+                            level.setBlock(cell, wanted.defaultBlockState(),
+                                    port ? Block.UPDATE_ALL : Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
+                        }
+                    }
                 }
             }
         } finally {
@@ -193,11 +186,20 @@ public class HydroUnitBlock extends BaseEntityBlock implements Tiered, Structure
         }
     }
 
+    /** Onde o jogador e posto se ficar preso ao posicionar: no patio de jusante, sobre o piso. */
+    private Vec3 patio(BlockPos base, BlockState state) {
+        int halfD = (size(tier)[2] - 1) / 2;
+        BlockPos spot = CableBlock.rotate(base, state.getValue(FACING), 0, -halfD + 1, 1);
+        return Vec3.atBottomCenterOf(spot);
+    }
+
     @Override
     protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
         super.onPlace(state, level, pos, oldState, movedByPiston);
         if (!level.isClientSide) {
             ensureStructure(level, pos, state);
+            int[] size = size(tier);
+            PowerStructureBlock.relocateStuckPlayers(level, new net.minecraft.world.phys.AABB(pos).inflate(size[0], size[1], size[2]), patio(pos, state));
         }
     }
 

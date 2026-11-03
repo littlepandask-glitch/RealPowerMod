@@ -46,6 +46,8 @@ public final class ModItems {
     public static final DeferredItem<BlockItem> COMPUTER_BASIC = ITEMS.registerSimpleBlockItem(ModBlocks.COMPUTER_BASIC);
     public static final DeferredItem<BlockItem> COMPUTER_INDUSTRIAL = ITEMS.registerSimpleBlockItem(ModBlocks.COMPUTER_INDUSTRIAL);
 
+    public static final DeferredItem<BlockItem> CONTROL_ROOM = ITEMS.registerSimpleBlockItem(ModBlocks.CONTROL_ROOM);
+
     public static final DeferredItem<BlockItem> DAM_CONCRETE = ITEMS.registerSimpleBlockItem(ModBlocks.DAM_CONCRETE);
     public static final DeferredItem<BlockItem> DAM_CREST = ITEMS.registerSimpleBlockItem(ModBlocks.DAM_CREST);
 

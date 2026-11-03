@@ -173,6 +173,19 @@ public class CableBlock extends BaseEntityBlock implements Tiered, StructureBase
         };
     }
 
+    /** Inverso de {@link #rotate}: coordenadas locais {lx, lz, y} de uma posicao mundial. */
+    public static int[] unrotate(BlockPos base, Direction facing, BlockPos cell) {
+        int dx = cell.getX() - base.getX();
+        int dz = cell.getZ() - base.getZ();
+        int y = cell.getY() - base.getY();
+        return switch (facing) {
+            case EAST -> new int[]{dz, -dx, y};
+            case SOUTH -> new int[]{-dx, -dz, y};
+            case WEST -> new int[]{-dz, dx, y};
+            default -> new int[]{dx, dz, y};
+        };
+    }
+
     /** Base do transformador a que a celula de porta {@code port} pertence, ou null. */
     public static BlockPos baseOfPort(BlockGetter level, BlockPos port) {
         for (int dx = -5; dx <= 5; dx++) {

@@ -60,6 +60,11 @@ public class HydroUnitBlockEntity extends AbstractGeneratorBlockEntity {
         return Math.min(1.0, powerWatts() * limit() / 100.0 / Math.max(1.0, ratedOutputWatts()));
     }
 
+    /** Abertura da comporta (0..1): fechada desligada, aberta no limite escolhido. */
+    public double gateOpening() {
+        return enabled() ? limit() / 100.0 : 0.0;
+    }
+
     public int lakeArea() {
         return lakeArea;
     }

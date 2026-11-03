@@ -1,0 +1,24 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "redstone",
+ "pattern": [
+  "DDD",
+  "DCD",
+  "DSD"
+ ],
+ "key": {
+  "D": {
+   "item": "realpower:dam_concrete"
+  },
+  "C": {
+   "item": "realpower:computer_industrial"
+  },
+  "S": {
+   "item": "realpower:steel_ingot"
+  }
+ },
+ "result": {
+  "id": "realpower:control_room",
+  "count": 1
+ }
+}

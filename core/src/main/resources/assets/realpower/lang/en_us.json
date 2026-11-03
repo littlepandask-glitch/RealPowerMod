@@ -151,5 +151,7 @@
   "message.realpower.terraform.need_box": "Mark two corners first: right-click two blocks",
   "message.realpower.terraform.done": "Terraforming finished: %s blocks changed",
   "message.realpower.terraform.no_material": "Out of fill material (stone, cobblestone or dirt)",
-  "goggles.realpower.hydro": "Head: %1$s m | Flow: %2$s m3/s | Lake: %3$s m2"
+  "goggles.realpower.hydro": "Head: %1$s m | Flow: %2$s m3/s | Lake: %3$s m2",
+  "block.realpower.control_room": "Control Room",
+  "block.realpower.structure_hollow": "Multiblock Hollow Cell"
 }

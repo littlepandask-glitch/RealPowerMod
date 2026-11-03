@@ -8,12 +8,14 @@ import com.mmods.realpower.cable.PowerStructureBlock;
 import com.mmods.realpower.computer.ComputerBlock;
 import com.mmods.realpower.storage.CapacitorBankBlock;
 import com.mmods.realpower.computer.ComputerPortBlock;
+import com.mmods.realpower.computer.ControlRoomBlock;
 import com.mmods.realpower.data.DataCableBlock;
 import com.mmods.realpower.screen.ScreenBlock;
 import com.mmods.realpower.data.DataPortBlock;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import com.mmods.realpower.multiblock.hydro.DamBlock;
+import com.mmods.realpower.multiblock.hydro.DamCrestBlock;
 import com.mmods.realpower.multiblock.hydro.HydroUnitBlock;
 import com.mmods.realpower.multiblock.wind.TurbineCasingBlock;
 import com.mmods.realpower.multiblock.wind.TurbinePowerPortBlock;
@@ -87,6 +89,9 @@ public final class ModBlocks {
     /** Computador central (multibloco 3x1x2) e suas celulas: preenchimento invisivel e portas de dados. */
     public static final DeferredBlock<ComputerBlock> COMPUTER_BASIC = computer(Tier.BASIC);
     public static final DeferredBlock<ComputerBlock> COMPUTER_INDUSTRIAL = computer(Tier.INDUSTRIAL);
+    /** Sala de comando: computador em que o jogador entra (usa as celulas do computador). */
+    public static final DeferredBlock<ControlRoomBlock> CONTROL_ROOM = BLOCKS.registerBlock("control_room", ControlRoomBlock::new,
+            BlockBehaviour.Properties.of().strength(4.0F, 12.0F).sound(SoundType.STONE).requiresCorrectToolForDrops().noOcclusion());
     public static final DeferredBlock<PowerStructureBlock> COMPUTER_STRUCTURE = BLOCKS.registerBlock("computer_structure",
             properties -> new PowerStructureBlock(properties, PowerStructureBlock.Variant.BULK),
             BlockBehaviour.Properties.of().strength(3.0F, 6.0F).sound(SoundType.METAL).noOcclusion().noLootTable());
@@ -115,8 +120,13 @@ public final class ModBlocks {
     /** Modulos da barragem (concreto armado de 1 m): a parede que fecha o vale para a usina hidreletrica. */
     public static final DeferredBlock<DamBlock> DAM_CONCRETE = BLOCKS.registerBlock("dam_concrete", DamBlock::new,
             BlockBehaviour.Properties.of().strength(6.0F, 30.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
-    public static final DeferredBlock<DamBlock> DAM_CREST = BLOCKS.registerBlock("dam_crest", DamBlock::new,
+    public static final DeferredBlock<DamCrestBlock> DAM_CREST = BLOCKS.registerBlock("dam_crest", DamCrestBlock::new,
             BlockBehaviour.Properties.of().strength(6.0F, 30.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
+
+    /** Celula oca de um multibloco por onde se anda (sem colisao nem selecao); parte do conjunto como as demais. */
+    public static final DeferredBlock<PowerStructureBlock> STRUCTURE_HOLLOW = BLOCKS.registerBlock("structure_hollow",
+            properties -> new PowerStructureBlock(properties, PowerStructureBlock.Variant.HOLLOW),
+            BlockBehaviour.Properties.of().strength(6.0F, 30.0F).sound(SoundType.STONE).noOcclusion().noLootTable());
 
     /** Casa de forca da barragem (unidade geradora) por tier, com preenchimento invisivel e portas de energia. */
     public static final Map<Tier, DeferredBlock<HydroUnitBlock>> HYDRO_UNITS = new LinkedHashMap<>();

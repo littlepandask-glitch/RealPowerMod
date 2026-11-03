@@ -32,7 +32,7 @@ public class PowerStructureBlock extends Block {
 
     /** Forma do preenchimento: poste (fino e solido), torre (so selecao), volume cheio ou porta de energia. */
     public enum Variant implements StringRepresentable {
-        POLE("pole"), TOWER("tower"), BULK("bulk"), PORT("port");
+        POLE("pole"), TOWER("tower"), BULK("bulk"), PORT("port"), HOLLOW("hollow");
 
         public static final Codec<Variant> CODEC = StringRepresentable.fromEnum(Variant::values);
         private final String id;
@@ -44,6 +44,15 @@ public class PowerStructureBlock extends Block {
         @Override
         public String getSerializedName() {
             return id;
+        }
+    }
+
+    /** Tira jogadores que ficaram presos dentro do volume (ao posicionar) e os leva ate {@code target}. */
+    public static void relocateStuckPlayers(Level level, net.minecraft.world.phys.AABB volume, net.minecraft.world.phys.Vec3 target) {
+        for (Player player : level.getEntitiesOfClass(Player.class, volume)) {
+            if (!level.noCollision(player)) {
+                player.teleportTo(target.x, target.y, target.z);
+            }
         }
     }
 
@@ -73,12 +82,13 @@ public class PowerStructureBlock extends Block {
             case POLE -> POLE;
             case TOWER -> TOWER;
             case BULK, PORT -> Shapes.block();
+            case HOLLOW -> Shapes.empty();
         };
     }
 
     @Override
     protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return variant == Variant.TOWER ? Shapes.empty() : getShape(state, level, pos, context);
+        return variant == Variant.TOWER || variant == Variant.HOLLOW ? Shapes.empty() : getShape(state, level, pos, context);
     }
 
     @Override

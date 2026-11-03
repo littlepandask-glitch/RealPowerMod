@@ -1,7 +1,11 @@
 {
  "variants": {
-  "": {
+  "axis=x": {
    "model": "realpower:block/dam_crest"
+  },
+  "axis=z": {
+   "model": "realpower:block/dam_crest",
+   "y": 90
   }
  }
 }

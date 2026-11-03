@@ -39,7 +39,7 @@ public final class ModBlockEntities {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ComputerBlockEntity>> COMPUTER =
             BLOCK_ENTITIES.register("computer", () -> BlockEntityType.Builder.of(ComputerBlockEntity::new,
-                    ModBlocks.COMPUTER_BASIC.get(), ModBlocks.COMPUTER_INDUSTRIAL.get()).build(null));
+                    ModBlocks.COMPUTER_BASIC.get(), ModBlocks.COMPUTER_INDUSTRIAL.get(), ModBlocks.CONTROL_ROOM.get()).build(null));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CapacitorBankBlockEntity>> CAPACITOR_BANK =
             BLOCK_ENTITIES.register("capacitor_bank", () -> BlockEntityType.Builder.of(CapacitorBankBlockEntity::new,

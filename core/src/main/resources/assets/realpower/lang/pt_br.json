@@ -151,5 +151,7 @@
   "message.realpower.terraform.need_box": "Marque dois cantos antes: clique direito em dois blocos",
   "message.realpower.terraform.done": "Terraformação concluída: %s blocos alterados",
   "message.realpower.terraform.no_material": "Sem material de aterro (pedra, pedregulho ou terra)",
-  "goggles.realpower.hydro": "Queda: %1$s m | Vazão: %2$s m³/s | Lago: %3$s m²"
+  "goggles.realpower.hydro": "Queda: %1$s m | Vazão: %2$s m³/s | Lago: %3$s m²",
+  "block.realpower.control_room": "Sala de Comando",
+  "block.realpower.structure_hollow": "Célula Oca de Multibloco"
 }

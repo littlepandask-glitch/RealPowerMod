@@ -26,7 +26,8 @@ public class HydroUnitRenderer implements BlockEntityRenderer<HydroUnitBlockEnti
     private static final double FULL_SPEED = 18.0;
     private static final Map<Integer, Mesh> BUILDINGS = new HashMap<>();
     private static final Map<Integer, Mesh> ROTORS = new HashMap<>();
-    /** Por unidade: {angulo, ultimo instante}. */
+    private static final Map<Integer, Mesh> GATES = new HashMap<>();
+    /** Por unidade: {angulo, ultimo instante, abertura da comporta}. */
     private static final Map<HydroUnitBlockEntity, double[]> SPIN = new WeakHashMap<>();
 
     @Override
@@ -40,11 +41,13 @@ public class HydroUnitRenderer implements BlockEntityRenderer<HydroUnitBlockEnti
         int key = block.tier().ordinal();
         Mesh building = BUILDINGS.computeIfAbsent(key, k -> HydroModel.powerhouse(size[0], size[1], size[2], turbineY,
                 IndustrialStyle.palette(block.tier().ordinal())));
+        Mesh gate = GATES.computeIfAbsent(key, k -> HydroModel.gate(size[0], size[1], size[2], turbineY));
         Mesh rotor = ROTORS.computeIfAbsent(key, k -> HydroModel.rotor(size[0], size[1], size[2], turbineY));
 
         double now = unit.getLevel().getGameTime() + partialTick;
-        double[] spin = SPIN.computeIfAbsent(unit, u -> new double[]{0.0, now});
+        double[] spin = SPIN.computeIfAbsent(unit, u -> new double[]{0.0, now, unit.gateOpening()});
         spin[0] = (spin[0] + Math.max(0.0, now - spin[1]) * FULL_SPEED * unit.runFraction()) % 360.0;
+        spin[2] += (unit.gateOpening() - spin[2]) * Math.min(1.0, 0.08 * Math.max(0.0, now - spin[1]));
         spin[1] = now;
 
         int lit = LevelRenderer.getLightColor(unit.getLevel(), unit.getBlockPos().above(size[1]));
@@ -53,6 +56,10 @@ public class HydroUnitRenderer implements BlockEntityRenderer<HydroUnitBlockEnti
         pose.translate(0.5, 0.0, 0.5);
         pose.mulPose(Axis.YP.rotationDegrees(180.0F - unit.getBlockState().getValue(HydroUnitBlock.FACING).toYRot()));
         PowerLineRenderer.draw(building, pose, consumer, lit);
+        pose.pushPose();
+        pose.translate(0.0, spin[2] * HydroModel.gateTravel(size[1], turbineY), 0.0);
+        PowerLineRenderer.draw(gate, pose, consumer, lit);
+        pose.popPose();
         pose.translate(0.0, 0.0, HydroModel.axisZ(size[2]));
         pose.mulPose(Axis.YP.rotationDegrees((float) spin[0]));
         PowerLineRenderer.draw(rotor, pose, consumer, lit);

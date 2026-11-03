@@ -49,6 +49,8 @@
   "realpower:hydro_unit_high_voltage",
   "realpower:hydro_unit_advanced",
   "realpower:hydro_structure",
-  "realpower:hydro_port"
+  "realpower:hydro_port",
+  "realpower:control_room",
+  "realpower:structure_hollow"
  ]
 }

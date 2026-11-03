@@ -1,5 +1,6 @@
 package com.mmods.realpower.render;
 
+import com.mmods.realpower.multiblock.hydro.HydroLayout;
 import java.util.List;
 
 /**
@@ -21,8 +22,8 @@ public final class HydroModel {
     private static final float[] YELLOW = {0.82f, 0.66f, 0.12f};
     private static final float[] GENERATOR = {0.20f, 0.37f, 0.47f};
 
-    private static final double WALL = 0.6;
-    private static final double APRON = 1.5;
+    private static final double WALL = 1.0;
+    private static final double APRON = HydroLayout.APRON;
     private static final int SIDES = 10;
 
     private HydroModel() {
@@ -32,13 +33,26 @@ public final class HydroModel {
         return new Vec(x, y, z);
     }
 
-    /** Espessura da parede de montante (a face da barragem, onde fica a tomada d'agua). */
     private static double wallThickness(int d) {
-        return Math.max(2.0, d * 0.25);
+        return HydroLayout.wallCells(d);
     }
 
     private static double hallHeight(int h) {
-        return Math.floor(h * 0.72);
+        return HydroLayout.hallHeight(h);
+    }
+
+    /** Altura da grade da tomada: de {@code y0} a {@code y1}. */
+    private static double intakeBottom() {
+        return 1.0;
+    }
+
+    private static double intakeTop(int h, int turbineY) {
+        return Math.min(h - 1.5, turbineY + 2.2);
+    }
+
+    /** Curso da comporta da tomada: ela sobe a sua propria altura. */
+    public static double gateTravel(int h, int turbineY) {
+        return intakeTop(h, turbineY) - intakeBottom();
     }
 
     /** Posicao z do eixo da turbina e do gerador, no meio do salao. */
@@ -79,7 +93,7 @@ public final class HydroModel {
         double zc = axisZ(d);
         float[] band = {palette.accent()[0] * 0.8f, palette.accent()[1] * 0.8f, palette.accent()[2] * 0.8f};
 
-        b.box(v(0, 0.4, 0), w, 0.8, d, FOUNDATION);
+        b.box(v(0, 0.5, 0), w, 1.0, d, FOUNDATION);
 
         // parede da barragem: corpo da unidade ate a crista
         b.box(v(0, h / 2.0, hd - t / 2), w, h, t, CONCRETE);
@@ -92,17 +106,17 @@ public final class HydroModel {
         }
         b.box(v(0, h - 0.12, hd - t / 2), w + 0.2, 0.24, t + 0.2, CONCRETE_LIGHT);
         for (int side = 0; side < 2; side++) {
-            double z = side == 0 ? hd - 0.15 : backZ + 0.15;
+            double z = side == 0 ? hd - 0.1 : backZ + 0.1;
             for (double x = -hw + 0.3; x <= hw - 0.3 + 1e-6; x += 2.0) {
-                b.beam(v(x, h, z), v(x, h + 1.0, z), 0.08, STEEL);
+                b.beam(v(x, h, z), v(x, h + 0.75, z), 0.08, STEEL);
             }
-            b.beam(v(-hw + 0.3, h + 1.0, z), v(hw - 0.3, h + 1.0, z), 0.08, STEEL);
+            b.beam(v(-hw + 0.3, h + 0.75, z), v(hw - 0.3, h + 0.75, z), 0.08, STEEL);
         }
 
         // tomada d'agua: grade de limpeza na face de montante
         double iw = w * 0.55;
-        double iy0 = 0.9;
-        double iy1 = Math.min(h - 1.5, turbineY + 2.2);
+        double iy0 = intakeBottom();
+        double iy1 = intakeTop(h, turbineY);
         b.box(v(0, (iy0 + iy1) / 2, hd + 0.04), iw, iy1 - iy0, 0.08, RACK);
         for (double x = -iw / 2 + 0.2; x <= iw / 2 - 0.2 + 1e-6; x += 0.4) {
             b.beam(v(x, iy0 + 0.1, hd + 0.1), v(x, iy1 - 0.1, hd + 0.1), 0.06, STEEL);
@@ -116,6 +130,14 @@ public final class HydroModel {
         }
         b.beam(v(-iw / 2, iy1 + 0.1, hd + 0.12), v(iw / 2, iy1 + 0.1, hd + 0.12), 0.2, STEEL_DARK);
 
+        // guias da comporta e cabrestante no topo
+        double travel = iy1 - iy0;
+        for (int sx = -1; sx <= 1; sx += 2) {
+            b.beam(v(sx * (iw / 2 + 0.12), iy0, hd + 0.2), v(sx * (iw / 2 + 0.12), iy1 + travel + 0.4, hd + 0.2), 0.22, STEEL_DARK);
+        }
+        b.box(v(0, iy1 + travel + 0.45, hd + 0.25), iw * 0.7, 0.5, 0.5, YELLOW);
+        b.beam(v(-iw / 2, iy1 + travel + 0.2, hd + 0.2), v(iw / 2, iy1 + travel + 0.2, hd + 0.2), 0.16, STEEL_DARK);
+
         // salao do gerador: paredes laterais, fachada com abertura, telhado
         for (int sx = -1; sx <= 1; sx += 2) {
             b.box(v(sx * (hw - WALL / 2), hall / 2, (frontZ + backZ) / 2), WALL, hall, length, CONCRETE_LIGHT);
@@ -125,32 +147,32 @@ public final class HydroModel {
             }
             b.box(v(sx * (hw + 0.03), hall * 0.28, (frontZ + backZ) / 2), 0.06, 0.3, length, band);
         }
-        double ow = w * 0.62;
+        double ow = HydroLayout.openingCells(w);
         double pillar = (w - ow) / 2;
-        double sill = turbineY + 0.2;
-        double lintel = hall - 0.9;
+        double sill = turbineY;
+        double lintel = hall - 1.0;
         for (int sx = -1; sx <= 1; sx += 2) {
             b.box(v(sx * (ow / 2 + pillar / 2), hall / 2, frontZ + WALL / 2), pillar, hall, WALL, CONCRETE_LIGHT);
         }
         b.box(v(0, sill / 2, frontZ + WALL / 2), ow, sill, WALL, CONCRETE_LIGHT);
         b.box(v(0, (lintel + hall) / 2, frontZ + WALL / 2), ow, hall - lintel, WALL, CONCRETE_LIGHT);
         b.box(v(0, hall * 0.28, frontZ - 0.03), w, 0.3, 0.06, band);
-        b.box(v(0, hall + 0.2, (frontZ + backZ) / 2 - 0.15), w + 0.6, 0.4, length + 0.3, ROOF);
-        b.box(v(0, hall + 0.45, (frontZ + backZ) / 2 - 0.15), w + 0.8, 0.1, length + 0.5, CONCRETE_DARK);
+        b.box(v(0, hall + 0.5, (frontZ + backZ) / 2 - 0.15), w + 0.4, 1.0, length + 0.3, ROOF);
+        b.box(v(0, hall + 1.04, (frontZ + backZ) / 2 - 0.15), w + 0.6, 0.08, length + 0.5, CONCRETE_DARK);
 
         // canal de fuga na frente do salao e as duas portas de energia nos cantos
         double tail = Math.max(1.0, hw - 1.6);
-        b.box(v(0, 0.83, -hd + APRON / 2), tail * 2, 0.06, APRON, WATER);
+        b.box(v(0, 1.03, -hd + APRON / 2), tail * 2, 0.06, APRON, WATER);
         for (int sx = -1; sx <= 1; sx += 2) {
-            b.box(v(sx * (tail + 0.15), 0.9, -hd + APRON / 2), 0.3, 0.2, APRON, CONCRETE_DARK);
+            b.box(v(sx * (tail + 0.15), 1.1, -hd + APRON / 2), 0.3, 0.2, APRON, CONCRETE_DARK);
             double px = sx * (hw - 0.5);
             double pz = -(hd - 0.5);
-            b.box(v(px, 0.45, pz), 0.9, 0.9, 0.9, STEEL);
-            b.box(v(px, 0.9, pz), 0.96, 0.08, 0.96, STEEL_DARK);
+            b.box(v(px, 0.5, pz), 1.02, 1.02, 1.02, STEEL);
+            b.box(v(px, 1.01, pz), 1.04, 0.06, 1.04, STEEL_DARK);
             b.glow(true);
-            IndustrialStyle.cylinder(b, px, pz, 0.98, 1.0, 0.26, palette.accent());
-            b.box(v(px + sx * 0.47, 0.45, pz), 0.06, 0.5, 0.5, palette.accent());
-            b.box(v(px, 0.45, pz - 0.47), 0.5, 0.5, 0.06, palette.accent());
+            IndustrialStyle.cylinder(b, px, pz, 1.04, 1.1, 0.26, palette.accent());
+            b.box(v(px + sx * 0.52, 0.5, pz), 0.06, 0.6, 0.6, palette.accent());
+            b.box(v(px, 0.5, pz - 0.52), 0.6, 0.6, 0.06, palette.accent());
             b.glow(false);
         }
 
@@ -165,7 +187,7 @@ public final class HydroModel {
         double spiralBottom = turbineY - rs * 0.45;
         IndustrialStyle.cylinder(b, 0, zc, spiralBottom, turbineY + rs * 0.45, rs, STEEL);
         IndustrialStyle.cylinder(b, 0, zc, spiralBottom - 0.02, spiralBottom + 0.15, rs + 0.06, STEEL_DARK);
-        IndustrialStyle.cylinder(b, 0, zc, 0.8, spiralBottom, rs * 0.6, CONCRETE_DARK);
+        IndustrialStyle.cylinder(b, 0, zc, 1.0, spiralBottom, rs * 0.6, CONCRETE_DARK);
         double rotorBottom = rotorBottom(turbineY, rs);
         IndustrialStyle.cylinder(b, 0, zc, turbineY + rs * 0.45, rotorBottom - 0.02, rs * 0.9 + 0.12, STEEL_DARK);
 
@@ -177,6 +199,26 @@ public final class HydroModel {
         b.beam(v(-(hw - 0.9), crane + 0.1, zc), v(hw - 0.9, crane + 0.1, zc), 0.3, YELLOW);
         b.box(v(0, crane - 0.25, zc), 0.9, 0.4, 0.9, YELLOW);
         b.beam(v(0, crane - 0.45, zc), v(0, crane - 0.9, zc), 0.05, STEEL_DARK);
+        return b.build();
+    }
+
+    /** Comporta da tomada (painel de aco com nervuras) na posicao fechada; o renderer a sobe pelo curso {@link #gateTravel}. */
+    public static Mesh gate(int w, int h, int d, int turbineY) {
+        Mesh.Builder b = new Mesh.Builder();
+        double hd = d / 2.0;
+        double iw = w * 0.55;
+        double y0 = intakeBottom();
+        double y1 = intakeTop(h, turbineY);
+        double z = hd + 0.2;
+        b.box(v(0, (y0 + y1) / 2, z), iw + 0.1, y1 - y0, 0.2, STEEL);
+        for (int k = 0; k < 4; k++) {
+            double y = y0 + (y1 - y0) * (k + 0.5) / 4;
+            b.beam(v(-iw / 2, y, z + 0.16), v(iw / 2, y, z + 0.16), 0.14, STEEL_DARK);
+        }
+        for (int sx = -1; sx <= 1; sx += 2) {
+            b.box(v(sx * (iw / 2 + 0.02), (y0 + y1) / 2, z), 0.2, y1 - y0, 0.3, STEEL_DARK);
+        }
+        b.box(v(0, y1 + 0.1, z), 0.4, 0.3, 0.3, YELLOW);
         return b.build();
     }
 

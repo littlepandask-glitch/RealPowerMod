@@ -116,7 +116,7 @@ public class ComputerBlock extends BaseEntityBlock implements Tiered, StructureB
     }
 
     /** Garante as celulas do conjunto (preenchimento e portas) no lugar certo. */
-    void ensureStructure(Level level, BlockPos pos, BlockState state) {
+    public void ensureStructure(Level level, BlockPos pos, BlockState state) {
         if (PowerStructureBlock.healing) {
             return;
         }
@@ -143,16 +143,26 @@ public class ComputerBlock extends BaseEntityBlock implements Tiered, StructureB
         super.onPlace(state, level, pos, oldState, movedByPiston);
         if (!level.isClientSide) {
             ensureStructure(level, pos, state);
+            afterPlaced(level, pos, state);
         }
+    }
+
+    /** Gancho apos montar as celulas (ex.: tirar o jogador preso dentro do volume). */
+    protected void afterPlaced(Level level, BlockPos pos, BlockState state) {
     }
 
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock()) && !level.isClientSide) {
-            for (BlockPos cell : structureCells(pos, state)) {
-                if (level.getBlockState(cell).getBlock() instanceof PowerStructureBlock) {
-                    level.removeBlock(cell, false);
+            PowerStructureBlock.healing = true;
+            try {
+                for (BlockPos cell : structureCells(pos, state)) {
+                    if (level.getBlockState(cell).getBlock() instanceof PowerStructureBlock) {
+                        level.removeBlock(cell, false);
+                    }
                 }
+            } finally {
+                PowerStructureBlock.healing = false;
             }
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
