@@ -405,7 +405,8 @@ public final class HydroGameTests {
         int max = com.mmods.realpower.multiblock.hydro.TankPlan.MAX_SIDE;
         helper.assertTrue(plan.width() <= max && plan.length() <= max, "tanque maior que 64x64: " + plan.width() + "x" + plan.length());
         helper.assertTrue((long) plan.width() * plan.length() >= plan.neededArea(), "tanque menor que a vazao nominal");
-        helper.assertTrue(plan.depth() < HydroUnitBlock.size(Tier.ADVANCED)[1], "tanque mais alto que a barragem: " + plan.depth());
+        helper.assertTrue(plan.depth() - HydroUnitBlock.turbineHeight(Tier.ADVANCED) >= HydroPhysics.spec(Tier.ADVANCED).minHead(), "o tanque avancado nao alcanca a queda minima");
+        helper.assertTrue(plan.depth() == HydroUnitBlock.size(Tier.ADVANCED)[1], "profundidade = altura da casa de forca: " + plan.depth());
         helper.succeed();
     }
 

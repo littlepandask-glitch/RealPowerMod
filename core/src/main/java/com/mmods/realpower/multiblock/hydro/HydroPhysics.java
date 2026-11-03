@@ -16,6 +16,7 @@ public final class HydroPhysics {
     public static final double FLOW_PER_SURFACE_BLOCK = 0.175;
 
     /** Dados de projeto de uma turbina: vazao nominal (m3/s) e faixa de queda util (m). */
+    // Queda minima: o tanque de uma casa de forca (profundidade = altura da unidade) ja a alcanca; lagos maiores dao mais queda.
     public record Spec(double ratedFlow, double minHead, double maxHead) {
     }
 
@@ -26,8 +27,8 @@ public final class HydroPhysics {
         return switch (tier) {
             case BASIC -> new Spec(8.0, 4.0, 20.0);
             case INDUSTRIAL -> new Spec(25.0, 6.0, 40.0);
-            case HIGH_VOLTAGE -> new Spec(120.0, 15.0, 80.0);
-            case ADVANCED -> new Spec(700.0, 30.0, 120.0);
+            case HIGH_VOLTAGE -> new Spec(120.0, 9.0, 80.0);
+            case ADVANCED -> new Spec(700.0, 12.0, 120.0);
             case FUTURE -> new Spec(1500.0, 40.0, 160.0);
         };
     }

@@ -9,7 +9,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Tanque (lago de acumulacao) que a barragem precisa: area para a vazao nominal de todas as unidades da parede e profundidade para
- * a queda minima, limitado a {@link #MAX_SIDE} x {@link #MAX_SIDE} por casa de forca e a altura da propria barragem.
+ * a queda minima, de {@link #MIN_SIDE} x {@link #MIN_SIDE} a {@link #MAX_SIDE} x {@link #MAX_SIDE} por casa de forca, com profundidade de ate a altura da casa de forca (ou da barragem, se maior).
  * Coordenadas locais da unidade-referencia: lx lateral, lz para montante (+), y acima do chao da usina.
  *
  * @param lxMin     primeiro lx da agua
@@ -25,6 +25,8 @@ public record TankPlan(BlockPos base, Direction facing, int units, int neededAre
     public static final int WALL = 2;
     /** Lado maximo (blocos) do tanque por casa de forca: desempenho da varredura e dos chunks carregados. */
     public static final int MAX_SIDE = 64;
+    /** Lado minimo (blocos) do tanque da menor casa de forca. */
+    public static final int MIN_SIDE = 16;
     /** Margem lateral, alem das unidades, para os cantos. */
     private static final int MARGIN = 4;
 
@@ -51,11 +53,11 @@ public record TankPlan(BlockPos base, Direction facing, int units, int neededAre
             wanted = Math.max(wanted, HydroUnitBlock.turbineHeight(block.tier()) + (int) Math.ceil(spec.minHead()) + 2);
             unitHeight = Math.max(unitHeight, HydroUnitBlock.size(block.tier())[1]);
         }
-        int depth = Math.max(1, Math.min(wanted, damHeight(level, base, facing, lo, hi, halfD, unitHeight) - 1));
+        int depth = Math.max(1, Math.min(wanted, Math.max(unitHeight, damHeight(level, base, facing, lo, hi, halfD, unitHeight) - 1)));
         int needed = (int) Math.ceil(rated / HydroPhysics.FLOW_PER_SURFACE_BLOCK);
         int span = hi - lo + 1 + 2 * MARGIN;
-        int width = Math.min(Math.max(span, (int) Math.ceil(Math.sqrt(needed))), Math.max(MAX_SIDE, span));
-        int length = (int) Math.ceil(needed / (double) width);
+        int width = Math.min(Math.max(Math.max(span, MIN_SIDE), (int) Math.ceil(Math.sqrt(needed))), Math.max(MAX_SIDE, span));
+        int length = Math.max(MIN_SIDE, (int) Math.ceil(needed / (double) width));
         int center = Math.floorDiv(lo + hi, 2);
         int first = center - (width - 1) / 2;
         return new TankPlan(base, facing, units.size(), needed, first, first + width - 1, halfD + 1, halfD + length,
